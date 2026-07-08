@@ -8,6 +8,10 @@ description: >
 allowed-tools: Read, Write, Bash
 ---
 
+> **Instalação:** copiar esta pasta para `.claude/skills/subir-pagina-top/` no projeto e criar o command apontando para o SKILL.md. Ver [README.md](./README.md) para instruções completas e pré-requisitos.
+
+---
+
 # /subir-pagina-top — LP de Infoproduto do Zero ao Ar
 
 Cria os arquivos de fundação e conduz o deploy completo de uma LP de conversão:

@@ -4,6 +4,10 @@ description: Assistente de compras com pré-pesquisa, comparação de preços mu
 user-invocable: true
 ---
 
+> **Instalação:** copiar esta pasta para `.claude/skills/pesquisa-compras/` no projeto e criar o command apontando para o SKILL.md. Configurar `{SEU_CEP}` e `{SUA_CIDADE}` antes de usar. Ver [README.md](./README.md) para instruções completas.
+
+---
+
 # Pesquisa de Compras
 
 **Restrição absoluta:** NUNCA efetuar compra, NUNCA navegar para carrinho, checkout ou pagamento.

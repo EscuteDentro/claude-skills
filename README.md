@@ -1,30 +1,41 @@
-# Guia de Construção de Landing Pages — Template Universal
+# claude-skills
 
-Template completo para construir, publicar e manter landing pages de alta performance com Meta Pixel, CAPI server-side, Design System e deploy no Vercel.
+Skills prontos para instalar no [Claude Code](https://claude.ai/code) — construídos para builders de infoprodutos.
 
-## Arquivos
+---
 
-| Arquivo | O que é |
-|---|---|
-| **[Guia de Construção da Página.md](./Guia%20de%20Construção%20da%20Página.md)** | Guia completo: tracking, performance, SEO/AEO, LGPD, deploy, testes A/B |
-| **[Design-System-decisoes.md](./Design-System-decisoes.md)** | Decisões fechadas de design: cores, tipografia, componentes, performance |
-| **[design-system.json](./design-system.json)** | Tokens visuais completos em JSON — paleta, tipografia, espaçamento, componentes |
-
-## Skills para Claude Code
+## Skills
 
 | Skill | O que faz | Status |
 |---|---|---|
-| `/subir-pagina-top` | LP de infoproduto do zero ao ar: Guia, DS, Pixel + CAPI, deploy no Vercel | ✅ Pronto para uso |
-| `/pesquisa-compras` | Pesquisa de preços multi-plataforma com comparação e fretes | ⚠️ Funcional — precisa de melhorias |
+| [`/subir-pagina-top`](./skills/subir-pagina-top/) | LP de infoproduto do zero ao ar: Guia, DS, Pixel + CAPI, deploy no Vercel | ✅ Pronto |
+| [`/pesquisa-compras`](./skills/pesquisa-compras/) | Pesquisa de preços multi-plataforma com comparação, frete e encartes | ⚠️ Funcional — melhorias pendentes |
 
-Ver `skills/` para instruções de instalação de cada skill.
+Cada pasta de skill tem um `README.md` com o que faz, como instalar e o que configurar.
 
-## Como usar
+---
 
-1. Copiar os arquivos para o seu projeto
-2. Substituir todos os valores de exemplo (marcados com `⬜` no Guia) pelos dados do seu produto
-3. Para o `design-system.json`: ajustar tokens de cor e tipografia para sua identidade visual
-4. Para os skills: copiar pasta de `skills/nome-da-skill/` para `.claude/skills/` do seu projeto
+## Referências — LP de Infoproduto
+
+Documentação de arquitetura e decisões para construir LPs de alta conversão:
+
+| Arquivo | Conteúdo |
+|---|---|
+| [`Guia de Construção da Página.md`](./Guia%20de%20Construção%20da%20Página.md) | Tracking, performance, SEO/AEO, LGPD, deploy, testes A/B — guia completo |
+| [`Design-System-decisoes.md`](./Design-System-decisoes.md) | Decisões fechadas de design: cores, tipografia, componentes, cache, headers |
+| [`design-system.json`](./design-system.json) | Tokens visuais completos em JSON — paleta, tipografia, espaçamento, componentes |
+
+Estes arquivos vêm preenchidos com valores de exemplo — substituir pelos dados do seu produto onde indicado (`⬜`).
+
+---
+
+## Como instalar um skill
+
+1. Copiar a pasta do skill para `.claude/skills/<nome>/` no seu projeto
+2. Criar `.claude/commands/<nome>.md` com o frontmatter apontando para o SKILL.md (ver README de cada skill)
+3. Invocar com `/<nome>` no Claude Code
+
+---
 
 ## Contribuindo / atualizando este repo
 
@@ -34,4 +45,4 @@ Após clonar, rodar uma vez:
 sh setup.sh
 ```
 
-Isso instala um pre-commit hook que **bloqueia automaticamente qualquer commit com dados pessoais** (e-mails, caminhos de sistema, IDs de pixel, etc.). O repo deve permanecer 100% agnóstico — o hook impede que dados pessoais entrem por acidente.
+Instala um pre-commit hook que bloqueia qualquer commit contendo dados pessoais. O repo é 100% agnóstico — o hook impede contaminação por acidente.
