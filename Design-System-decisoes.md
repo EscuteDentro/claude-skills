@@ -10,8 +10,8 @@ Data: 2026-05-11
 - Glacial #E0F0F8 (nao creme). Motivo: azul tem mais energia que cinza, e mantem coerencia com a logo
 
 ## Logo
-- Arquivo: Downloads/Logo fundo azul.png
-- Hex estimados: brand #2B5580, glacial #E0F0F8, ambar #E8A820, ripple #9CCAD8
+- Arquivo: `assets/logo.png` (substituir pelo caminho da sua logo)
+- Hex estimados de exemplo: brand #2B5580, glacial #E0F0F8, ambar #E8A820, ripple #9CCAD8
 - Logo pode ser colocada sobre qualquer secao brand-ice sem preocupacao de fundo
 
 ## Nome do sistema

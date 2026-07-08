@@ -25,3 +25,13 @@ Ver `skills/` para instruções de instalação de cada skill.
 2. Substituir todos os valores de exemplo (marcados com `⬜` no Guia) pelos dados do seu produto
 3. Para o `design-system.json`: ajustar tokens de cor e tipografia para sua identidade visual
 4. Para os skills: copiar pasta de `skills/nome-da-skill/` para `.claude/skills/` do seu projeto
+
+## Contribuindo / atualizando este repo
+
+Após clonar, rodar uma vez:
+
+```bash
+sh setup.sh
+```
+
+Isso instala um pre-commit hook que **bloqueia automaticamente qualquer commit com dados pessoais** (e-mails, caminhos de sistema, IDs de pixel, etc.). O repo deve permanecer 100% agnóstico — o hook impede que dados pessoais entrem por acidente.
