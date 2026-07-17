@@ -10,6 +10,7 @@ Skills prontos para instalar no [Claude Code](https://claude.ai/code) — constr
 |---|---|---|
 | [`/subir-pagina-top`](./skills/subir-pagina-top/) | LP de infoproduto do zero ao ar: Guia, DS, Pixel + CAPI, deploy no Vercel | ✅ Pronto |
 | [`/pesquisa-compras`](./skills/pesquisa-compras/) | Pesquisa de preços multi-plataforma com comparação, frete e encartes | ⚠️ Funcional — melhorias pendentes |
+| [`/animacao-video`](./skills/animacao-video/) | Narração gravada → vídeo animado (motion graphics em camadas) via Remotion, com legenda sincronizada por palavra | ✅ Pronto |
 
 Cada pasta de skill tem um `README.md` com o que faz, como instalar e o que configurar.
 
