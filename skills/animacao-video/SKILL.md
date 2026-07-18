@@ -157,6 +157,13 @@ npx remotion still src/index.ts <CompositionId> out/teste.png --frame=100
 npx remotion render src/index.ts <CompositionId> out/final.mp4
 ```
 
+**Parallax por profundidade (default recomendado, não só decoração):** sem isso, o fundo dá
+zoom (Ken Burns) mas os elementos em camada (props, ícones) ficam com tamanho fixo a cena
+inteira — só o fundo parece ter profundidade. Passar `depth` (0 a 1) e `totalFrames` pro
+`PopIn` de cada elemento faz ele ganhar escala extra proporcional a quão "perto da câmera" ele
+está, sincronizado com o mesmo progresso de frame do fundo. Vale usar como prática padrão em
+qualquer cena com 2+ elementos em camadas diferentes, não só quando quiser um efeito especial.
+
 ## Fase 6 — Loop e capa (se for pra Reels/Shorts)
 
 Duas coisas que fazem diferença pra retenção/algoritmo:

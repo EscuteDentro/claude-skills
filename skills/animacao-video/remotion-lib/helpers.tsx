@@ -82,12 +82,34 @@ export const ForegroundOcclusion: React.FC<{
   clipPath: string;
 }> = (props) => <KenBurnsBg {...props} />;
 
+// ── Parallax por profundidade ──────────────────────────────────────────────
+//
+// Adaptado do mecanismo de scroll-parallax de sites 2.5D (ex: kits de
+// "cinematic scroll"): la, cada camada recebe um translateY proporcional a
+// quao perto ela esta (fundo desloca pouco, primeiro plano desloca muito),
+// dirigido pelo progresso de scroll. Aqui o driver e o FRAME em vez do
+// scroll, e como a "camera" deste sistema e zoom (Ken Burns), profundidade
+// vira ESCALA extra em vez de deslocamento: objetos mais perto crescem mais
+// rapido que os mais longe conforme o tempo passa, como um zoom real.
+// Sem isso, elementos em camada ficam com o mesmo tamanho fixo a cena
+// inteira enquanto so o fundo se move — com isso, cada camada tem parallax
+// de verdade entre si, nao so o fundo.
+export function parallaxScale(frame: number, totalFrames: number, depth: number, intensity = 0.15) {
+  if (!depth) return 1;
+  return interpolate(frame, [0, totalFrames], [1, 1 + depth * intensity], {
+    extrapolateRight: "clamp",
+  });
+}
+
 // ── Entrada com mola (pop-in) ──────────────────────────────────────────────
 export const PopIn: React.FC<{
   children: React.ReactNode;
   delay?: number;
   style?: React.CSSProperties;
-}> = ({ children, delay = 0, style }) => {
+  /** 0 (fundo) a 1 (primeiro plano). So ativa parallax se totalFrames tambem for passado. */
+  depth?: number;
+  totalFrames?: number;
+}> = ({ children, delay = 0, style, depth = 0, totalFrames }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const local = frame - delay;
@@ -96,8 +118,15 @@ export const PopIn: React.FC<{
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
+  const parallax = totalFrames ? parallaxScale(frame, totalFrames, depth) : 1;
   return (
-    <div style={{ ...style, transform: `scale(${local < 0 ? 0 : s})`, opacity: local < 0 ? 0 : opacity }}>
+    <div
+      style={{
+        ...style,
+        transform: `scale(${(local < 0 ? 0 : s) * parallax})`,
+        opacity: local < 0 ? 0 : opacity,
+      }}
+    >
       {children}
     </div>
   );
