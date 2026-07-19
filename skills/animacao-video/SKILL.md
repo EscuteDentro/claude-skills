@@ -221,6 +221,34 @@ caber numa largura máxima — cada linha centralizada. Usar `--scale` baixo (ve
 iteração barata acima) ao calibrar `targetHeight`/`maxWidthPx`, o ajuste fino de quantas linhas
 cabem é por tentativa.
 
+**Bug recorrente — tamanho inconsistente entre letras de linhas diferentes da folha**: se a
+folha de alfabeto tem múltiplas linhas (ex: minúsculas numa linha, diacríticos noutra), escalar
+cada glifo pela altura NATIVA do seu recorte (crop height) não garante tamanho visual
+consistente. Causa: a IA geradora não desenha todas as linhas na mesma escala relativa, então a
+proporção "tinta útil / altura do crop" varia por linha — uma linha com crop mais "justo" à
+tinta (menos espaço morto acima/abaixo) faz as letras saírem maiores que outra linha, mesmo
+escalando tudo pra mesma altura alvo.
+- **Diagnóstico**: medir bbox de alpha (`ffmpeg -pix_fmt rgba` + varredura de linhas com alpha
+  > limiar) em letras x-height "puras" de cada linha (sem ascendente/descendente — ex: a, c, e,
+  o, n na linha de minúsculas; s, u, x numa linha de s-z) e comparar a razão `altura_de_tinta /
+  altura_do_crop` entre linhas. Diferença de >5-10% entre linhas já produz inconsistência visível.
+- **Correção**: reescalar (via `ffmpeg scale`) os glifos da linha "fora do padrão" pelo fator
+  `razão_alvo / razão_da_linha`, depois repadar (`ffmpeg pad`) num canvas da altura de referência
+  (a linha mais alta, pra nunca precisar upscalar), reancorando pela linha de base — não pelo
+  topo. A linha de base fica em fração quase idêntica do crop original entre linhas (~0.73–0.75
+  de cima pra baixo, medir pra confirmar); usar essa fração pra calcular o padding de topo do
+  glifo reescalado, senão as letras corrigidas ficam "flutuando" fora da linha das demais.
+- **Aplicar direto nos assets, não em runtime**: corrigir os PNGs da folha de glifos uma vez
+  (persistente, reaproveitável em qualquer vídeo futuro) em vez de compensar com um fator de
+  correção no código do vídeo — evita recalcular o mesmo ajuste a cada novo projeto.
+
+**Legibilidade contra fundo**: se o céu/fundo da cena tem tons próximos aos da massinha (bege,
+laranja, dourado), as letras somem sem contraste extra. Aplicar `filter: drop-shadow(...)` no
+container do glifo (não `box-shadow` — esse ignora o alpha do PNG e desenha um retângulo).
+Empilhar 2-3 camadas de `drop-shadow` (offset crescente + uma com blur maior) simula o mesmo
+contorno grosso + sombra em camadas do `CLAY_TEXT_STYLE` em CSS, mas respeitando a silhueta real
+de cada glifo.
+
 ---
 
 ## Resumo de arquivos desta skill

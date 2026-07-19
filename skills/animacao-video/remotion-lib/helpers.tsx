@@ -275,10 +275,20 @@ export const Captions: React.FC<{ groups: CaptionGroup[]; fontSize?: number; top
 // sombra, usa letras geradas de verdade no estilo do vídeo, recortadas com
 // scripts/recortar_alfabeto.py (gera um glifos.json com {char: {file,w,h}}).
 // Testado num título de capa real — ficou mais integrado visualmente que o
-// CSS puro. Cada glifo é escalado pra uma ALTURA ALVO comum (não a altura
-// nativa do recorte, que varia levemente entre linhas da folha original).
+// CSS puro. Cada glifo é escalado pela altura de crop (w/h do glifos.json)
+// pra uma ALTURA ALVO comum. Pré-requisito: os crops precisam ter proporção
+// tinta/altura consistente entre linhas da folha original (ver SKILL.md,
+// secao "Bug recorrente — tamanho inconsistente entre linhas") — corrigir
+// isso nos PNGs/glifos.json antes de usar aqui, nao em runtime.
 export type GlyphMeta = { file: string; w: number; h: number };
 export type GlyphTable = Record<string, GlyphMeta>;
+
+// Sombra opcional (drop-shadow segue o alpha do PNG, ao contrario de
+// box-shadow) pra dar contraste contra fundos de tom proximo ao da massinha
+// (ceu bege/laranja/dourado, tipico em cenas de por-do-sol). Empilhar 2-3
+// camadas simula o contorno+sombra em camadas do CLAY_TEXT_STYLE em CSS.
+export const GLYPH_SHADOW_DEFAULT =
+  "drop-shadow(0 2px 0 #2c1809) drop-shadow(0 4px 0 #2c1809) drop-shadow(0 7px 10px rgba(0,0,0,0.55))";
 
 function layoutGlyphLines(
   text: string,
@@ -311,11 +321,12 @@ function layoutGlyphLines(
   return lines;
 }
 
-const GlyphLine: React.FC<{ words: string[]; glyphs: GlyphTable; targetHeight: number; gap?: number }> = ({
+const GlyphLine: React.FC<{ words: string[]; glyphs: GlyphTable; targetHeight: number; gap?: number; shadow?: string }> = ({
   words,
   glyphs,
   targetHeight,
   gap = 6,
+  shadow,
 }) => {
   const spaceWidth = targetHeight * 0.32;
   let cursor = 0;
@@ -331,7 +342,7 @@ const GlyphLine: React.FC<{ words: string[]; glyphs: GlyphTable; targetHeight: n
     }
   });
   return (
-    <div style={{ position: "relative", height: targetHeight, width: cursor - gap }}>
+    <div style={{ position: "relative", height: targetHeight, width: cursor - gap, filter: shadow }}>
       {items.map((it, i) => (
         <Img
           key={i}
@@ -346,19 +357,22 @@ const GlyphLine: React.FC<{ words: string[]; glyphs: GlyphTable; targetHeight: n
 /** Tipografa um texto com glifos recortados (ver glifos.json de
  * recortar_alfabeto.py), quebrando linha automaticamente pra caber em
  * maxWidthPx, cada linha centralizada. Assume minúsculas (lowercase o
- * texto de entrada) — gerar maiúsculas também se seu estilo precisar. */
+ * texto de entrada) — gerar maiúsculas também se seu estilo precisar.
+ * `shadow`: passar GLYPH_SHADOW_DEFAULT (ou uma variante) se o fundo da cena
+ * tiver pouco contraste com a cor da massinha. */
 export const GlyphText: React.FC<{
   text: string;
   glyphs: GlyphTable;
   maxWidthPx: number;
   targetHeight: number;
   lineGap?: number;
-}> = ({ text, glyphs, maxWidthPx, targetHeight, lineGap = 14 }) => {
+  shadow?: string;
+}> = ({ text, glyphs, maxWidthPx, targetHeight, lineGap = 14, shadow }) => {
   const lines = layoutGlyphLines(text.toLowerCase(), glyphs, maxWidthPx, targetHeight, 6);
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: lineGap }}>
       {lines.map((words, i) => (
-        <GlyphLine key={i} words={words} glyphs={glyphs} targetHeight={targetHeight} />
+        <GlyphLine key={i} words={words} glyphs={glyphs} targetHeight={targetHeight} shadow={shadow} />
       ))}
     </div>
   );
