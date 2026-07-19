@@ -12,6 +12,7 @@
  */
 import {
   AbsoluteFill,
+  Easing,
   Img,
   interpolate,
   spring,
@@ -100,6 +101,88 @@ export function parallaxScale(frame: number, totalFrames: number, depth: number,
     extrapolateRight: "clamp",
   });
 }
+
+// Crash zoom: zoom rapido e abrupto que "aterrissa" numa composicao (em vez
+// do Ken Burns suave/continuo). Easing.in(cubic) acelera conforme aproxima
+// do final — comeca quase parado, "atropela" no fim. Usar pra transicoes de
+// corte forte (aproximar ate um detalhe pra virar outra cena). `maxScale`
+// grande (>15x) funciona bem pra um detalhe pequeno (testa, olho); pra
+// aproximar um objeto inteiro, algo entre 2x-6x.
+export function crashZoomScale(frame: number, totalFrames: number, maxScale: number) {
+  return interpolate(frame, [0, totalFrames], [1, maxScale], {
+    extrapolateRight: "clamp",
+    easing: Easing.in(Easing.cubic),
+  });
+}
+
+// ── Tilt-shift (efeito miniatura/diorama) ─────────────────────────────────
+// Banda horizontal nitida + blur gradual acima/abaixo — reforca a leitura
+// de "diorama"/maquete em qualquer cena claymation ou motion graphics em
+// camadas. Mecanismo: renderiza o conteudo 2x, a segunda copia com blur e
+// mascarada por um gradiente (nitido nas pontas do gradiente = onde o blur
+// aparece, transparente no meio = onde a copia sharp de baixo aparece).
+// Calibrar bandCenterPct/bandHalfWidthPct pra cobrir o SUJEITO PRINCIPAL
+// inteiro (cabeca a pes) — cortar isso borra o rosto e quebra o efeito.
+export const TiltShiftWrapper: React.FC<{
+  children: React.ReactNode;
+  bandCenterPct?: number;
+  bandHalfWidthPct?: number;
+  featherPct?: number;
+  blurPx?: number;
+}> = ({ children, bandCenterPct = 55, bandHalfWidthPct = 20, featherPct = 12, blurPx = 14 }) => {
+  const a = bandCenterPct - bandHalfWidthPct - featherPct;
+  const b = bandCenterPct - bandHalfWidthPct;
+  const c = bandCenterPct + bandHalfWidthPct;
+  const d = bandCenterPct + bandHalfWidthPct + featherPct;
+  const mask = `linear-gradient(to bottom, white 0%, white ${a}%, transparent ${b}%, transparent ${c}%, white ${d}%, white 100%)`;
+  return (
+    <AbsoluteFill>
+      {children}
+      <AbsoluteFill
+        style={{ filter: `blur(${blurPx}px)`, WebkitMaskImage: mask, maskImage: mask, WebkitMaskMode: "alpha", maskMode: "alpha" }}
+      >
+        {children}
+      </AbsoluteFill>
+    </AbsoluteFill>
+  );
+};
+
+// ── Truck/slider lateral (translateX puro, sem escala) ────────────────────
+// Deslocamento lateral continuo da camera fisica. So fica com profundidade
+// de verdade quando cada CAMADA se move a uma taxa diferente (perto anda
+// mais, longe anda menos) — nao mover a cena inteira como bloco rigido (isso
+// e so "pan", nao demonstra parallax nenhum). Exemplo de uso por camada:
+//   const x = interpolate(frame, [0, total], [-70*depth, 70*depth]);
+//   <div style={{ transform: `translateX(${x}px)` }}>...</div>
+// ATENCAO (bug comum): se o wrapper que recebe o translateX for o proprio
+// viewport (AbsoluteFill sem overflow:hidden fixo por fora), o pan expoe
+// borda vazia/preta no lado que "sobra". Sempre manter um AbsoluteFill
+// externo fixo com overflow:hidden, e aplicar o transform + margem extra
+// (scale ~1.1-1.2) só no filho que se move.
+
+// ── Handheld sway (micro-jitter organico) ──────────────────────────────────
+// Jitter pequeno e continuo via soma de senos com frequencias incomensu-
+// raveis (nao periodicas em ciclos curtos, parece organico em vez de
+// mecanico). Da sensacao de "vivo"/documental. Mesmo cuidado de borda do
+// truck: aplicar scale de margem extra (~1.05-1.08) no wrapper que se move.
+function handheldNoise(frame: number) {
+  const x = Math.sin(frame * 0.19) * 2.4 + Math.sin(frame * 0.071) * 1.6;
+  const y = Math.sin(frame * 0.13 + 1.7) * 2.1 + Math.sin(frame * 0.053 + 0.4) * 1.3;
+  const r = Math.sin(frame * 0.09 + 0.9) * 0.35;
+  return { x, y, r };
+}
+
+export const HandheldWrapper: React.FC<{ children: React.ReactNode; margin?: number }> = ({ children, margin = 1.06 }) => {
+  const frame = useCurrentFrame();
+  const { x, y, r } = handheldNoise(frame);
+  return (
+    <AbsoluteFill style={{ overflow: "hidden" }}>
+      <AbsoluteFill style={{ transform: `scale(${margin}) translate(${x}px, ${y}px) rotate(${r}deg)`, transformOrigin: "center center" }}>
+        {children}
+      </AbsoluteFill>
+    </AbsoluteFill>
+  );
+};
 
 // ── Entrada com mola (pop-in) ──────────────────────────────────────────────
 export const PopIn: React.FC<{
