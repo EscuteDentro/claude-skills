@@ -268,3 +268,98 @@ export const Captions: React.FC<{ groups: CaptionGroup[]; fontSize?: number; top
     </AbsoluteFill>
   );
 };
+
+// ── Tipografia com glifos recortados (letras de verdade, nao CSS) ─────────
+//
+// Alternativa ao CLAY_TEXT_STYLE: em vez de simular textura com contorno+
+// sombra, usa letras geradas de verdade no estilo do vídeo, recortadas com
+// scripts/recortar_alfabeto.py (gera um glifos.json com {char: {file,w,h}}).
+// Testado num título de capa real — ficou mais integrado visualmente que o
+// CSS puro. Cada glifo é escalado pra uma ALTURA ALVO comum (não a altura
+// nativa do recorte, que varia levemente entre linhas da folha original).
+export type GlyphMeta = { file: string; w: number; h: number };
+export type GlyphTable = Record<string, GlyphMeta>;
+
+function layoutGlyphLines(
+  text: string,
+  glyphs: GlyphTable,
+  maxWidthPx: number,
+  targetHeight: number,
+  gap: number
+) {
+  const wordWidth = (word: string) =>
+    Array.from(word).reduce((sum, ch) => {
+      const g = glyphs[ch];
+      if (!g) return sum; // caractere sem glifo: ignora
+      return sum + (g.w * targetHeight) / g.h + gap;
+    }, -gap);
+  const spaceWidth = targetHeight * 0.32;
+
+  const lines: string[][] = [[]];
+  let cur = 0;
+  for (const word of text.split(" ")) {
+    const ww = wordWidth(word);
+    const extra = cur > 0 ? spaceWidth : 0;
+    if (cur + extra + ww > maxWidthPx && cur > 0) {
+      lines.push([]);
+      cur = 0;
+    }
+    if (cur > 0) cur += spaceWidth;
+    lines[lines.length - 1].push(word);
+    cur += ww;
+  }
+  return lines;
+}
+
+const GlyphLine: React.FC<{ words: string[]; glyphs: GlyphTable; targetHeight: number; gap?: number }> = ({
+  words,
+  glyphs,
+  targetHeight,
+  gap = 6,
+}) => {
+  const spaceWidth = targetHeight * 0.32;
+  let cursor = 0;
+  const items: { file: string; x: number; w: number }[] = [];
+  words.forEach((word, wi) => {
+    if (wi > 0) cursor += spaceWidth;
+    for (const ch of Array.from(word)) {
+      const g = glyphs[ch];
+      if (!g) continue;
+      const scaledW = (g.w * targetHeight) / g.h;
+      items.push({ file: g.file, x: cursor, w: scaledW });
+      cursor += scaledW + gap;
+    }
+  });
+  return (
+    <div style={{ position: "relative", height: targetHeight, width: cursor - gap }}>
+      {items.map((it, i) => (
+        <Img
+          key={i}
+          src={asset(`alfabeto/${it.file}.png`)}
+          style={{ position: "absolute", left: it.x, top: 0, width: it.w, height: targetHeight }}
+        />
+      ))}
+    </div>
+  );
+};
+
+/** Tipografa um texto com glifos recortados (ver glifos.json de
+ * recortar_alfabeto.py), quebrando linha automaticamente pra caber em
+ * maxWidthPx, cada linha centralizada. Assume minúsculas (lowercase o
+ * texto de entrada) — gerar maiúsculas também se seu estilo precisar. */
+export const GlyphText: React.FC<{
+  text: string;
+  glyphs: GlyphTable;
+  maxWidthPx: number;
+  targetHeight: number;
+  lineGap?: number;
+}> = ({ text, glyphs, maxWidthPx, targetHeight, lineGap = 14 }) => {
+  const lines = layoutGlyphLines(text.toLowerCase(), glyphs, maxWidthPx, targetHeight, 6);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: lineGap }}>
+      {lines.map((words, i) => (
+        <GlyphLine key={i} words={words} glyphs={glyphs} targetHeight={targetHeight} />
+      ))}
+    </div>
+  );
+};
