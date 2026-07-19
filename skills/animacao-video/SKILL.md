@@ -153,9 +153,24 @@ inteiro pra checar um detalhe é lento; um frame estático de uma cena específi
 mostra o mesmo problema em segundos.
 
 ```bash
-npx remotion still src/index.ts <CompositionId> out/teste.png --frame=100
+npx remotion still src/index.ts <CompositionId> out/teste/frame.png --frame=100 --scale=0.4
 npx remotion render src/index.ts <CompositionId> out/final.mp4
 ```
+
+**Iteração visual barata — 4 práticas, aplicar sempre:**
+
+1. **Calcular antes de renderizar.** Antes de chutar posição/escala, fazer a conta (campo de
+   visão da câmera × distância = extensão visível na tela, por exemplo) e só então renderizar
+   com um valor estimado, não um palpite. Cada render+inspeção visual tem custo real; um chute
+   errado custa uma rodada inteira à toa.
+2. **Lotes maiores por rodada.** Agrupar 2-3 ajustes relacionados antes de renderizar e olhar,
+   em vez de 1 mudança → 1 render → 1 olhada → repetir.
+3. **`--scale` baixo durante calibração, full-res só na entrega.** `out/teste/` pra
+   stills/renders descartáveis de calibração (não versionar), nome final direto em `out/` pro
+   resultado real.
+4. **Isolar iteração pesada do fio principal da conversa** quando disponível (ex: um agente
+   fork) — o ruído de várias tentativas de calibração não precisa poluir o histórico principal,
+   só o resultado final importa lá.
 
 **Parallax por profundidade (default recomendado, não só decoração):** sem isso, o fundo dá
 zoom (Ken Burns) mas os elementos em camada (props, ícones) ficam com tamanho fixo a cena
@@ -175,6 +190,36 @@ Duas coisas que fazem diferença pra retenção/algoritmo:
 - **Capa embutida no frame 0**: a maioria das plataformas não deixa subir uma imagem de capa
   separada com facilidade. Fazer o frame 0 já conter o texto-gancho completo (não uma
   revelação progressiva) resolve isso sem precisar de asset separado.
+
+## Extra — legenda com glifos de massinha reais (em vez de CSS)
+
+Testado e validado no título de capa de um vídeo real: em vez de simular "letra de massinha"
+com CSS (`CLAY_TEXT_STYLE`, contorno grosso + sombra em camadas), usar **letras de verdade**,
+geradas no mesmo estilo visual do resto do vídeo e recortadas uma a uma. Ficou visualmente mais
+integrado que o CSS — lê como parte da mesma cena, não como texto sobreposto.
+
+**Como gerar a folha de origem** (pedir a uma IA de imagem, ex: ChatGPT):
+- Fundo **100% sólido** (preto ou branco), sem vinheta/gradiente — condição obrigatória pro
+  recorte automático funcionar. Fundo com textura/vinheta (aconteceu nas 2 primeiras tentativas
+  antes de acertar) faz o recorte falhar ou sair inconsistente.
+- Conjunto de caracteres enxuto primeiro (minúsculas + diacríticos do idioma + números +
+  pontuação básica, sem maiúsculas se o estilo de legenda for caixa-baixa) — mais barato de
+  testar, ampliar depois se funcionar.
+- Letras sem se tocar/sobrepor.
+
+**Recorte**: `scripts/recortar_alfabeto.py` — 100% local (ffmpeg + Python stdlib, sem API, sem
+Pillow). Detecta cada glifo por projeção linha/coluna (linhas de pixel com "tinta" = uma linha
+de texto; colunas com tinta dentro de cada linha = um glifo), recorta e converte o fundo em
+transparência. Gera `glifos.json` com largura/altura de cada caractere recortado — necessário
+porque letras de massinha não são monoespaçadas, e a altura do recorte varia um pouco entre
+linhas da folha original (compensar escalando cada glifo pra uma altura de linha alvo comum,
+não usar a altura nativa do recorte direto).
+
+**Tipografia** (componente `GlyphText` em `helpers.tsx`): compõe um texto com os glifos
+recortados, escalando cada um pra uma altura alvo comum e quebrando linha automaticamente pra
+caber numa largura máxima — cada linha centralizada. Usar `--scale` baixo (ver seção de
+iteração barata acima) ao calibrar `targetHeight`/`maxWidthPx`, o ajuste fino de quantas linhas
+cabem é por tentativa.
 
 ---
 
