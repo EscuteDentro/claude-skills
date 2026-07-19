@@ -179,6 +179,31 @@ inteira — só o fundo parece ter profundidade. Passar `depth` (0 a 1) e `total
 está, sincronizado com o mesmo progresso de frame do fundo. Vale usar como prática padrão em
 qualquer cena com 2+ elementos em camadas diferentes, não só quando quiser um efeito especial.
 
+**Vocabulário de movimentos de câmera — testado A/B, todos funcionaram:**
+
+- **Tilt-shift** (`TiltShiftWrapper`): banda nítida + blur gradual acima/abaixo, reforça a
+  leitura de diorama/maquete. Calibrar a banda pra cobrir o sujeito principal INTEIRO (cabeça a
+  pés) — cortar isso borra o rosto e quebra o efeito. Bom pra planos mais abertos, mundo
+  completo à vista.
+- **Truck/slider lateral** (padrão, não componente pronto — ver comentário em `helpers.tsx`):
+  `translateX` contínuo, com taxa proporcional a `depth` por camada (`parallaxScale` já serve
+  de base pro cálculo). **Bug comum a evitar**: mover o wrapper que É o viewport (em vez do
+  conteúdo) expõe borda vazia/preta — sempre `overflow:hidden` fixo por fora, `transform` +
+  margem extra (`scale` ~1.1-1.2) só no filho que se move.
+- **Handheld sway** (`HandheldWrapper`): jitter pequeno via soma de senos incomensuráveis, dá
+  sensação de "vivo"/documental. Mesmo cuidado de borda do truck.
+- **Crash zoom** (`crashZoomScale`): zoom acelerado (easing cubic-in) que "aterrissa" num
+  detalhe — usar em transições de corte forte, não no lugar do Ken Burns contínuo.
+- **Dolly x zoom com profundidade real**: sem `depth`, os dois são visualmente idênticos (só
+  escala uniforme). Com depth por camada, dolly = perto escala muito mais rápido que longe;
+  zoom = tudo escala igual (sem noção de distância — cuidado, pode fazer um elemento "colidir"
+  visualmente com outro que estava mais perto). **Bug a evitar**: compor zoom base + parallax
+  por depth precisa ser MULTIPLICATIVO (`baseScale * parallaxScale(...)`), nunca aditivo (dois
+  fatores centrados em 1 somados dobram o efeito e estouram a escala).
+
+Catálogo completo de onde vêm esses nomes/receitas: aicameramovements.com (feito pra prompt de
+IA de vídeo, mas o vocabulário/mecanismo físico de cada movimento é transponível pra CSS/Three.js).
+
 ## Fase 6 — Loop e capa (se for pra Reels/Shorts)
 
 Duas coisas que fazem diferença pra retenção/algoritmo:
