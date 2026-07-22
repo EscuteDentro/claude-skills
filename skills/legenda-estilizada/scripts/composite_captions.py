@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """Composite the caption cards (from build_captions.py) onto a base video via
-ffmpeg overlay, timed with enable='between(t,start,end)'. Positions (hook/body
-vertical center) come from config_default.json (or an override), same as
-build_captions.py, so the two stay in sync.
+ffmpeg overlay, timed with enable='between(t,start,end)'. Vertical position
+comes from config_default.json (or an override), same as build_captions.py,
+so the two stay in sync. Each layer (hook/body) picks one anchor:
+  - "center": placed around a fixed y (`center_y`) regardless of card height.
+  - "bottom": placed `bottom_margin` px above the canvas bottom edge - this
+    keeps the true visual margin constant across cards of different heights
+    (1 vs 2 lines, long vs short text), which a fixed center_y cannot do.
 
 Usage:
     python composite_captions.py <cards_dir> <base_video> <out_video> [--config config.json]
@@ -29,6 +33,14 @@ def load_config(config_path: str | None) -> dict:
     return cfg
 
 
+def layer_y(layer_cfg: dict, card_h: int, canvas_h: int) -> int:
+    """Top-left y for this card given its layer's anchor mode."""
+    anchor = layer_cfg.get("anchor", "center")
+    if anchor == "bottom":
+        return canvas_h - layer_cfg.get("bottom_margin", 0) - card_h
+    return layer_cfg["center_y"] - card_h // 2
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cards_dir")
@@ -48,9 +60,9 @@ def main() -> None:
     prev_label = "0:v"
     for i, c in enumerate(cards, start=1):
         inputs += ["-i", str(cards_dir / c["file"])]
-        cy = cfg["hook"]["center_y"] if c["style"] == "hook" else cfg["body"]["center_y"]
+        layer_cfg = cfg["hook"] if c["style"] == "hook" else cfg["body"]
         x = (canvas_w - c["w"]) // 2
-        y = cy - c["h"] // 2
+        y = layer_y(layer_cfg, c["h"], cfg["canvas_h"])
         out_label = f"v{i}"
         filter_parts.append(
             f"[{prev_label}][{i}:v]overlay={x}:{y}:enable='between(t,{c['start']:.3f},{c['end']:.3f})'[{out_label}]"

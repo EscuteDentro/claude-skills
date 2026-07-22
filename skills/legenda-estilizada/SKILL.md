@@ -9,14 +9,32 @@ Gera cards de legenda em PNG (com transparência) a partir de uma transcrição 
 (ElevenLabs Scribe) e um EDL de cortes (formato compatível com
 [video-use](https://github.com/browser-use/video-use)), e compõe no vídeo via overlay ffmpeg.
 
-Validado em produção em 2026-07-21/22 (vídeo "Amigo de 20 anos", {Produto}) — ver o
-default (`scripts/config_default.json`) como ponto de partida real, não teórico.
+Validado em produção real (talking-head 9:16). **O default do skill (`scripts/config_default.json`)
+é genérico de propósito** — fonte (Helvetica Neue Bold) e posicionamento (corpo no rodapé, sem
+margem) neutros, não a identidade visual de nenhuma marca específica. Um exemplo de configuração
+com identidade própria (PT Serif Bold, ambas as camadas centralizadas em pontos fixos da tela)
+fica em `scripts/config_examples/serif-editorial.json` — usar `--config` apontando pra ele (ou
+copiar e ajustar) pra reproduzir esse look específico.
 
 ## Duas camadas
 
 - **Hook**: a primeira frase inteira, na tela desde o frame 0, fonte grande, centralizada.
 - **Corpo**: o resto, fonte menor, no máximo N linhas por card (default: 1), flui naturalmente
   acompanhando pausas de fala.
+
+## Ancoragem vertical (`anchor`)
+
+Cada camada (`hook`/`body`) escolhe um modo:
+
+- **`"center"`**: fixa em torno de um `center_y` absoluto, igual pra qualquer card daquela
+  camada, independente da altura do texto renderizado.
+- **`"bottom"`**: fixa a `bottom_margin` pixels da borda inferior do canvas — a margem visual
+  real fica constante mesmo comparando um card de 1 linha com um de 2, curto ou longo (um
+  `center_y` fixo não consegue garantir isso, já que a altura do card muda).
+
+Default do skill: corpo em `"bottom"` com `bottom_margin: 0` (rente ao rodapé, convenção mais
+comum de legenda). O exemplo `serif-editorial.json` usa `"center"` nas duas camadas, com os
+pontos específicos validados pra formato 9:16/Reels (evita a zona de ícones de UI no rodapé).
 
 ## Uso
 
@@ -32,7 +50,8 @@ python scripts/composite_captions.py <out_dir> <video_base.mp4> <video_final.mp4
 quer mudar. Ver todos os campos configuráveis em `scripts/config_default.json`: fonte
 (`font_path`, `font_index` — arquivos `.ttc`/`.ttf` com múltiplos estilos usam índice),
 cores (`fill_color`, `outline_color`, RGBA), tamanho de canvas, e por camada (hook/body):
-`font_size`, `stroke_width`, `max_width`, `center_y`, `max_lines` (só body).
+`font_size`, `stroke_width`, `max_width`, `max_lines` (só body), `anchor` (`"center"` ou
+`"bottom"`), `center_y` (se `anchor: "center"`) ou `bottom_margin` (se `anchor: "bottom"`).
 
 `--text-rules` aceita uma lista de `{"pattern": "regex", "replacement": "..."}` (regex Python,
 aplicado ANTES de qualquer medição de largura — necessário pra decisão de quebra de linha ficar

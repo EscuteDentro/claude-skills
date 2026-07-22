@@ -1,0 +1,12 @@
+{
+  "font_path": "/System/Library/Fonts/Supplemental/PTSerif.ttc",
+  "font_index": 3,
+  "hook": {
+    "anchor": "center",
+    "center_y": 883
+  },
+  "body": {
+    "anchor": "center",
+    "center_y": 1267
+  }
+}
