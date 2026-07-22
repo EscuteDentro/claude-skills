@@ -1,0 +1,23 @@
+{
+  "canvas_w": 1080,
+  "canvas_h": 1920,
+  "font_path": "/System/Library/Fonts/Supplemental/PTSerif.ttc",
+  "font_index": 3,
+  "fill_color": [255, 255, 255, 255],
+  "outline_color": [20, 15, 10, 255],
+  "hook": {
+    "font_size": 88,
+    "stroke_width": 9,
+    "max_width": 920,
+    "center_y": 883
+  },
+  "body": {
+    "font_size": 74,
+    "stroke_width": 8,
+    "max_width": 880,
+    "max_lines": 1,
+    "center_y": 1267
+  },
+  "min_display_duration": 0.70,
+  "phrase_break_gap": 0.30
+}
