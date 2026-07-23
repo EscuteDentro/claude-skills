@@ -1,12 +1,13 @@
 {
-  "font_path": "/System/Library/Fonts/Supplemental/PTSerif.ttc",
-  "font_index": 3,
+  "_comentario": "Exemplo de estrutura. Substitua os valores abaixo pela fonte/posições reais da sua marca - nao suba um config com identidade visual real pra um repo publico.",
+  "font_path": "SUBSTITUA_PELO_CAMINHO_DA_SUA_FONTE.ttf",
+  "font_index": 0,
   "hook": {
     "anchor": "center",
-    "center_y": 883
+    "center_y": "AJUSTE_CONFORME_SEU_CANVAS"
   },
   "body": {
     "anchor": "center",
-    "center_y": 1267
+    "center_y": "AJUSTE_CONFORME_SEU_CANVAS"
   }
 }

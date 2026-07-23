@@ -11,10 +11,12 @@ Gera cards de legenda em PNG (com transparência) a partir de uma transcrição 
 
 Validado em produção real (talking-head 9:16). **O default do skill (`scripts/config_default.json`)
 é genérico de propósito** — fonte (Helvetica Neue Bold) e posicionamento (corpo no rodapé, sem
-margem) neutros, não a identidade visual de nenhuma marca específica. Um exemplo de configuração
-com identidade própria (PT Serif Bold, ambas as camadas centralizadas em pontos fixos da tela)
-fica em `scripts/config_examples/serif-editorial.json` — usar `--config` apontando pra ele (ou
-copiar e ajustar) pra reproduzir esse look específico.
+margem) neutros, não a identidade visual de nenhuma marca específica. `scripts/config_examples/serif-editorial.json`
+mostra a ESTRUTURA de uma config com identidade própria (fonte serifada, ambas as camadas
+centralizadas em pontos fixos da tela) — os valores nele são placeholder de propósito (nunca
+suba fonte/posição reais de uma marca pra este repo público). Pra reproduzir um look de marca
+real, copie esse exemplo e preencha com seus próprios valores num arquivo **fora deste repo**
+(privado).
 
 ## Duas camadas
 
