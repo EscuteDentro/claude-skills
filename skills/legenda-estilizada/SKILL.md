@@ -46,6 +46,10 @@ python scripts/composite_captions.py <out_dir> <video_base.mp4> <video_final.mp4
   [--config meu_config.json]
 ```
 
+`--no-hook` (em `build_captions.py`) trata todas as palavras como corpo, sem gerar o card de
+hook grande. Útil quando o hook já foi resolvido fora do script (ex: uma cena separada,
+repetida de outro ponto do vídeo, que serve de abertura e não deve competir com legenda normal).
+
 `--config` faz merge parcial (deep) sobre `config_default.json` — só precisa declarar o que
 quer mudar. Ver todos os campos configuráveis em `scripts/config_default.json`: fonte
 (`font_path`, `font_index` — arquivos `.ttc`/`.ttf` com múltiplos estilos usam índice),
@@ -77,6 +81,12 @@ backspace (`\x08`), não o word-boundary de regex — sempre escrever `\\b` no a
    próximo card, nunca ultrapassando o início dele.
 5. **Normalização de texto sempre antes da medição de largura**, nunca depois — senão a decisão
    de quebra de linha já foi tomada com o texto errado.
+6. **Nunca pontuação puramente gramatical (`.`, `,`, `:`, `;`) no fim de um card.** A quebra
+   visual pro card seguinte já comunica a pausa — repetir isso com pontuação é redundante.
+   Aplicado só no texto final de cada card (hook e corpo), depois de toda a lógica de
+   agrupamento/quebra já ter usado a pontuação original pra decidir onde cortar. `?` e `!`
+   sempre ficam (carregam intenção emocional/interrogativa, não meramente gramatical) — sem
+   tentar distinguir um "?" gramatical de um emocional, todo `?`/`!` é preservado.
 
 ## Formato dos arquivos de entrada
 

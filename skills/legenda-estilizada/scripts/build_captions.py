@@ -45,6 +45,17 @@ from PIL import Image, ImageDraw, ImageFont
 
 PUNCT_END = (",", ".", "?", "!", ":")
 
+# Pontuação puramente gramatical nunca fecha uma legenda visualmente - a quebra
+# para o card seguinte já comunica a pausa. "?" e "!" ficam (carregam intenção
+# emocional/interrogativa, nao so gramatical).
+TRAILING_GRAMMATICAL_PUNCT = (".", ",", ":", ";")
+
+
+def strip_trailing_grammatical_punct(text: str) -> str:
+    if text and text[-1] in TRAILING_GRAMMATICAL_PUNCT:
+        return text[:-1]
+    return text
+
 
 def load_config(config_path: str | None) -> dict:
     default_path = Path(__file__).parent / "config_default.json"
@@ -173,6 +184,7 @@ def main() -> None:
     ap.add_argument("out_dir")
     ap.add_argument("--config", default=None, help="JSON overriding config_default.json (partial - deep merged)")
     ap.add_argument("--text-rules", default=None, help="JSON list of {pattern, replacement} display-only regex rules")
+    ap.add_argument("--no-hook", action="store_true", help="Skip the big hook card entirely; treat all words as body captions")
     args = ap.parse_args()
 
     cfg = load_config(args.config)
@@ -187,26 +199,29 @@ def main() -> None:
     body_font = ImageFont.truetype(cfg["font_path"], cfg["body"]["font_size"], index=cfg["font_index"])
     probe = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
 
-    hook_words = []
-    for w in words:
-        hook_words.append(w)
-        if w["text"].rstrip('"\'').endswith((":", ".", "?", "!")):
-            break
-    hook_end_idx = len(hook_words)
-    hook_text = " ".join(w["text"] for w in hook_words)
-    hook_out_start = 0.0
-    natural_hook_end = hook_words[-1]["end"]
-    hook_out_end = natural_hook_end + 0.35
-    body_words = words[hook_end_idx:]
-    if body_words:
-        hook_out_end = min(hook_out_end, body_words[0]["start"] - 0.02)
-        hook_out_end = max(hook_out_end, natural_hook_end + 0.05)
-
     cards = []
-    hw, hh, _ = render_card(hook_text, out_dir / "card_hook.png", hook_font, cfg["hook"]["stroke_width"],
-                             cfg["hook"]["max_width"], cfg["canvas_w"], cfg["fill_color"], cfg["outline_color"])
-    cards.append({"file": "card_hook.png", "start": hook_out_start, "end": hook_out_end, "style": "hook",
-                  "text": hook_text, "w": hw, "h": hh})
+    if args.no_hook:
+        body_words = words
+    else:
+        hook_words = []
+        for w in words:
+            hook_words.append(w)
+            if w["text"].rstrip('"\'').endswith((":", ".", "?", "!")):
+                break
+        hook_end_idx = len(hook_words)
+        hook_text = strip_trailing_grammatical_punct(" ".join(w["text"] for w in hook_words))
+        hook_out_start = 0.0
+        natural_hook_end = hook_words[-1]["end"]
+        hook_out_end = natural_hook_end + 0.35
+        body_words = words[hook_end_idx:]
+        if body_words:
+            hook_out_end = min(hook_out_end, body_words[0]["start"] - 0.02)
+            hook_out_end = max(hook_out_end, natural_hook_end + 0.05)
+
+        hw, hh, _ = render_card(hook_text, out_dir / "card_hook.png", hook_font, cfg["hook"]["stroke_width"],
+                                 cfg["hook"]["max_width"], cfg["canvas_w"], cfg["fill_color"], cfg["outline_color"])
+        cards.append({"file": "card_hook.png", "start": hook_out_start, "end": hook_out_end, "style": "hook",
+                      "text": hook_text, "w": hw, "h": hh})
 
     body_max_lines = cfg["body"]["max_lines"]
     min_dur = cfg["min_display_duration"]
@@ -262,7 +277,7 @@ def main() -> None:
         g[-1]["_disp_end"] = max(disp_end, disp_start + 0.2)
 
     for gi, g in enumerate(groups):
-        text = " ".join(w["text"] for w in g)
+        text = strip_trailing_grammatical_punct(" ".join(w["text"] for w in g))
         start = g[0]["_disp_start"]
         end = g[-1]["_disp_end"] + (0.15 if gi == len(groups) - 1 else 0)
         fname = f"card_body_{gi:03d}.png"
