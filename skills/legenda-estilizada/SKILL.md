@@ -89,6 +89,17 @@ backspace (`\x08`), não o word-boundary de regex — sempre escrever `\\b` no a
    agrupamento/quebra já ter usado a pontuação original pra decidir onde cortar. `?` e `!`
    sempre ficam (carregam intenção emocional/interrogativa, não meramente gramatical) — sem
    tentar distinguir um "?" gramatical de um emocional, todo `?`/`!` é preservado.
+7. **"Cê" nunca aparece em legenda — sempre expande pra "você"/"Você"**, preservando a
+   capitalização do original. Contração oral comum em fala (ASR transcreve como dito), mas
+   ilegível/informal demais em texto escrito. Aplicado a toda palavra, sempre, antes de
+   qualquer outra normalização ou medição de largura.
+8. **O card do hook (frame 0) sempre começa com maiúscula**, mesmo quando o corte começa no
+   meio de uma frase original (ex: hook literal do meio de uma fala vira frase própria).
+9. **Hook curto escala de tamanho pra ocupar um espaço consistente da tela**, em vez de ficar
+   pequeno/esparso perto de um hook longo. Só escala pra CIMA (nunca reduz o tamanho base) e só
+   quando o texto cabe em 1 linha no tamanho base — hooks que já quebram em 2-3 linhas mantêm o
+   tamanho configurado, já que usam mais espaço vertical. Teto configurável via
+   `hook.max_auto_font_size` (default: 1.4x o `font_size` base).
 
 ## Formato dos arquivos de entrada
 

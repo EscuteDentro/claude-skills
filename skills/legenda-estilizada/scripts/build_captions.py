@@ -57,6 +57,23 @@ def strip_trailing_grammatical_punct(text: str) -> str:
     return text
 
 
+_CE_PATTERN = re.compile(r"\bc[êe]\b", re.IGNORECASE)
+
+
+def normalize_ce_para_voce(text: str) -> str:
+    """"Cê" (contração oral de "você") nunca aparece em legenda - sempre expandir
+    pra "você"/"Você", preservando a capitalização do original."""
+    def repl(m: re.Match) -> str:
+        return "Você" if m.group(0)[0].isupper() else "você"
+    return _CE_PATTERN.sub(repl, text)
+
+
+def capitalize_first(text: str) -> str:
+    """Primeira letra do hook (card do frame 0) sempre maiúscula, independente
+    de onde o corte começou na frase original."""
+    return text[0].upper() + text[1:] if text else text
+
+
 def load_config(config_path: str | None) -> dict:
     default_path = Path(__file__).parent / "config_default.json"
     cfg = json.loads(default_path.read_text())
@@ -148,6 +165,27 @@ def split_to_fit(words_group, font, max_w, draw, stroke_width, max_lines) -> lis
     return result
 
 
+def autosize_hook_font(text: str, font_path: str, font_index: int, base_size: int, max_size: int,
+                        max_w: int, stroke_width: int, draw) -> "ImageFont.FreeTypeFont":
+    """Hook curto (cabe em 1 linha no tamanho base) escala pra ocupar um espaço
+    consistente da tela, em vez de ficar pequeno/esparso. Nunca reduz abaixo do
+    tamanho base, nunca escala hooks que já quebram em 2+ linhas (esses já usam
+    mais espaço vertical, não precisam de mais escala horizontal)."""
+    base_font = ImageFont.truetype(font_path, base_size, index=font_index)
+    if len(wrap_fits(text, base_font, max_w, draw, stroke_width)) != 1:
+        return base_font
+    bbox = draw.textbbox((0, 0), text, font=base_font, stroke_width=stroke_width)
+    width = bbox[2] - bbox[0]
+    if width <= 0:
+        return base_font
+    target_width = max_w * 0.92
+    new_size = max(base_size, min(int(base_size * target_width / width), max_size))
+    new_font = ImageFont.truetype(font_path, new_size, index=font_index)
+    if len(wrap_fits(text, new_font, max_w, draw, stroke_width)) == 1:
+        return new_font
+    return base_font
+
+
 def render_card(text, out_path, font, stroke_w, max_w, canvas_w, fill, outline) -> tuple[int, int, int]:
     img = Image.new("RGBA", (canvas_w, 900), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
@@ -192,6 +230,8 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     words, total_dur = output_timeline(args.edl, args.transcript)
+    for w in words:
+        w["text"] = normalize_ce_para_voce(w["text"])
     if args.text_rules:
         apply_text_rules(words, json.loads(Path(args.text_rules).read_text()))
 
@@ -210,6 +250,7 @@ def main() -> None:
                 break
         hook_end_idx = len(hook_words)
         hook_text = strip_trailing_grammatical_punct(" ".join(w["text"] for w in hook_words))
+        hook_text = capitalize_first(hook_text)
         hook_out_start = 0.0
         natural_hook_end = hook_words[-1]["end"]
         hook_out_end = natural_hook_end + 0.35
@@ -218,7 +259,11 @@ def main() -> None:
             hook_out_end = min(hook_out_end, body_words[0]["start"] - 0.02)
             hook_out_end = max(hook_out_end, natural_hook_end + 0.05)
 
-        hw, hh, _ = render_card(hook_text, out_dir / "card_hook.png", hook_font, cfg["hook"]["stroke_width"],
+        max_auto = cfg["hook"].get("max_auto_font_size", int(cfg["hook"]["font_size"] * 1.4))
+        sized_hook_font = autosize_hook_font(hook_text, cfg["font_path"], cfg["font_index"],
+                                              cfg["hook"]["font_size"], max_auto,
+                                              cfg["hook"]["max_width"], cfg["hook"]["stroke_width"], probe)
+        hw, hh, _ = render_card(hook_text, out_dir / "card_hook.png", sized_hook_font, cfg["hook"]["stroke_width"],
                                  cfg["hook"]["max_width"], cfg["canvas_w"], cfg["fill_color"], cfg["outline_color"])
         cards.append({"file": "card_hook.png", "start": hook_out_start, "end": hook_out_end, "style": "hook",
                       "text": hook_text, "w": hw, "h": hh})
