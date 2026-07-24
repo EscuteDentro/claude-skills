@@ -4,18 +4,18 @@
   "font_path": "/System/Library/Fonts/HelveticaNeue.ttc",
   "font_index": 1,
   "fill_color": [255, 255, 255, 255],
-  "outline_color": [20, 15, 10, 255],
+  "outline_color": [0, 0, 0, 255],
   "hook": {
-    "font_size": 88,
-    "stroke_width": 9,
-    "max_width": 920,
+    "font_size": 72,
+    "stroke_width": 6,
+    "max_width": 900,
     "anchor": "center",
-    "center_y": 883
+    "center_y": 700
   },
   "body": {
-    "font_size": 74,
-    "stroke_width": 8,
-    "max_width": 880,
+    "font_size": 60,
+    "stroke_width": 5,
+    "max_width": 860,
     "max_lines": 1,
     "anchor": "bottom",
     "bottom_margin": 0
