@@ -38,6 +38,7 @@ Design notes / hard-won lessons (2026-07-21/22, see reference_legenda_padrao_vid
 """
 import argparse
 import json
+import math
 import re
 from pathlib import Path
 
@@ -101,7 +102,15 @@ def load_words(transcript_path: str) -> list[dict]:
     return words
 
 
-def output_timeline(edl_path: str, transcript_path: str) -> tuple[list[dict], float]:
+def output_timeline(edl_path: str, transcript_path: str, fps: float = 24.0) -> tuple[list[dict], float]:
+    """`seg_offset` acumula usando a duração de cada segmento ARREDONDADA PRA CIMA pro
+    múltiplo de frame mais próximo (render.py extrai cada clipe com `-r {fps} -t <duration>`,
+    reencode que sempre arredonda pra cima - nunca corta no meio de um frame). Usar a duração
+    ideal do EDL direto aqui causa deriva cumulativa: cada segmento sai de alguns ms a ~1 frame
+    mais longo que o pedido, e num corte com dezenas de segmentos isso soma frações de segundo
+    perceptíveis (bug real: 32 segmentos, ~0.67s de deriva no card final). A posição relativa de
+    cada palavra DENTRO do seu próprio segmento continua usando o tempo ideal (erro relativo
+    limitado a <1 frame, não cumulativo)."""
     edl = json.loads(Path(edl_path).read_text())
     words = load_words(transcript_path)
     out_words: list[dict] = []
@@ -116,7 +125,8 @@ def output_timeline(edl_path: str, transcript_path: str) -> tuple[list[dict], fl
             out_start = max(wst, s) - s + seg_offset
             out_end = min(wen, e) - s + seg_offset
             out_words.append({"text": w["text"].strip(), "start": out_start, "end": max(out_end, out_start), "seg": seg_idx})
-        seg_offset += (e - s)
+        real_dur = math.ceil(round((e - s) * fps, 6)) / fps
+        seg_offset += real_dur
     return out_words, seg_offset
 
 
@@ -223,13 +233,14 @@ def main() -> None:
     ap.add_argument("--config", default=None, help="JSON overriding config_default.json (partial - deep merged)")
     ap.add_argument("--text-rules", default=None, help="JSON list of {pattern, replacement} display-only regex rules")
     ap.add_argument("--no-hook", action="store_true", help="Skip the big hook card entirely; treat all words as body captions")
+    ap.add_argument("--fps", type=float, default=24.0, help="Framerate do render final (render.py usa -r 24) - usado pra arredondar duração de segmento igual ao encode real, evitando deriva cumulativa em cortes com muitos segmentos")
     args = ap.parse_args()
 
     cfg = load_config(args.config)
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    words, total_dur = output_timeline(args.edl, args.transcript)
+    words, total_dur = output_timeline(args.edl, args.transcript, fps=args.fps)
     for w in words:
         w["text"] = normalize_ce_para_voce(w["text"])
     if args.text_rules:
