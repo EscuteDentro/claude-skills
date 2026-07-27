@@ -114,6 +114,13 @@ backspace (`\x08`), não o word-boundary de regex — sempre escrever `\\b` no a
     a deriva cresce a ponto de ficar perceptível, cada vez pior conforme o vídeo avança — bug
     real chegou a ~0.67s de deriva no card final de um corte com 32 segmentos. Controlado via
     `--fps` (default 24, igual ao hardcoded em `render.py`).
+11. **CTA de comentário ("comenta aqui embaixo: 'palavra'") troca aspas por CAIXA ALTA na
+    keyword**, nunca deixa a keyword entre aspas. A ASR transcreve a keyword como fala
+    reportada (entre aspas), mas nesse contexto específico de CTA isso lê mal e compete
+    visualmente com aspas de discurso reportado genuíno (citar um pensamento interno, que
+    devem continuar entre aspas normalmente). Só ativa quando uma das últimas ~6 palavras
+    começa com "comenta" (comenta, comente, comentem) — fora desse contexto, aspas ficam
+    intactas. Implementado em `normalize_cta_quotes()`.
 
 ## Formato dos arquivos de entrada
 
