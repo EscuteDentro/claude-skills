@@ -42,7 +42,7 @@ pontos específicos validados pra formato 9:16/Reels (evita a zona de ícones de
 
 ```bash
 python scripts/build_captions.py <edl.json> <transcript.json> <out_dir> \
-  [--config meu_config.json] [--text-rules minhas_regras.json]
+  [--config meu_config.json] [--text-rules minhas_regras.json] [--fps 24]
 
 python scripts/composite_captions.py <out_dir> <video_base.mp4> <video_final.mp4> \
   [--config meu_config.json]
@@ -51,6 +51,10 @@ python scripts/composite_captions.py <out_dir> <video_base.mp4> <video_final.mp4
 `--no-hook` (em `build_captions.py`) trata todas as palavras como corpo, sem gerar o card de
 hook grande. Útil quando o hook já foi resolvido fora do script (ex: uma cena separada,
 repetida de outro ponto do vídeo, que serve de abertura e não deve competir com legenda normal).
+
+`--fps` (default 24, mesmo valor hardcoded em `render.py` do skill `video-use`) declara o
+framerate do render final — necessário pro cálculo de deriva do item 10 das Regras de design
+abaixo. Só mude se o pipeline de vídeo usado não for o `video-use`/`render.py` padrão.
 
 `--config` faz merge parcial (deep) sobre `config_default.json` — só precisa declarar o que
 quer mudar. Ver todos os campos configuráveis em `scripts/config_default.json`: fonte
@@ -100,6 +104,16 @@ backspace (`\x08`), não o word-boundary de regex — sempre escrever `\\b` no a
    quando o texto cabe em 1 linha no tamanho base — hooks que já quebram em 2-3 linhas mantêm o
    tamanho configurado, já que usam mais espaço vertical. Teto configurável via
    `hook.max_auto_font_size` (default: 1.4x o `font_size` base).
+10. **A duração de cada segmento do EDL é arredondada pro múltiplo de frame mais próximo antes
+    de acumular o tempo de saída (`seg_offset`), nunca a duração ideal (`end - start`) crua.**
+    `render.py` (skill `video-use`) extrai cada segmento reencodando com `-r <fps> -t
+    <duration>`, o que sempre arredonda a duração real do clipe PRA CIMA até o frame mais
+    próximo (nunca corta no meio de um frame) — cada segmento sai de alguns ms a quase 1 frame
+    mais longo que o pedido. Se a legenda acumulasse o valor ideal do EDL, esse erro somaria a
+    cada corte: num vídeo com dezenas de segmentos (comum em cortes que removem várias pausas),
+    a deriva cresce a ponto de ficar perceptível, cada vez pior conforme o vídeo avança — bug
+    real chegou a ~0.67s de deriva no card final de um corte com 32 segmentos. Controlado via
+    `--fps` (default 24, igual ao hardcoded em `render.py`).
 
 ## Formato dos arquivos de entrada
 
