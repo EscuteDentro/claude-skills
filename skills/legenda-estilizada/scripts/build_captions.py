@@ -52,8 +52,8 @@ TRAILING_GRAMMATICAL_PUNCT = (".", ",", ":", ";")
 
 
 def strip_trailing_grammatical_punct(text: str) -> str:
-    if text and text[-1] in TRAILING_GRAMMATICAL_PUNCT:
-        return text[:-1]
+    while text and text[-1] in TRAILING_GRAMMATICAL_PUNCT:
+        text = text[:-1]
     return text
 
 
