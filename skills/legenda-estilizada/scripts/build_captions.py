@@ -75,6 +75,26 @@ def capitalize_first(text: str) -> str:
     return text[0].upper() + text[1:] if text else text
 
 
+_QUOTED_WORD_PATTERN = re.compile(r'^"([^"]+)"([,.:;!?]*)$')
+_CTA_TRIGGER_PATTERN = re.compile(r"^comenta", re.IGNORECASE)
+
+
+def normalize_cta_quotes(words: list[dict], lookback: int = 6) -> None:
+    """Quando o criador fala um CTA de comentário ("comenta aqui embaixo: 'palavra'"), a
+    ASR transcreve a keyword entre aspas (trata como fala reportada). Mas aspas nesse
+    contexto leem mal em legenda e competem visualmente com aspas de discurso reportado
+    genuíno (ex: citando um pensamento interno, que deve continuar com aspas). Fix: só
+    quando uma das últimas `lookback` palavras começa com "comenta" (comenta, comente,
+    comentem...), troca aspas por CAIXA ALTA - preserva aspas em qualquer outro contexto."""
+    for i, w in enumerate(words):
+        m = _QUOTED_WORD_PATTERN.match(w["text"])
+        if not m:
+            continue
+        window = words[max(0, i - lookback):i]
+        if any(_CTA_TRIGGER_PATTERN.match(ww["text"]) for ww in window):
+            w["text"] = m.group(1).upper() + m.group(2)
+
+
 def load_config(config_path: str | None) -> dict:
     default_path = Path(__file__).parent / "config_default.json"
     cfg = json.loads(default_path.read_text())
@@ -241,6 +261,7 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     words, total_dur = output_timeline(args.edl, args.transcript, fps=args.fps)
+    normalize_cta_quotes(words)
     for w in words:
         w["text"] = normalize_ce_para_voce(w["text"])
     if args.text_rules:
