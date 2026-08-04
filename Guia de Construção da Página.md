@@ -1,6 +1,6 @@
 # Guia de Construção da Página — Template Universal
 
-> Documento permanente. Template universal para LPs de infoproduto. Valores de exemplo — substituir pelos dados do seu produto.
+> Documento permanente. Template universal com valores preenchidos para o **{Produto}**.
 > Campos marcados com ⬜ são site-específicos — substituir ao usar este Guia em outro produto.
 > O DS JSON é um componente deste guia — tokens visuais e decisões de design de componente.
 
@@ -10,25 +10,25 @@
 
 Todos os valores específicos do site em um único lugar. Ao clonar para outro produto, substituir estes.
 
-| Campo | Valor de Exemplo |
+| Campo | {Produto} |
 |---|---|
-| **Nome do produto** | Produto Exemplo |
-| **URL canônica** | `https://seuproduto.com.br` |
+| **Nome do produto** | {Produto} |
+| **URL canônica** | `https://{dominio}.com.br` |
 | **Idioma** | `pt-BR` (HTML `lang`) / `pt_BR` (og:locale) |
-| **CNPJ** | 00.000.000/0001-00 |
-| **Email de contato** | contato@seuproduto.com.br |
-| **Meta Pixel ID** | `0000000000000000` |
-| **Microsoft Clarity ID** | `clarityid0000` |
-| **Checkout URL** | `https://pay.hotmart.com/CHECKOUT_ID_HOTMART?checkoutMode=10&hotfeature=51` |
+| **CNPJ** | {CNPJ} |
+| **Email de contato** | {email} |
+| **Meta Pixel ID** | `{PIXEL_ID}` |
+| **Microsoft Clarity ID** | `{CLARITY_ID}` |
+| **Checkout URL** | `https://pay.hotmart.com/{CHECKOUT_CODE}?checkoutMode=10&hotfeature=51` |
 | **Plataforma de vendas** | Hotmart |
-| **Preço** | R$ 000,00 (BRL) |
-| **YouTube Video ID (VSL)** | `VIDEO_ID_YOUTUBE` |
-| **Professor** | Nome Da Silva |
-| **Instagram** | `@seuproduto` → `https://www.instagram.com/seuproduto` |
-| **YouTube canal** | `@seuproduto` → `https://www.youtube.com/@seuproduto` |
-| **TikTok** | `@seuproduto` → `https://www.tiktok.com/@seuproduto` |
-| **og:title** | Sua headline principal de conversão aqui |
-| **og:description** | Descrição curta do produto — resultado e para quem é. |
+| **Preço** | R$ 483,00 (BRL) |
+| **YouTube Video ID (VSL)** | `{VIDEO_ID}` |
+| **Professor** | {Nome Sobrenome} |
+| **Instagram** | `@{produto}` → `https://www.instagram.com/{produto}` |
+| **YouTube canal** | `@{produto}` → `https://www.youtube.com/@{produto}` |
+| **TikTok** | `@{produto}` → `https://www.tiktok.com/@{produto}` |
+| **og:title** | Aula com prática gratuita para sentir na pele o que é meditar de verdade |
+| **og:description** | Método que traduz a sabedoria ancestral para o ocidental moderno. Perceba resultados desde as primeiras sessões. |
 | **og:image** | `assets/og-image.png` — logo centralizada com `scale(1.25)`, canvas 1200×630 `#E8FAFF`. Source: `og-image-preview.html`. Regenerar se logo mudar. |
 | **Favicon** | `assets/favicon.png` — estrela âmbar `#E8A820` sobre `#E8FAFF`, 256×256. Source: `favicon-export.html`. |
 
@@ -38,12 +38,12 @@ Todos os valores específicos do site em um único lugar. Ao clonar para outro p
 
 | Arquivo | Caminho | Conteúdo |
 |---|---|---|
-| **HTML de trabalho** | `~/seuprojeto/paginas/index.html` | LP completa (~1900 linhas) |
-| **Design System (DS)** | `seuprojeto/design-system.json` | Tokens + regras completas (ver domínios abaixo) |
-| **Auxiliares (raiz do domínio)** | `~/seuprojeto/paginas/` | `robots.txt`, `llms.txt`, `sitemap.xml` |
-| **Política de privacidade** | `~/seuprojeto/paginas/privacidade.html` | Deploy em `/privacidade` no Vercel |
-| **Template A/B** | `seuprojeto/Testes A-B/template.md` | Template e naming convention de testes |
-| **Log de testes A/B** | `seuprojeto/Testes A-B/` | Relatórios datados por teste |
+| **HTML de trabalho** | `~/{pasta}/escute-dentro/paginas/index.html` | LP completa (~1900 linhas) |
+| **Design System (DS)** | `{Produto}/Marketing/Página de vendas/design-system.json` | Tokens + regras completas (ver domínios abaixo) |
+| **Auxiliares (raiz do domínio)** | `~/{pasta}/escute-dentro/paginas/` | `robots.txt`, `llms.txt`, `sitemap.xml` |
+| **Política de privacidade** | `~/{pasta}/escute-dentro/paginas/privacidade.html` | Deploy em `/privacidade` no Vercel |
+| **Template A/B** | `{Produto}/Marketing/Testes A-B/template.md` | Template e naming convention de testes |
+| **Log de testes A/B** | `{Produto}/Marketing/Testes A-B/` | Relatórios datados por teste |
 
 **Snapshots de portabilidade:** antes de publicar, criar dois arquivos de referência para facilitar migração futura de plataforma:
 - `modal-precheckout.html` — modal standalone com CSS/HTML/JS isolados, sem dependência da LP
@@ -124,7 +124,7 @@ Todos os eventos dentro ou protegidos por `loadTracking()` — função que só 
 **CAPI — arquitetura:**
 - Endpoint: `api/capi.js` (Vercel serverless, incluso no deploy via `deploy_v2.py`)
 - Token: `META_CAPI_KEY` (env var encrypted no Vercel — nunca em código)
-- Pixel ID: `0000000000000000` (hardcoded no `api/capi.js`)
+- Pixel ID: `{PIXEL_ID}` (hardcoded no `api/capi.js`)
 - PII no Lead: email + phone (E.164, DDI 55 prefixado) + nome — hasheados SHA-256 `toLowerCase().trim()`
 - `_fbc` reconstruído de `fbclid` na chegada, dentro de `loadTracking()` — 90 dias, `SameSite=Lax`
 - `country`: `sha256('br')` hardcoded — eleva EMQ em eventos sem PII
@@ -143,9 +143,24 @@ Todos os eventos dentro ou protegidos por `loadTracking()` — função que só 
 
 **VSLProgress — padrão YouTube IFrame API:** iframe com `enablejsapi=1` → `new YT.Player('vsl-iframe', ...)` → poll `setInterval(5000)` → `p.getCurrentTime() / p.getDuration()`. Fallback via `onYouTubeIframeAPIReady` se API ainda não carregou.
 
-**Microsoft Clarity** (ID: `clarityid0000`): gravação de sessão e mapas de calor. Tags customizadas via `clarity('set', 'key', 'value')` — ver coluna "Clarity tag" acima. Acessar em clarity.microsoft.com → Recordings e Heatmaps.
+**Microsoft Clarity** (ID: `{CLARITY_ID}`): gravação de sessão e mapas de calor. Tags customizadas via `clarity('set', 'key', 'value')` — ver coluna "Clarity tag" acima. Acessar em clarity.microsoft.com → Recordings e Heatmaps.
 
 **Consent gate**: `localStorage.getItem('edm_consent') === 'granted'` — em visitas recorrentes, `loadTracking()` dispara automaticamente no carregamento.
+
+**UTM — estrutura padrão para Meta Ads (configurar em cada anúncio):**
+
+| Parâmetro | Valor | Tipo |
+|---|---|---|
+| `utm_source` | `MetaAds` | fixo |
+| `utm_medium` | `paid` | fixo |
+| `utm_campaign` | `{{campaign.name}}` | dinâmico |
+| `utm_content` | `{{ad.name}}` | dinâmico |
+| `utm_term` | `{{placement}}` | dinâmico (parâmetro personalizado) |
+| `utm_adset` | `{{adset.name}}` | dinâmico (parâmetro personalizado) |
+
+Linktree (bio Instagram, TikTok, YouTube): `utm_source=linktree&utm_medium=social&utm_campaign=bio` — fixo, configurado nos links de destino dentro do Linktree.
+
+Esses parâmetros são capturados por `captureUtms()` no modal e gravados na Sheet — colunas: UTM Source, UTM Medium, UTM Campaign, UTM Content, UTM Term, UTM Adset, Duplicado, Obs Duplicação. Ao criar campanha nova no Meta, replicar essa estrutura em "Parâmetros de URL" no adset ou anúncio.
 
 ---
 
@@ -336,7 +351,7 @@ Para seções que vão de coluna única (mobile) para 2 ou mais colunas (desktop
 .minha-grid  { display: grid; grid-template-columns: repeat(N, 1fr); gap: Xpx; }
 ```
 
-**Instâncias {produto}:**
+**Instâncias EDm:**
 - 2 col assimétricas: professor (foto `width: 260px; flex-shrink: 0` + bio `flex: 1`)
 - 3 col simétricas: para quem é (`repeat(3, 1fr)`, gap 20px, padding ampliado com `50vw - 580px`)
 - 3–4 col alturas variáveis: dep-visuais e ciência → JS masonry (ver seção acima)
@@ -377,7 +392,7 @@ O "12x de" é um `<span class="preco-parcela">` dentro do `<p class="preco-main"
 ```html
 <p class="preco-label">Por apenas</p>
 <p class="preco-main"><span class="preco-parcela">12x de </span>R$49,95</p>
-<p class="preco-alt">ou R$ 000,00 à vista</p>
+<p class="preco-alt">ou R$ 483,00 à vista</p>
 <p class="preco-seguro">Pagamento <strong>100% seguro</strong> com acesso imediato</p>
 ```
 
@@ -430,7 +445,7 @@ Usar em subtítulos de hero e headings que precisam de quebra manual apenas em v
 
 ## Performance
 
-> **Princípio central — mobile-first.** Performance mobile não é otimização opcional — é a base da conversão de tráfego pago. Cada segundo a mais de carregamento reduz conversão diretamente. Toda avaliação (Lighthouse, LCP, CLS, TBT) é feita no modo **Mobile**, aba anônima, URL de produção. Meta: Lighthouse mobile ≥ 90. Score 95+ é factível e deve ser perseguido. Referência: nossa LP atingiu 97 com as práticas abaixo.
+> **Princípio central — mobile-first.** Performance mobile não é otimização opcional — é a base da conversão de tráfego pago. Cada segundo a mais de carregamento reduz conversão diretamente. Toda avaliação (Lighthouse, LCP, CLS, TBT) é feita no modo **Mobile**, aba anônima, URL de produção. Meta: Lighthouse mobile ≥ 90. Score 95+ é factível e deve ser perseguido. Referência: LP {Produto} atingiu 97 com as práticas abaixo.
 
 ### Diagnóstico
 
@@ -446,7 +461,7 @@ Usar em subtítulos de hero e headings que precisam de quebra manual apenas em v
 **1. Eliminar icon fonts**
 
 Nunca usar Font Awesome ou qualquer icon font para < 10 ícones. Substituir por SVG inline:
-- Elimina render-blocking (~1.370ms observado em produção)
+- Elimina render-blocking (~1.370ms observado na LP {Produto})
 - Remove ~73KB JS + ~18KB CSS não usados do thread principal
 - Fonte de SVGs FA6 free: `raw.githubusercontent.com/FortAwesome/Font-Awesome/6.5.1/svgs/solid/[nome].svg`
 - CSS: `.icone svg { width: Xpx; height: Xpx; fill: var(--brand-vivid); }`
@@ -497,7 +512,7 @@ PNG e JPG pesam 2–5× mais que WebP equivalente. Padrões de qualidade:
 - Logos e ícones raster: `cwebp -q 80 logo.png -o logo.webp` — preserva bordas nítidas
 - Recomprimir WebP já existentes (quando recebidos de terceiros): `dwebp img.webp -o /tmp/tmp.png && cwebp -q 65 /tmp/tmp.png -o img.webp`
 - Verificar dimensões: nunca servir imagem maior que o espaço de display (`sips -g pixelWidth img`)
-- Impacto observado na LP {produto}: −422KB total de payload (PNGs → WebP + 8 WebPs recomprimidos)
+- Impacto observado na LP EDm: −422KB total de payload (PNGs → WebP + 8 WebPs recomprimidos)
 
 **7. Scripts externos com `defer` ou movidos para `</body>`**
 
@@ -521,6 +536,45 @@ Pixel e Clarity no `<head>` bloqueiam render e aumentam TBT, além de violar LGP
 - Todo tracking vai dentro de `loadTracking()`, chamado apenas quando usuário aceita o cookie banner
 - Ganho: TBT reduzido no load inicial (~100–200ms); compliance LGPD automático
 - Verificar: `grep -n "fbq\|clarity\|gtag" index.html` — nenhuma ocorrência deve aparecer fora da função de consent
+
+**17. INP — modal com `opacity`/`visibility`, não `display:none` (padrão obrigatório para overlays)**
+
+`display:none → display:flex` força full layout reflow no click handler, bloqueando o browser de pintar. Em mobile mid-range, esse reflow sozinho já ultrapassa o limiar de 200ms do INP.
+
+Padrão correto para overlays/modais:
+```css
+/* Modal sempre em display:flex (fixed = sem impacto no layout do documento) */
+.modal-overlay {
+  display: flex; position: fixed; inset: 0;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.modal-overlay.active {
+  opacity: 1; visibility: visible; pointer-events: auto;
+}
+@media (prefers-reduced-motion: reduce) { .modal-overlay { transition: none; } }
+```
+
+```js
+btn.addEventListener('click', function(e) {
+  e.preventDefault();
+  // Resposta visual imediata — apenas mutações DOM necessárias para pintar
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  // ...outras mutações visuais...
+
+  // Tracking + foco adiados com setTimeout(0): browser pinta antes de processar
+  setTimeout(function() {
+    loadTracking();
+    document.getElementById('campo-inicial').focus();
+    // fbq(), _capi(), clarity() aqui
+  }, 0);
+});
+```
+
+- `visibility: hidden` evita que elementos dentro do overlay sejam focáveis via Tab quando fechado (accessibility OK)
+- `backdrop-filter: blur()` aplicado ao overlay não bloqueia INP com esta abordagem: a GPU já tem o layer compositor no load
+- `setTimeout(0)` é suficiente para ceder ao browser; `scheduler.yield()` é mais preciso mas Chrome 115+ only
 
 #### Impacto médio — ganhos incrementais garantidos
 
@@ -588,7 +642,7 @@ Race condition entre `img.load` events e o masonry JS torna `grid.style.cssText 
 
 Cada redirect (www → apex, http → https) adiciona 100–300ms de round-trip antes do primeiro byte. Configurar o domínio canônico diretamente no DNS (A record para apex, CNAME para www → apex no Vercel). Verificar:
 ```bash
-curl -I https://www.seuproduto.com.br/
+curl -I https://www.{dominio}.com.br/
 # Location: deve apontar diretamente para apex, sem cascata de redirects
 ```
 Dois redirects em cadeia (http → https → www → apex) = +600ms no mobile antes de qualquer byte de HTML.
@@ -606,7 +660,7 @@ Suspects típicos: PNGs não convertidos (> 200KB), WebPs sem recompressão (> 1
 
 **12. AVIF além de WebP**
 
-Suporte 96%+ em 2026. AVIF reduz imagens ~20% adicionais vs WebP na média (observado: 267KB de saving em 35 imagens da LP de referência, ~20% de redução). Usar `<picture>` com fallback — browser escolhe o melhor formato disponível:
+Suporte 96%+ em 2026. AVIF reduz imagens ~20% adicionais vs WebP na média (observado: 267KB de saving em 35 imagens da LP EDm, ~20% de redução). Usar `<picture>` com fallback — browser escolhe o melhor formato disponível:
 ```html
 <picture>
   <source srcset="assets/img.avif" type="image/avif">
@@ -636,7 +690,7 @@ DevTools → More tools → Coverage → recarregar a página → CSS não usado
 
 **14. Font subsetting avançado**
 
-Reduzir WOFF2 com `pyftsubset` (já executado na LP de referência em jun/2026):
+Reduzir WOFF2 com `pyftsubset` (já executado na LP EDm em jun/2026):
 ```bash
 # pyftsubset já instalado via Homebrew
 pyftsubset Montserrat.woff2 \
@@ -644,7 +698,7 @@ pyftsubset Montserrat.woff2 \
   --output-file=montserrat.woff2 \
   --flavor=woff2
 ```
-Resultado LP {produto}: 35KB → 25KB (−28%, com layout features/kerning preservados). Antes de subsetar: extrair chars únicos do HTML com `python3 -c "import re,html; ..."` para garantir cobertura.
+Resultado LP EDm: 35KB → 25KB (−28%, com layout features/kerning preservados). Antes de subsetar: extrair chars únicos do HTML com `python3 -c "import re,html; ..."` para garantir cobertura.
 
 **19. Prefetch da página de checkout**
 
@@ -683,7 +737,7 @@ Resultado LP {produto}: 35KB → 25KB (−28%, com layout features/kerning prese
 | TBT | < 200ms | < 50ms | < 150ms |
 | Accessibility | ≥ 85 | ≥ 95 | ≥ 90 |
 
-Referência real: LP de referência → **97 Performance / 96 Accessibility / 100 Best Practices / 100 SEO** (Lighthouse Mobile, produção).
+Referência real: LP {Produto} pós-sessões 30+31 → **97 Performance / 96 Accessibility / 100 Best Practices / 100 SEO** (Lighthouse Mobile, produção).
 
 ### Caminho típico de evolução do score
 
@@ -723,9 +777,9 @@ Referência real: LP de referência → **97 Performance / 96 Accessibility / 10
 - **FAQPage**: aumenta em 3× a probabilidade de aparecer em Google AI Overviews. Campo `text` em plain text (zero HTML). Schema deve ser idêntico ao texto visível na página; se o FAQ mudar, o schema muda junto
 - **Course**: incluir `name`, `description`, `teaches`, `keywords` (40+ termos), `educationalLevel`, `provider`, `instructor`, `inLanguage`, `courseMode`, `hasCourseInstance` com `Offer`
 - **VideoObject**: obrigatório se há VSL — incluir `name`, `description`, `uploadDate`, `duration` (formato ISO 8601: `PT51M48S`), `embedUrl`, `thumbnailUrl`, `contentUrl`
-- **Person**: usar nome completo (`"Nome Da Silva"`, não só `"Davi"`) — entidade nomeada completa melhora reconhecimento. Incluir `jobTitle`, `description`, `url`, `knowsAbout`, `sameAs`
+- **Person**: usar nome completo (`"{Nome Sobrenome}"`, não só `"Davi"`) — entidade nomeada completa melhora reconhecimento. Incluir `jobTitle`, `description`, `url`, `knowsAbout`, `sameAs`
 - **Organization**: incluir `name`, `url`, `logo`, `contactPoint` e `sameAs` com todas as redes sociais — permite que o Google consolide a mesma entidade em múltiplas plataformas
-- **`sameAs`** (Organization e Person): `["https://www.instagram.com/seuproduto", "https://www.youtube.com/@seuproduto", "https://www.tiktok.com/@seuproduto"]` — ao adicionar nova rede social, atualizar em ambos os schemas
+- **`sameAs`** (Organization e Person): `["https://www.instagram.com/{produto}", "https://www.youtube.com/@{produto}", "https://www.tiktok.com/@{produto}"]` — ao adicionar nova rede social, atualizar em ambos os schemas
 - **AggregateRating**: só implementar com avaliações verificáveis e visíveis na página (Hotmart ou Google Reviews) — Google pode penalizar markup sem evidência na página
 
 ### 3. Hierarquia de headings
@@ -735,7 +789,7 @@ Referência real: LP de referência → **97 Performance / 96 Accessibility / 10
   - Bom: "Perguntas Frequentes sobre Meditação"
   - Ruim: "Perguntas Frequentes - FAQ" (redundante, sem keyword adicional)
   - Bom: "Pesquisas científicas demonstram inúmeros benefícios de praticar meditação"
-  - Bom: "Nome Da Silva — yoga e meditação há 20 anos" (entidade nomeada + keyword)
+  - Bom: "{Nome Sobrenome} — yoga e meditação há 20 anos" (entidade nomeada + keyword)
   - Fraco: "Sobre o professor" (sem keyword, sem entidade nomeada)
 - **H3 para sub-elementos** dentro de cada seção
 - **Nunca pular níveis** (ex: H1 → H3 sem H2 intermediário)
@@ -812,6 +866,7 @@ Rodar antes do deploy e periodicamente pós-publicação.
 | Twitter/X Card | X Card Validator | Preview exibe imagem grande (`summary_large_image`) |
 | Meta Pixel | Meta Events Manager | Todos os 6 eventos disparando com parâmetros corretos |
 | Microsoft Clarity | clarity.microsoft.com | Sessões sendo gravadas; mapa de calor do CTA visível |
+| Análise de performance | Claude Code | O Claude consegue analisar: heatmap do Clarity (atenção por scroll), leads da planilha Apps Script (UTMs, criativos, funil) e Meta Ads (CPL, criativo, placement). |
 | Hierarquia de headings | Extensão headingsMap (Chrome/Firefox) | Hierarquia H1 → H2 → H3 sem saltos; único H1 |
 | LGPD / Consent | DevTools → Application → LocalStorage | `edm_consent: granted` só aparece após interação com o banner |
 
