@@ -128,10 +128,12 @@ Todos os eventos dentro ou protegidos por `loadTracking()` — função que só 
 - PII no Lead: email + phone (E.164, DDI 55 prefixado) + nome — hasheados SHA-256 `toLowerCase().trim()`
 - `_fbc` reconstruído de `fbclid` na chegada, dentro de `loadTracking()` — 90 dias, `SameSite=Lax`
 - `country`: `sha256('br')` hardcoded — eleva EMQ em eventos sem PII
-- `external_id`: UUID gerado pós-consent em `localStorage._edm_eid`, sha256 antes do envio — conecta sessões cross-visit (produto comprado raramente no mesmo dia do primeiro acesso)
+- `external_id`: UUID gerado pós-consent em `localStorage._edm_eid`, sha256 antes do envio no CAPI — conecta sessões cross-visit. **Também enviado no `fbq('init')` como plain text** (`fbq('init', PIXEL_ID, { external_id: window._extId })`) — Meta normaliza internamente para SHA-256 e consegue cruzar com o valor do CAPI.
+- `event_source_url`: dinâmico — `_capi()` envia `page_url: window.location.href` e `api/capi.js` usa esse valor (fallback: `'https://www.escutedentro.com.br'`). Corrige o hardcoded anterior sem `www`.
 - **`_fbc` fallback de URL** (fix 4a, 2026-07-08): se cookie `_fbc` ausente, reconstruir de `fbclid` na URL (`fb.1.{timestamp}.{fbclid}`). Só incluir no body se não-vazio — não enviar string vazia.
 - **IP do usuário** (fix 4b, 2026-07-08): `capi.js` usa `x-real-ip` antes de `x-forwarded-for` — captura IPv6 quando disponível. Verificado em produção: IP não-vazio, formato correto.
 - **PII de retorno** (fix 4c, 2026-07-08): após Lead, salvar PII em `localStorage._edm_pii` (`{em, ph, fn}`). `_capi()` lê automaticamente e inclui em todos os eventos futuros do visitante — eleva EMQ de PageView/ViewContent para quem já converteu.
+- **Dedup rate esperada**: CAPI captura eventos de usuários com adblocker que o browser pixel não alcança. Esses eventos CAPI-only não geram deduplicação — é o comportamento correto. Taxa de dedup de 60–80% reflete 20–40% de cobertura incremental via CAPI, não um problema. Para diagnosticar: verificar no Events Manager se usuários *sem adblocker* têm dedup próximo de 100%.
 - Pattern obrigatório para qualquer evento com CAPI:
   ```js
   var evId = window._cId();
