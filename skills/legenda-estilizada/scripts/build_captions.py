@@ -35,6 +35,35 @@ Design notes / hard-won lessons (2026-07-21/22, see reference_legenda_padrao_vid
      boundary (same bug class as #2).
   5. Any display-text normalization (e.g. expanding a casual contraction) must
      run BEFORE any width measurement, or line-wrap decisions will be wrong.
+  6. Group by semantic unit, not just by width fit (2026-07-31, real bug found
+     in production). Two concrete cases:
+     a. A quoted span (reported speech) must never share a card with text
+        before or after it - the closing quote mark was gluing onto the START
+        of the NEXT sentence ("quero?". É tanto ruído"), reading like new
+        content already started while the old quote was still resolving. Fix:
+        force a card break before any word that OPENS a quote and right after
+        any word that CLOSES one, regardless of width budget. The single word
+        immediately introducing the quote also gets isolated into its own
+        card - a beat of anticipation before the reveal reads better than
+        gluing the lead-in to the preceding clause.
+     b. A comma-separated enumeration (list) must chunk with a CONSTANT number
+        of items per card - never 1 item, then 2, then 1 again. An
+        inconsistent stride visually implies the underlying information
+        changed shape, when it's really the same kind of unit repeating. Fix:
+        detect runs of 3+ comma-terminated items and force one-item-per-card
+        if the whole run doesn't fit together in one card - never a partial
+        greedy-fill mix.
+  7. Sentence-ending punctuation (.?!:) always forces a card break, even for a
+     1-2 word sentence (2026-08-11, real bug found in production: "Meditação."
+     - a standalone one-word sentence - glued onto the START of the next
+     sentence "A meditação te coloca...", producing a card that read
+     "Meditação. A" with pass-2's width-based split cutting the merged group
+     at an arbitrary word with no relation to the sentence boundary. The old
+     rule required len(cur) >= 3 before respecting end-of-sentence punctuation,
+     meant to avoid over-fragmenting short interjections - but pass 3 already
+     glues short-lived (<min_display_duration) groups forward when safe, so
+     that job doesn't belong in pass 1. Never gate sentence-boundary
+     recognition on how many words happen to be in the group so far.
 """
 import argparse
 import json
@@ -42,9 +71,16 @@ import math
 import re
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+import numpy as np
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
-PUNCT_END = (",", ".", "?", "!", ":")
+# Vírgula NÃO força quebra de card sozinha (2026-07-31) - só pontuação forte
+# (frase completa) ou pausa/corte real quebram o agrupamento na passada 1.
+# Antes a vírgula forçava quebra a cada item de uma enumeração assim que
+# len(cur)>=3, o que destruía qualquer chance de agrupamento consistente de
+# lista antes mesmo do split_to_fit (passada 2) rodar - a vírgula agora só
+# conta como boundary "fraco", resolvido por largura real + regra de lista.
+PUNCT_END = (".", "?", "!", ":")
 
 # Pontuação puramente gramatical nunca fecha uma legenda visualmente - a quebra
 # para o card seguinte já comunica a pausa. "?" e "!" ficam (carregam intenção
@@ -77,6 +113,8 @@ def capitalize_first(text: str) -> str:
 
 _QUOTED_WORD_PATTERN = re.compile(r'^"([^"]+)"([,.:;!?]*)$')
 _CTA_TRIGGER_PATTERN = re.compile(r"^comenta", re.IGNORECASE)
+_OPENS_QUOTE = re.compile(r'^"')
+_CLOSES_QUOTE = re.compile(r'"[,.:;!?]*$')
 
 
 def normalize_cta_quotes(words: list[dict], lookback: int = 6) -> None:
@@ -180,7 +218,23 @@ def fits_in(words_group, font, max_w, draw, stroke_width, max_lines) -> bool:
     return len(wrap_fits(text, font, max_w, draw, stroke_width)) <= max_lines
 
 
-def split_to_fit(words_group, font, max_w, draw, stroke_width, max_lines) -> list[list[dict]]:
+def _find_list_items(words_group) -> list[list[dict]] | None:
+    """Detecta uma enumeracao: 3+ 'itens' consecutivos terminados em virgula,
+    seguidos do item final que fecha a lista (qualquer pontuacao terminal).
+    Um item pode ter 1+ palavras (o limite e a virgula, nao a palavra).
+    Retorna a lista de itens se encontrar 3+, senao None."""
+    items, cur = [], []
+    for w in words_group:
+        cur.append(w)
+        if w["text"].rstrip().endswith(","):
+            items.append(cur)
+            cur = []
+    if cur:
+        items.append(cur)
+    return items if len(items) >= 3 else None
+
+
+def _greedy_split(words_group, font, max_w, draw, stroke_width, max_lines) -> list[list[dict]]:
     result, cur = [], []
     for w in words_group:
         trial = cur + [w]
@@ -192,6 +246,27 @@ def split_to_fit(words_group, font, max_w, draw, stroke_width, max_lines) -> lis
             cur.append(w)
     if cur:
         result.append(cur)
+    return result
+
+
+def split_to_fit(words_group, font, max_w, draw, stroke_width, max_lines) -> list[list[dict]]:
+    items = _find_list_items(words_group)
+    if items is None:
+        return _greedy_split(words_group, font, max_w, draw, stroke_width, max_lines)
+
+    # enumeracao real: ou todos os itens cabem juntos num card (stride
+    # constante = tudo), ou cada item vira seu proprio card (stride constante
+    # = 1) - nunca uma mistura greedy que cresce/encolhe entre cards.
+    if fits_in([w for it in items for w in it], font, max_w, draw, stroke_width, max_lines):
+        return [[w for it in items for w in it]]
+    result = []
+    for it in items:
+        result.extend(_greedy_split(it, font, max_w, draw, stroke_width, max_lines))
+    # marca pra passada 3 nunca reagrupar por duracao minima - colaria itens
+    # de volta de forma inconsistente, o mesmo bug que essa regra corrige.
+    for grp in result:
+        for w in grp:
+            w["_no_glue"] = True
     return result
 
 
@@ -216,7 +291,24 @@ def autosize_hook_font(text: str, font_path: str, font_index: int, base_size: in
     return base_font
 
 
-def render_card(text, out_path, font, stroke_w, max_w, canvas_w, fill, outline) -> tuple[int, int, int]:
+def _diagonal_gradient_rgba(size: tuple[int, int], c1, c2) -> Image.Image:
+    """Top-left (c1) to bottom-right (c2) linear gradient, e.g. a light highlight
+    fading to a darker base tone - reads as a sheen/silk-like glint on a stroke
+    rather than a flat color."""
+    w, h = size
+    xx, yy = np.meshgrid(np.arange(w), np.arange(h))
+    t = (xx.astype(np.float32) + yy.astype(np.float32)) / max(1, (w + h - 2))
+    c1a, c2a = np.array(c1, dtype=np.float32), np.array(c2, dtype=np.float32)
+    grad = c1a[None, None, :] + (c2a - c1a)[None, None, :] * t[:, :, None]
+    return Image.fromarray(grad.astype(np.uint8), mode="RGBA")
+
+
+def render_card(text, out_path, font, stroke_w, max_w, canvas_w, fill, outline,
+                 outline_gradient=None) -> tuple[int, int, int]:
+    """outline_gradient: optional (color_from, color_to) RGBA pair - renders the
+    stroke as a diagonal gradient (e.g. a sheen effect) instead of a flat outline
+    color. Only isolates the stroke RING (full glyph+stroke silhouette minus the
+    plain-fill silhouette), so the gradient never bleeds into the fill itself."""
     img = Image.new("RGBA", (canvas_w, 900), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     lines = wrap_fits(text, font, max_w, draw, stroke_w)
@@ -230,12 +322,30 @@ def render_card(text, out_path, font, stroke_w, max_w, canvas_w, fill, outline) 
     spacing = int(font_size * 0.28)
     total_h += spacing * (len(lines) - 1)
     y = (img.height - total_h) // 2
+    positions = []
     for ln, h in zip(lines, line_heights):
         bbox = draw.textbbox((0, 0), ln, font=font, stroke_width=stroke_w)
         w = bbox[2] - bbox[0]
         x = (canvas_w - w) // 2 - bbox[0]
-        draw.text((x, y - bbox[1]), ln, font=font, fill=tuple(fill), stroke_width=stroke_w, stroke_fill=tuple(outline))
+        positions.append((x, y - bbox[1], ln))
         y += h + spacing
+
+    if outline_gradient:
+        mask_full = Image.new("L", img.size, 0)
+        mask_fill = Image.new("L", img.size, 0)
+        d_full, d_fill = ImageDraw.Draw(mask_full), ImageDraw.Draw(mask_fill)
+        for x, ty, ln in positions:
+            d_full.text((x, ty), ln, font=font, fill=255, stroke_width=stroke_w, stroke_fill=255)
+            d_fill.text((x, ty), ln, font=font, fill=255, stroke_width=0)
+        mask_stroke = ImageChops.subtract(mask_full, mask_fill)
+        grad = _diagonal_gradient_rgba(img.size, outline_gradient[0], outline_gradient[1])
+        img.paste(grad, (0, 0), mask_stroke)
+        for x, ty, ln in positions:
+            draw.text((x, ty), ln, font=font, fill=tuple(fill), stroke_width=0)
+    else:
+        for x, ty, ln in positions:
+            draw.text((x, ty), ln, font=font, fill=tuple(fill), stroke_width=stroke_w, stroke_fill=tuple(outline))
+
     bbox = img.getbbox()
     pad = 20
     if bbox:
@@ -253,6 +363,14 @@ def main() -> None:
     ap.add_argument("--config", default=None, help="JSON overriding config_default.json (partial - deep merged)")
     ap.add_argument("--text-rules", default=None, help="JSON list of {pattern, replacement} display-only regex rules")
     ap.add_argument("--no-hook", action="store_true", help="Skip the big hook card entirely; treat all words as body captions")
+    ap.add_argument("--hook-text", default=None,
+                     help="Editorial hook text overriding the verbatim transcript (e.g. a punchier "
+                          "paraphrase). Shown as a short separate intro graphic (see --hook-duration) "
+                          "layered over normal body captions, which keep following the real speech "
+                          "from frame 0 - the hook words are NOT removed from body captioning.")
+    ap.add_argument("--hook-duration", type=float, default=2.0,
+                     help="Display duration in seconds for an editorial --hook-text card (default 2.0s). "
+                          "Ignored when --hook-text is not set (verbatim hook times off the real words).")
     ap.add_argument("--fps", type=float, default=24.0, help="Framerate do render final (render.py usa -r 24) - usado pra arredondar duração de segmento igual ao encode real, evitando deriva cumulativa em cortes com muitos segmentos")
     args = ap.parse_args()
 
@@ -267,7 +385,12 @@ def main() -> None:
     if args.text_rules:
         apply_text_rules(words, json.loads(Path(args.text_rules).read_text()))
 
-    hook_font = ImageFont.truetype(cfg["font_path"], cfg["hook"]["font_size"], index=cfg["font_index"])
+    # hook can override font_path/font_index (e.g. a bold sans for an editorial
+    # intro card, distinct from the body caption's serif) - falls back to the
+    # shared top-level font when not set, so verbatim-hook videos are unaffected.
+    hook_font_path = cfg["hook"].get("font_path", cfg["font_path"])
+    hook_font_index = cfg["hook"].get("font_index", cfg["font_index"])
+    hook_font = ImageFont.truetype(hook_font_path, cfg["hook"]["font_size"], index=hook_font_index)
     body_font = ImageFont.truetype(cfg["font_path"], cfg["body"]["font_size"], index=cfg["font_index"])
     probe = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
 
@@ -281,22 +404,35 @@ def main() -> None:
             if w["text"].rstrip('"\'').endswith((":", ".", "?", "!")):
                 break
         hook_end_idx = len(hook_words)
-        hook_text = strip_trailing_grammatical_punct(" ".join(w["text"] for w in hook_words))
-        hook_text = capitalize_first(hook_text)
         hook_out_start = 0.0
-        natural_hook_end = hook_words[-1]["end"]
-        hook_out_end = natural_hook_end + 0.35
-        body_words = words[hook_end_idx:]
-        if body_words:
-            hook_out_end = min(hook_out_end, body_words[0]["start"] - 0.02)
-            hook_out_end = max(hook_out_end, natural_hook_end + 0.05)
+        if args.hook_text:
+            # Editorial hook text is a separate intro graphic, not a caption for the
+            # spoken hook words - it gets its own short flash duration (--hook-duration)
+            # and does NOT consume the hook words from body captioning. The real speech
+            # keeps flowing as normal captions underneath from frame 0, hook included.
+            hook_text = args.hook_text
+            hook_out_end = args.hook_duration
+            body_words = words
+        else:
+            hook_text = strip_trailing_grammatical_punct(" ".join(w["text"] for w in hook_words))
+            hook_text = capitalize_first(hook_text)
+            natural_hook_end = hook_words[-1]["end"]
+            hook_out_end = natural_hook_end + 0.35
+            body_words = words[hook_end_idx:]
+            if body_words:
+                hook_out_end = min(hook_out_end, body_words[0]["start"] - 0.02)
+                hook_out_end = max(hook_out_end, natural_hook_end + 0.05)
 
         max_auto = cfg["hook"].get("max_auto_font_size", int(cfg["hook"]["font_size"] * 1.4))
-        sized_hook_font = autosize_hook_font(hook_text, cfg["font_path"], cfg["font_index"],
+        sized_hook_font = autosize_hook_font(hook_text, hook_font_path, hook_font_index,
                                               cfg["hook"]["font_size"], max_auto,
                                               cfg["hook"]["max_width"], cfg["hook"]["stroke_width"], probe)
+        hook_fill = cfg["hook"].get("fill_color", cfg["fill_color"])
+        hook_outline = cfg["hook"].get("outline_color", cfg["outline_color"])
+        hook_gradient = cfg["hook"].get("outline_gradient")
         hw, hh, _ = render_card(hook_text, out_dir / "card_hook.png", sized_hook_font, cfg["hook"]["stroke_width"],
-                                 cfg["hook"]["max_width"], cfg["canvas_w"], cfg["fill_color"], cfg["outline_color"])
+                                 cfg["hook"]["max_width"], cfg["canvas_w"], hook_fill, hook_outline,
+                                 outline_gradient=hook_gradient)
         cards.append({"file": "card_hook.png", "start": hook_out_start, "end": hook_out_end, "style": "hook",
                       "text": hook_text, "w": hw, "h": hh})
 
@@ -308,11 +444,22 @@ def main() -> None:
     # (cut) boundary, which must always break regardless of gap/punctuation.
     groups, cur = [], []
     for i, w in enumerate(body_words):
+        if _OPENS_QUOTE.match(w["text"]) and cur:
+            # isola tambem a palavra que introduz a citacao (lead-in) - um
+            # beat de antecipacao antes da citacao aparecer, em vez de colar
+            # no final da oracao anterior.
+            if len(cur) > 1:
+                groups.append(cur[:-1])
+                groups.append([cur[-1]])
+            else:
+                groups.append(cur)
+            cur = []
         cur.append(w)
+        closes_quote = bool(_CLOSES_QUOTE.search(w["text"]))
         end_here = w["text"].rstrip('"\'').endswith(PUNCT_END)
         gap = (body_words[i + 1]["start"] - w["end"]) if i + 1 < len(body_words) else 999
         seg_changes = (i + 1 < len(body_words)) and (body_words[i + 1]["seg"] != w["seg"])
-        if (end_here and len(cur) >= 3) or gap >= gap_thresh or seg_changes or i == len(body_words) - 1:
+        if closes_quote or end_here or gap >= gap_thresh or seg_changes or i == len(body_words) - 1:
             groups.append(cur)
             cur = []
     if cur:
@@ -332,6 +479,8 @@ def main() -> None:
         j = i
         while dur < min_dur and j + 1 < len(groups):
             if groups[j][-1]["seg"] != groups[j + 1][0]["seg"]:
+                break
+            if groups[j][-1].get("_no_glue") or groups[j + 1][0].get("_no_glue"):
                 break
             candidate = g + groups[j + 1]
             if fits_in(candidate, body_font, cfg["body"]["max_width"], probe, cfg["body"]["stroke_width"], body_max_lines):
@@ -364,8 +513,13 @@ def main() -> None:
             print(f"  AVISO: card {gi} ainda com {nlines} linhas: {text!r}")
         cards.append({"file": fname, "start": start, "end": end, "style": "body", "text": text, "w": bw, "h": bh})
 
-    # pass 5: universal overlap safety net across ALL cards (hook included)
+    # pass 5: overlap safety net WITHIN a track (hook vs. body render at different
+    # screen positions and are allowed to overlap on purpose when --hook-text
+    # gives the hook its own independent short flash duration - only clamp
+    # overlap between two cards on the SAME track).
     for k in range(len(cards) - 1):
+        if cards[k]["style"] != cards[k + 1]["style"]:
+            continue
         if cards[k]["end"] > cards[k + 1]["start"] - 0.01:
             cards[k]["end"] = max(cards[k]["start"] + 0.15, cards[k + 1]["start"] - 0.02)
 
