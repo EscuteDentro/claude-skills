@@ -18,7 +18,7 @@
     "Escala proporcional — todos os tamanhos de fonte derivam de razao 1.25 a partir da base 17px.",
     "Elementos estilisticos contextuais — detalhes decorativos permitidos em secoes especificas desde que usem tokens do sistema.",
     "Visual antes de texto — toda secao deve ser navegavel por icones, imagens e padroes visuais. Texto corrido com mais de 3 linhas recebe uma quebra visual: icone, separador ou diagrama. Informacao que pode virar esquema, tabela ou bloco com icone nao vira paragrafo. CTA principal: minimo 17px mobile, 18px desktop, legivel a 60cm sem oculos; largura igual a do elemento visual acima dele.",
-    "Legibilidade por maquinas (SEO + AEO) — a LP deve ser igualmente legivel por humanos, buscadores e modelos de linguagem. Cada secao usa <section> com id descritivo e aria-label. Hierarquia de headings estrita: um unico h1 no hero, h2 para cada secao principal, h3 para sub-elementos. FAQ mapeia queries reais de busca pt-BR e cada resposta comeca com a resposta direta na primeira frase. Afirmacoes cientificas referenciam fonte verificavel. Imagens informativas tem alt text com keyword front-loaded, max 125 chars. Todo schema JSON-LD fica em bloco <script type='application/ld+json'> separado. Schemas ativos: FAQPage, Course, Person, Organization, VideoObject. Schema condicional: AggregateRating (requer avaliacao visivel na pagina). Queries prioritarias pt-BR: curso de meditacao online brasil, como meditar sem app, meditacao para iniciantes, meditacao para ansiedade, aprender a meditar do zero."
+    "Legibilidade por maquinas (SEO + AEO) — a LP deve ser igualmente legivel por humanos, buscadores e modelos de linguagem. Cada secao usa <section> com id descritivo e aria-label. Hierarquia de headings estrita: um unico h1 no hero, h2 para cada secao principal, h3 para sub-elementos. FAQ mapeia queries reais de busca pt-BR e cada resposta comeca com a resposta direta na primeira frase. Afirmacoes cientificas referenciam fonte verificavel. Imagens informativas tem alt text com keyword front-loaded, max 125 chars. Todo schema JSON-LD fica em bloco <script type='application/ld+json'> separado. Schemas ativos: FAQPage, Course, Person, Organization, VideoObject. Schema condicional: AggregateRating (requer avaliacao visivel na pagina). Queries prioritarias pt-BR: levantar junto com o usuario as buscas reais do nicho do produto (nunca reusar lista de outro produto)."
   ],
 
   "paleta": {
@@ -507,5 +507,38 @@
     "dados": "phoneClean = ddi + phone.replace(/\\D/g,'') — DDI prefixado antes de gravar. Vai para Sheet via Apps Script; Hotmart recebe ?name=&email= (sem &phone= — parametro nao suportado).",
     "pixel": "Lead no submit. InitiateCheckout removido — Hotmart dispara nativamente.",
     "apps_script": "URL hardcoded no JS do modal. Nao alterar sem redeployar o Apps Script correspondente."
+  },
+
+  "precheckout_followup_automation": {
+    "descricao": "Extensao OPCIONAL da Sheet que ja recebe os leads do precheckout_modal. Skill: skills/leads-precheckout-fup/. Nao afeta o modal em si -- sem essa extensao, o modal continua funcionando normalmente.",
+    "habilitado": false,
+    "lgpd": "Consentimento explicito antes de qualquer contato (coluna Consentiu WA); nenhum envio automatico em massa (todo link e clique manual); dado fica so na Sheet/Contatos do proprio usuario. Detalhe completo sob pedido ao Claude.",
+    "ferramentas": {
+      "crm_status_semaforo": {
+        "descricao": "Coluna Status CRM + cor de linha automatica (cinza=sem consentimento, verde=comprou, vermelho=precisa contatar).",
+        "requer": "Sheets API + Service Account"
+      },
+      "sinalizacao_duplicacao": {
+        "descricao": "Detecta a mesma pessoa cadastrada 2+ vezes (email OU telefone), numera em ordem cronologica (1/2/3*), marca * quando telefone/email diverge entre entradas.",
+        "requer": "Sheets API + Service Account"
+      },
+      "whatsapp_link_pronto": {
+        "descricao": "Aba \"Banco de Mensagens\" (templates proprios do usuario, nunca inventados) + gerador de link wa.me com mensagem pre-preenchida, quente/frio pela data de captura. Link e so pra clique manual -- nunca envio automatico.",
+        "requer": "Sheets API + templates preenchidos pelo usuario"
+      },
+      "correcao_telefone_whatsapp": {
+        "descricao": "Salva 2 variantes do numero (com/sem 9o digito) no mesmo contato -- especifico do Brasil, numero antigo pode estar sem o 9 no WhatsApp.",
+        "requer": "ferramenta salvar_contatos_google ativa"
+      },
+      "email_diario_leads_novos": {
+        "descricao": "E-mail diario (so se houver lead novo nas ultimas 24h) com link wa.me pronto por lead, via Apps Script + acionador por tempo.",
+        "requer": "Sheets API (Apps Script)"
+      },
+      "salvar_contatos_google": {
+        "descricao": "Cria/atualiza contato no Google Contatos por lead elegivel, nome padronizado. IMPORTANTE: perguntar ao usuario qual conta Google deve receber -- pode ser diferente da conta pessoal (ex: WhatsApp Business com numero separado, ou e-mail dedicado).",
+        "requer": "People API + OAuth Client"
+      }
+    },
+    "nota": "Cada ferramenta acima e independente -- o usuario escolhe quais quer e avisa quais nao quer. Ver skills/leads-precheckout-fup/SKILL.md para o fluxo completo, regras absolutas e requisitos de setup."
   }
 }

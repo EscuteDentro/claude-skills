@@ -1,36 +1,36 @@
 # Guia de Construção da Página — Template Universal
 
-> Documento permanente. Template universal com valores preenchidos para o **{Produto}**.
-> Campos marcados com ⬜ são site-específicos — substituir ao usar este Guia em outro produto.
+> Documento permanente. Template universal e agnóstico — nenhum valor abaixo pertence a um produto real.
+> Campos marcados com ⬜ são site-específicos — preencher junto com o usuário ao usar este Guia num produto novo, nunca herdar de outro produto.
 > O DS JSON é um componente deste guia — tokens visuais e decisões de design de componente.
 
 ---
 
 ## ⬜ Configuração do site
 
-Todos os valores específicos do site em um único lugar. Ao clonar para outro produto, substituir estes.
+Todos os valores específicos do site em um único lugar. Preencher com os dados reais do produto ao usar este Guia — nunca copiar de outro produto.
 
-| Campo | {Produto} |
+| Campo | Valor |
 |---|---|
-| **Nome do produto** | {Produto} |
-| **URL canônica** | `https://{dominio}.com.br` |
-| **Idioma** | `pt-BR` (HTML `lang`) / `pt_BR` (og:locale) |
-| **CNPJ** | {CNPJ} |
-| **Email de contato** | {email} |
-| **Meta Pixel ID** | `{PIXEL_ID}` |
-| **Microsoft Clarity ID** | `{CLARITY_ID}` |
-| **Checkout URL** | `https://pay.hotmart.com/{CHECKOUT_CODE}?checkoutMode=10&hotfeature=51` |
-| **Plataforma de vendas** | Hotmart |
-| **Preço** | R$ 483,00 (BRL) |
-| **YouTube Video ID (VSL)** | `{VIDEO_ID}` |
-| **Professor** | {Nome Sobrenome} |
-| **Instagram** | `@{produto}` → `https://www.instagram.com/{produto}` |
-| **YouTube canal** | `@{produto}` → `https://www.youtube.com/@{produto}` |
-| **TikTok** | `@{produto}` → `https://www.tiktok.com/@{produto}` |
-| **og:title** | Aula com prática gratuita para sentir na pele o que é meditar de verdade |
-| **og:description** | Método que traduz a sabedoria ancestral para o ocidental moderno. Perceba resultados desde as primeiras sessões. |
-| **og:image** | `assets/og-image.png` — logo centralizada com `scale(1.25)`, canvas 1200×630 `#E8FAFF`. Source: `og-image-preview.html`. Regenerar se logo mudar. |
-| **Favicon** | `assets/favicon.png` — estrela âmbar `#E8A820` sobre `#E8FAFF`, 256×256. Source: `favicon-export.html`. |
+| **Nome do produto** | ⬜ a preencher |
+| **URL canônica** | ⬜ `https://{seu-dominio}.com.br` |
+| **Idioma** | `pt-BR` (HTML `lang`) / `pt_BR` (og:locale) — ajustar se não for pt-BR |
+| **CNPJ** | ⬜ a preencher (rodapé legal) |
+| **Email de contato** | ⬜ a preencher |
+| **Meta Pixel ID** | ⬜ a preencher — Meta Business Suite → Events Manager |
+| **Microsoft Clarity ID** | ⬜ a preencher (opcional) |
+| **Checkout URL** | ⬜ a preencher |
+| **Plataforma de vendas** | ⬜ a preencher (Hotmart, Kiwify, etc.) |
+| **Preço** | ⬜ a preencher |
+| **YouTube Video ID (VSL)** | ⬜ a preencher (se houver VSL) |
+| **Professor/criador** | ⬜ a preencher |
+| **Instagram** | ⬜ `@{seu-usuario}` → `https://www.instagram.com/{seu-usuario}` |
+| **YouTube canal** | ⬜ `@{seu-usuario}` → `https://www.youtube.com/@{seu-usuario}` |
+| **TikTok** | ⬜ `@{seu-usuario}` → `https://www.tiktok.com/@{seu-usuario}` |
+| **og:title** | ⬜ a preencher |
+| **og:description** | ⬜ a preencher |
+| **og:image** | `assets/og-image.png` — gerar via `og-image-preview.html`, canvas 1200×630, regenerar se o logo mudar |
+| **Favicon** | `assets/favicon.png` — gerar via `favicon-export.html`, 256×256 |
 
 ---
 
@@ -38,12 +38,12 @@ Todos os valores específicos do site em um único lugar. Ao clonar para outro p
 
 | Arquivo | Caminho | Conteúdo |
 |---|---|---|
-| **HTML de trabalho** | `~/{pasta}/escute-dentro/paginas/index.html` | LP completa (~1900 linhas) |
-| **Design System (DS)** | `{Produto}/Marketing/Página de vendas/design-system.json` | Tokens + regras completas (ver domínios abaixo) |
-| **Auxiliares (raiz do domínio)** | `~/{pasta}/escute-dentro/paginas/` | `robots.txt`, `llms.txt`, `sitemap.xml` |
-| **Política de privacidade** | `~/{pasta}/escute-dentro/paginas/privacidade.html` | Deploy em `/privacidade` no Vercel |
-| **Template A/B** | `{Produto}/Marketing/Testes A-B/template.md` | Template e naming convention de testes |
-| **Log de testes A/B** | `{Produto}/Marketing/Testes A-B/` | Relatórios datados por teste |
+| **HTML de trabalho** | ⬜ `{sua-pasta-de-trabalho}/paginas/index.html` | LP completa |
+| **Design System (DS)** | ⬜ `{sua-pasta-de-trabalho}/design-system.json` | Tokens + regras completas (ver domínios abaixo) |
+| **Auxiliares (raiz do domínio)** | ⬜ `{sua-pasta-de-trabalho}/paginas/` | `robots.txt`, `llms.txt`, `sitemap.xml` |
+| **Política de privacidade** | ⬜ `{sua-pasta-de-trabalho}/paginas/privacidade.html` | Deploy em `/privacidade` no Vercel |
+| **Template A/B** | ⬜ `{sua-pasta-de-trabalho}/testes-ab/template.md` | Template e naming convention de testes |
+| **Log de testes A/B** | ⬜ `{sua-pasta-de-trabalho}/testes-ab/` | Relatórios datados por teste |
 
 **Snapshots de portabilidade:** antes de publicar, criar dois arquivos de referência para facilitar migração futura de plataforma:
 - `modal-precheckout.html` — modal standalone com CSS/HTML/JS isolados, sem dependência da LP
@@ -103,7 +103,7 @@ Todos os eventos dentro ou protegidos por `loadTracking()` — função que só 
 | Evento | Tipo | Gatilho | Parâmetros | Pixel | CAPI | Clarity tag | Fonte |
 |---|---|---|---|---|---|---|---|
 | `PageView` | Pixel padrão | Disparo de `loadTracking()` | — | ✓ | ✓ | — | Nossa LP |
-| `ViewContent` | Pixel padrão | 3s após consentimento | `value: 483, currency: 'BRL'` | ✓ | ✓ | — | Nossa LP |
+| `ViewContent` | Pixel padrão | 3s após consentimento | `value: {PREÇO}, currency: 'BRL'` | ✓ | ✓ | — | Nossa LP |
 | `VSLPlay` | Custom | Clique no facade do VSL | — | ✓ | ✓ | `vsl_played: 'true'` | Nossa LP |
 | `VSLProgress25` | Custom | 25% do vídeo assistido (poll 5s via YT IFrame API) | — | ✓ | ✓ | `vsl_progress: '25'` | Nossa LP |
 | `VSLProgress75` | Custom | 75% do vídeo assistido | — | ✓ | ✓ | `vsl_progress: '75'` | Nossa LP |
@@ -112,7 +112,7 @@ Todos os eventos dentro ou protegidos por `loadTracking()` — função que só 
 | `PrecheckoutOpen` | Custom | Clique em qualquer `.btn-cta` (abre modal) | `origin: cta-hero/cta-meio/cta-preco/cta-final` | ✓ | ✓ | `modal_opened: 'true'` | Nossa LP |
 | `PrecheckoutEmailDigitado` | Custom | Blur no campo email (`length > 3`) | `origin: [btn]` | ✓ | ✓ | — | Nossa LP |
 | `PrecheckoutAbandono` | Custom | Fechar modal sem submit (×, Escape, clique fora) | `origin`, `had_email` | ✓ | ✓ | — | Nossa LP |
-| `Lead` | Pixel padrão | Submit do pré-checkout (campos válidos) | `content_name, value: 483, currency: 'BRL'` | ✓ | ✓ + PII | `lead_captured: 'true'` | Nossa LP |
+| `Lead` | Pixel padrão | Submit do pré-checkout (campos válidos) | `content_name, value: {PREÇO}, currency: 'BRL'` | ✓ | ✓ + PII | `lead_captured: 'true'` | Nossa LP |
 | `InitiateCheckout` | Hotmart nativo | Carregar pg de pagamento na Hotmart | — | ✓ (HM) | ✓ (HM CAPI) | — | Hotmart |
 | `Purchase` | Hotmart nativo | Compra confirmada | — | ✓ (HM) | ✓ (HM CAPI) | — | Hotmart |
 | Exit intent | — | Mouse sai pelo topo (desktop, `clientY < 5`) | — | — | — | `exit_intent: 'true'` | Nossa LP |
@@ -127,12 +127,12 @@ Todos os eventos dentro ou protegidos por `loadTracking()` — função que só 
 - Pixel ID: `{PIXEL_ID}` (hardcoded no `api/capi.js`)
 - PII no Lead: email + phone (E.164, DDI 55 prefixado) + nome — hasheados SHA-256 `toLowerCase().trim()`
 - `_fbc` reconstruído de `fbclid` na chegada, dentro de `loadTracking()` — 90 dias, `SameSite=Lax`
-- `country`: `sha256('br')` hardcoded — eleva EMQ em eventos sem PII
+- `country`: `sha256('br')` hardcoded — eleva EMQ em eventos sem PII (ajustar pro país real se não for BR)
 - `external_id`: UUID gerado pós-consent em `localStorage._app_eid`, sha256 antes do envio no CAPI — conecta sessões cross-visit. **Também enviado no `fbq('init')` como plain text** (`fbq('init', PIXEL_ID, { external_id: window._extId })`) — Meta normaliza internamente para SHA-256 e consegue cruzar com o valor do CAPI.
-- `event_source_url`: dinâmico — `_capi()` envia `page_url: window.location.href` e `api/capi.js` usa esse valor (fallback: `'https://www.{dominio}.com.br'`). Corrige o hardcoded anterior sem `www`.
-- **`_fbc` fallback de URL** (fix 4a, 2026-07-08): se cookie `_fbc` ausente, reconstruir de `fbclid` na URL (`fb.1.{timestamp}.{fbclid}`). Só incluir no body se não-vazio — não enviar string vazia.
-- **IP do usuário** (fix 4b, 2026-07-08): `capi.js` usa `x-real-ip` antes de `x-forwarded-for` — captura IPv6 quando disponível. Verificado em produção: IP não-vazio, formato correto.
-- **PII de retorno** (fix 4c, 2026-07-08): após Lead, salvar PII em `localStorage._app_pii` (`{em, ph, fn}`). `_capi()` lê automaticamente e inclui em todos os eventos futuros do visitante — eleva EMQ de PageView/ViewContent para quem já converteu.
+- `event_source_url`: dinâmico — `_capi()` envia `page_url: window.location.href` e `api/capi.js` usa esse valor (fallback: URL canônica do site).
+- **`_fbc` fallback de URL**: se cookie `_fbc` ausente, reconstruir de `fbclid` na URL (`fb.1.{timestamp}.{fbclid}`). Só incluir no body se não-vazio — não enviar string vazia.
+- **IP do usuário**: `capi.js` usa `x-real-ip` antes de `x-forwarded-for` — captura IPv6 quando disponível.
+- **PII de retorno**: após Lead, salvar PII em `localStorage._app_pii` (`{em, ph, fn}`). `_capi()` lê automaticamente e inclui em todos os eventos futuros do visitante — eleva EMQ de PageView/ViewContent para quem já converteu.
 - **Dedup rate esperada**: CAPI captura eventos de usuários com adblocker que o browser pixel não alcança. Esses eventos CAPI-only não geram deduplicação — é o comportamento correto. Taxa de dedup de 60–80% reflete 20–40% de cobertura incremental via CAPI, não um problema. Para diagnosticar: verificar no Events Manager se usuários *sem adblocker* têm dedup próximo de 100%.
 - Pattern obrigatório para qualquer evento com CAPI:
   ```js
@@ -195,6 +195,27 @@ Badge estático (`<span class="pc-ddi-badge" id="pc-ddi-badge">`) + input numér
 3. Redirect Hotmart: `?name=&email=` (sem `&phone=` — parâmetro não suportado pelo Hotmart)
 
 **Arquitetura JS:** todo o código do modal (DDI_MAP, listeners, validação, submit) vive num único `<script>` com IIFE, imediatamente após o HTML do modal. `showError`/`clearError` são funções internas do IIFE — não expor como globais.
+
+---
+
+## Follow-up de leads pré-checkout (opcional)
+
+O modal acima já salva o lead na Sheet — isso funciona sozinho, sem nada abaixo. O skill **`leads-precheckout-fup`** (`skills/leads-precheckout-fup/` neste repo) é uma extensão **opcional** que transforma essa Sheet numa mini-CRM: status de contato com cor automática, detecção de gente que se cadastrou 2x, link do WhatsApp pronto pra clicar, e-mail diário avisando de lead novo, e sincronização com Google Contatos.
+
+**LGPD:** todo o desenho respeita consentimento explícito antes de qualquer contato, nunca envia mensagem sozinho (todo link é clique manual), e o dado fica só na Sheet/Contatos do próprio usuário. Peça ao Claude os detalhes da lógica de compliance a qualquer momento — ele explica antes de configurar.
+
+**É modular.** Cada uma das 6 ferramentas é independente e tem seu próprio requisito de configuração — o usuário escolhe quais quer e avisa quais não quer. Lista completa, requisitos e regras de cada uma: ver `skills/leads-precheckout-fup/SKILL.md`.
+
+| # | Ferramenta | Depende de |
+|---|---|---|
+| 1 | CRM (status + semáforo de cor) | Sheets API |
+| 2 | Sinalização de duplicação | Sheets API |
+| 3 | WhatsApp (link `wa.me` pronto) | Sheets API + templates próprios preenchidos |
+| 4 | Correção de telefone (WhatsApp, BR) | Ferramenta 6 |
+| 5 | E-mail diário de leads novos | Sheets API (Apps Script) |
+| 6 | Salvar contatos no Google | People API + OAuth |
+
+**Pré-requisito de infra (Sheets API + Service Account, e People API + OAuth se for usar a ferramenta 6):** é setup de Google Cloud Console — sempre pedir aprovação explícita do usuário antes de criar/configurar, nunca assumir que ele quer.
 
 ---
 
@@ -353,7 +374,7 @@ Para seções que vão de coluna única (mobile) para 2 ou mais colunas (desktop
 .minha-grid  { display: grid; grid-template-columns: repeat(N, 1fr); gap: Xpx; }
 ```
 
-**Instâncias EDm:**
+**Instâncias observadas:**
 - 2 col assimétricas: professor (foto `width: 260px; flex-shrink: 0` + bio `flex: 1`)
 - 3 col simétricas: para quem é (`repeat(3, 1fr)`, gap 20px, padding ampliado com `50vw - 580px`)
 - 3–4 col alturas variáveis: dep-visuais e ciência → JS masonry (ver seção acima)
@@ -393,8 +414,8 @@ O "12x de" é um `<span class="preco-parcela">` dentro do `<p class="preco-main"
 
 ```html
 <p class="preco-label">Por apenas</p>
-<p class="preco-main"><span class="preco-parcela">12x de </span>R$49,95</p>
-<p class="preco-alt">ou R$ 483,00 à vista</p>
+<p class="preco-main"><span class="preco-parcela">12x de </span>R${VALOR_PARCELA}</p>
+<p class="preco-alt">ou R${PREÇO_À_VISTA} à vista</p>
 <p class="preco-seguro">Pagamento <strong>100% seguro</strong> com acesso imediato</p>
 ```
 
@@ -409,8 +430,8 @@ Foto ao lado do texto com `align-items: center` no container flex (centro da fot
 Para controlar quebras de linha em headings longos sem criar HTML duplicado por viewport:
 
 ```html
-O que você nunca teve é um método que te faça<br class="br-desktop">
-sentir na pele o que é meditar de verdade
+O que você nunca teve é um método que realmente<br class="br-desktop">
+funciona pra você, do jeito que você precisa
 ```
 
 ```css
@@ -447,7 +468,7 @@ Usar em subtítulos de hero e headings que precisam de quebra manual apenas em v
 
 ## Performance
 
-> **Princípio central — mobile-first.** Performance mobile não é otimização opcional — é a base da conversão de tráfego pago. Cada segundo a mais de carregamento reduz conversão diretamente. Toda avaliação (Lighthouse, LCP, CLS, TBT) é feita no modo **Mobile**, aba anônima, URL de produção. Meta: Lighthouse mobile ≥ 90. Score 95+ é factível e deve ser perseguido. Referência: LP {Produto} atingiu 97 com as práticas abaixo.
+> **Princípio central — mobile-first.** Performance mobile não é otimização opcional — é a base da conversão de tráfego pago. Cada segundo a mais de carregamento reduz conversão diretamente. Toda avaliação (Lighthouse, LCP, CLS, TBT) é feita no modo **Mobile**, aba anônima, URL de produção. Meta: Lighthouse mobile ≥ 90. Score 95+ é factível e deve ser perseguido — uma LP real aplicando as práticas abaixo atingiu 97.
 
 ### Diagnóstico
 
@@ -463,7 +484,7 @@ Usar em subtítulos de hero e headings que precisam de quebra manual apenas em v
 **1. Eliminar icon fonts**
 
 Nunca usar Font Awesome ou qualquer icon font para < 10 ícones. Substituir por SVG inline:
-- Elimina render-blocking (~1.370ms observado na LP {Produto})
+- Elimina render-blocking (~1.370ms observado numa LP real)
 - Remove ~73KB JS + ~18KB CSS não usados do thread principal
 - Fonte de SVGs FA6 free: `raw.githubusercontent.com/FortAwesome/Font-Awesome/6.5.1/svgs/solid/[nome].svg`
 - CSS: `.icone svg { width: Xpx; height: Xpx; fill: var(--brand-vivid); }`
@@ -514,7 +535,7 @@ PNG e JPG pesam 2–5× mais que WebP equivalente. Padrões de qualidade:
 - Logos e ícones raster: `cwebp -q 80 logo.png -o logo.webp` — preserva bordas nítidas
 - Recomprimir WebP já existentes (quando recebidos de terceiros): `dwebp img.webp -o /tmp/tmp.png && cwebp -q 65 /tmp/tmp.png -o img.webp`
 - Verificar dimensões: nunca servir imagem maior que o espaço de display (`sips -g pixelWidth img`)
-- Impacto observado na LP EDm: −422KB total de payload (PNGs → WebP + 8 WebPs recomprimidos)
+- Impacto observado numa LP real: −422KB total de payload (PNGs → WebP + 8 WebPs recomprimidos)
 
 **7. Scripts externos com `defer` ou movidos para `</body>`**
 
@@ -644,7 +665,7 @@ Race condition entre `img.load` events e o masonry JS torna `grid.style.cssText 
 
 Cada redirect (www → apex, http → https) adiciona 100–300ms de round-trip antes do primeiro byte. Configurar o domínio canônico diretamente no DNS (A record para apex, CNAME para www → apex no Vercel). Verificar:
 ```bash
-curl -I https://www.{dominio}.com.br/
+curl -I https://www.{seu-dominio}.com.br/
 # Location: deve apontar diretamente para apex, sem cascata de redirects
 ```
 Dois redirects em cadeia (http → https → www → apex) = +600ms no mobile antes de qualquer byte de HTML.
@@ -662,7 +683,7 @@ Suspects típicos: PNGs não convertidos (> 200KB), WebPs sem recompressão (> 1
 
 **12. AVIF além de WebP**
 
-Suporte 96%+ em 2026. AVIF reduz imagens ~20% adicionais vs WebP na média (observado: 267KB de saving em 35 imagens da LP EDm, ~20% de redução). Usar `<picture>` com fallback — browser escolhe o melhor formato disponível:
+Suporte 96%+ em 2026. AVIF reduz imagens ~20% adicionais vs WebP na média (observado: 267KB de saving em 35 imagens numa LP real, ~20% de redução). Usar `<picture>` com fallback — browser escolhe o melhor formato disponível:
 ```html
 <picture>
   <source srcset="assets/img.avif" type="image/avif">
@@ -692,7 +713,7 @@ DevTools → More tools → Coverage → recarregar a página → CSS não usado
 
 **14. Font subsetting avançado**
 
-Reduzir WOFF2 com `pyftsubset` (já executado na LP EDm em jun/2026):
+Reduzir WOFF2 com `pyftsubset` (exemplo de execução real):
 ```bash
 # pyftsubset já instalado via Homebrew
 pyftsubset Montserrat.woff2 \
@@ -700,7 +721,7 @@ pyftsubset Montserrat.woff2 \
   --output-file=montserrat.woff2 \
   --flavor=woff2
 ```
-Resultado LP EDm: 35KB → 25KB (−28%, com layout features/kerning preservados). Antes de subsetar: extrair chars únicos do HTML com `python3 -c "import re,html; ..."` para garantir cobertura.
+Resultado observado: 35KB → 25KB (−28%, com layout features/kerning preservados). Antes de subsetar: extrair chars únicos do HTML com `python3 -c "import re,html; ..."` para garantir cobertura.
 
 **19. Prefetch da página de checkout**
 
@@ -739,7 +760,7 @@ Resultado LP EDm: 35KB → 25KB (−28%, com layout features/kerning preservados
 | TBT | < 200ms | < 50ms | < 150ms |
 | Accessibility | ≥ 85 | ≥ 95 | ≥ 90 |
 
-Referência real: LP {Produto} pós-sessões 30+31 → **97 Performance / 96 Accessibility / 100 Best Practices / 100 SEO** (Lighthouse Mobile, produção).
+Referência real (LP de infoproduto aplicando este Guia): **97 Performance / 96 Accessibility / 100 Best Practices / 100 SEO** (Lighthouse Mobile, produção).
 
 ### Caminho típico de evolução do score
 
@@ -779,19 +800,19 @@ Referência real: LP {Produto} pós-sessões 30+31 → **97 Performance / 96 Acc
 - **FAQPage**: aumenta em 3× a probabilidade de aparecer em Google AI Overviews. Campo `text` em plain text (zero HTML). Schema deve ser idêntico ao texto visível na página; se o FAQ mudar, o schema muda junto
 - **Course**: incluir `name`, `description`, `teaches`, `keywords` (40+ termos), `educationalLevel`, `provider`, `instructor`, `inLanguage`, `courseMode`, `hasCourseInstance` com `Offer`
 - **VideoObject**: obrigatório se há VSL — incluir `name`, `description`, `uploadDate`, `duration` (formato ISO 8601: `PT51M48S`), `embedUrl`, `thumbnailUrl`, `contentUrl`
-- **Person**: usar nome completo (`"{Nome Sobrenome}"`, não só `"Davi"`) — entidade nomeada completa melhora reconhecimento. Incluir `jobTitle`, `description`, `url`, `knowsAbout`, `sameAs`
+- **Person**: usar nome completo (ex: `"Nome Sobrenome"`, não só o primeiro nome) — entidade nomeada completa melhora reconhecimento. Incluir `jobTitle`, `description`, `url`, `knowsAbout`, `sameAs`
 - **Organization**: incluir `name`, `url`, `logo`, `contactPoint` e `sameAs` com todas as redes sociais — permite que o Google consolide a mesma entidade em múltiplas plataformas
-- **`sameAs`** (Organization e Person): `["https://www.instagram.com/{produto}", "https://www.youtube.com/@{produto}", "https://www.tiktok.com/@{produto}"]` — ao adicionar nova rede social, atualizar em ambos os schemas
+- **`sameAs`** (Organization e Person): array com as URLs completas de todas as redes sociais do produto (Instagram, YouTube, TikTok etc.) — ao adicionar nova rede social, atualizar em ambos os schemas
 - **AggregateRating**: só implementar com avaliações verificáveis e visíveis na página (Hotmart ou Google Reviews) — Google pode penalizar markup sem evidência na página
 
 ### 3. Hierarquia de headings
 
 - **Um único H1** no hero — pode ser emocional, mas deve conter ou remeter à keyword primária
 - **H2 por seção principal** — cada H2 deve ser keyword-rich: descreve o tópico da seção, não apenas nomeia
-  - Bom: "Perguntas Frequentes sobre Meditação"
+  - Bom: "Perguntas Frequentes sobre [Sua Categoria/Nicho]"
   - Ruim: "Perguntas Frequentes - FAQ" (redundante, sem keyword adicional)
-  - Bom: "Pesquisas científicas demonstram inúmeros benefícios de praticar meditação"
-  - Bom: "{Nome Sobrenome} — yoga e meditação há 20 anos" (entidade nomeada + keyword)
+  - Bom: "Pesquisas científicas demonstram os benefícios de [seu método/categoria]"
+  - Bom: "[Nome Sobrenome] — [expertise] há [N] anos" (entidade nomeada + keyword)
   - Fraco: "Sobre o professor" (sem keyword, sem entidade nomeada)
 - **H3 para sub-elementos** dentro de cada seção
 - **Nunca pular níveis** (ex: H1 → H3 sem H2 intermediário)
@@ -803,7 +824,7 @@ Referência real: LP {Produto} pós-sessões 30+31 → **97 Performance / 96 Acc
 - **Separar por intenção de busca**: personas distintas com estados emocionais diferentes merecem perguntas próprias com AEO leads próprios (ex: TDAH vs. "já tentou e não conseguiu" são clusters de busca separados)
 - **Afirmações científicas**: citar fonte, ano e instituição na mesma frase (ex: Nature 2024, Johns Hopkins JAMA 2014) — aumenta credibilidade para extração por modelos e para o próprio leitor
 - **Links externos de credibilidade**: afirmações com respaldo científico ganham links inline para a fonte primária (PubMed, Nature, Harvard Health, ScienceDaily etc.). Usar classe `ciencia-fonte` (font-size: 11px, color: var(--ink-3)) logo após o texto da afirmação. Quando há múltiplos links que quebrariam em meados do label, envolver em `<span class="ciencia-links">` com `display: block; margin-top: 3px` para forçar os links à linha abaixo. Benefício: sinal de E-E-A-T para Google + âncora de credibilidade para modelos de linguagem que extraem informações com fontes verificáveis
-- **H2 da seção FAQ inclui keyword**: ex. "Perguntas Frequentes sobre Meditação", não "FAQ" isolado
+- **H2 da seção FAQ inclui keyword**: ex. "Perguntas Frequentes sobre [Sua Categoria]", não "FAQ" isolado
 - **Schema FAQPage sincronizado**: o campo `text` do JSON-LD deve ser idêntico ao texto visível na página (plain text, sem HTML)
 
 ### 5. Imagens
@@ -841,7 +862,7 @@ Documentados para evitar reavaliação desnecessária em sessões futuras.
 | Schema | Decisão | Razão |
 |---|---|---|
 | `Speakable` | Descartado | Google restringiu a publishers de notícias; sem benefício comprovado para LPs de curso em 2025–2026 |
-| `HowTo` | Condicional | Adequado para "como meditar" apenas se a metodologia for reestruturada como série de passos numerados — exige mudança estrutural de conteúdo |
+| `HowTo` | Condicional | Adequado para "como fazer [sua metodologia]" apenas se ela for reestruturada como série de passos numerados — exige mudança estrutural de conteúdo |
 | `Clip` / `SeekToAction` | Condicional | Permite que o Google linke momentos específicos do VSL — requer timestamps exatos e vídeo chaptered no YouTube |
 | `WebSite` + `SearchAction` | Baixa prioridade | Útil para site com múltiplas páginas e busca interna; pouco impacto para LP única |
 
