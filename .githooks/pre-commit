@@ -1,27 +1,12 @@
 #!/bin/sh
 # Pre-commit hook — bloqueia dados pessoais antes de qualquer commit.
 # Instalação: sh setup.sh  (uma vez após clonar)
+#
+# Lógica de detecção vive em scripts/scan-dados-pessoais.sh -- fonte única,
+# compartilhada com o GitHub Action que roda o mesmo scan server-side.
+# Nunca duplicar o padrão aqui.
 
-PATTERNS='{produto}\|/Users/[a-z]\|{pasta}\|_edm_\|64\.115\.123\|@gmail\.com'
+STAGED=$(git diff --cached --name-only)
+[ -z "$STAGED" ] && exit 0
 
-FOUND=""
-for file in $(git diff --cached --name-only); do
-  case "$file" in
-    *.md|*.json|*.js|*.ts|*.html|*.txt|*.sh)
-      hits=$(grep -n "$PATTERNS" "$file" 2>/dev/null)
-      if [ -n "$hits" ]; then
-        FOUND="$FOUND\n  $file:\n$hits"
-      fi
-      ;;
-  esac
-done
-
-if [ -n "$FOUND" ]; then
-  printf "\n🚫 COMMIT BLOQUEADO — dados pessoais detectados:\n"
-  printf "$FOUND\n"
-  printf "\nSubstituir pelos placeholders antes de commitar.\n"
-  printf "Padrões bloqueados: {produto}, /Users/, _edm_, @gmail.com, CNPJs, {pasta}\n\n"
-  exit 1
-fi
-
-exit 0
+sh "$(git rev-parse --show-toplevel)/scripts/scan-dados-pessoais.sh" $STAGED
