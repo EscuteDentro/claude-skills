@@ -1,0 +1,22 @@
+name: Scan de dados pessoais
+
+# Segunda linha de defesa, independente do hook local (.githooks/pre-commit).
+# O hook só protege quem rodou `sh setup.sh` nesse clone -- é opt-in e fácil
+# de esquecer (foi exatamente assim que um vazamento real ficou 10 dias no
+# ar antes de ser achado, ver reference_lp_guia_github na memória do
+# projeto). Este Action roda no servidor do GitHub, em todo push e PR,
+# sem depender de nenhuma configuração local.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Rodar scan de dados pessoais
+        run: sh scripts/scan-dados-pessoais.sh
