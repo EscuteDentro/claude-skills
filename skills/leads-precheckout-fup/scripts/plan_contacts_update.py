@@ -128,7 +128,7 @@ def main():
                 not_eligible_but_has_contact.append((lead, contact))
             continue
 
-        base_name = contact["name"].replace(f" {SUFFIX}", "").strip() if contact else first_name(lead["nome"])
+        base_name = contact["name"].split(f" {SUFFIX}")[0].strip() if contact else first_name(lead["nome"])
         plan.append({"lead": lead, "contact": contact, "base_name": base_name, "suffix": suffix})
 
     # detecta colisão de base_name entre leads DIFERENTES (telefone diferente)

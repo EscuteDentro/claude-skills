@@ -23,7 +23,7 @@ def build_plan():
         phone_key = norm_phone(lead["telefone"])
         contact = contacts_by_phone.get(phone_key)
         suffix = lead["mmaa"] + ("+" if lead["duplicado"] else "")
-        base_name = contact["name"].replace(f" {SUFFIX}", "").strip() if contact else first_name(lead["nome"])
+        base_name = contact["name"].split(f" {SUFFIX}")[0].strip() if contact else first_name(lead["nome"])
         plan.append({"lead": lead, "contact": contact, "base_name": base_name, "suffix": suffix})
 
     by_base = defaultdict(list)
