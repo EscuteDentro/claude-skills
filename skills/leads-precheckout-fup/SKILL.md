@@ -12,6 +12,8 @@ user-invocable: true
 
 Extensão **opcional** do modal pré-checkout (ver seção "Modal pré-checkout" no Guia de Construção da Página). Sem este skill, os leads já são capturados e salvos normalmente na Sheet — estas ferramentas adicionam acompanhamento e facilitam o re-contato de quem não comprou.
 
+> **Nota de manutenção (Davi):** este skill tem uma implementação privada gêmea (mesma lógica de negócio, dados reais) mantida fora deste repo. Ao corrigir bug ou reforçar segurança num script aqui, checar se o mesmo problema existe na versão privada equivalente, e vice-versa — nunca corrigir só de um lado.
+
 ## LGPD
 
 Todo o desenho respeita a LGPD: consentimento explícito antes de qualquer contato (`Consentiu WA`), nenhum envio automático em massa, dado sensível fica só na Sheet do próprio usuário (nunca em serviço terceiro além do Google). **Se você quiser entender a lógica de compliance em detalhe — o que é coletado, com que base legal, como pedir exclusão — pergunte ao Claude durante a conversa; ele explica antes de configurar qualquer coisa.**
