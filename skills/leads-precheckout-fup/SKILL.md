@@ -79,6 +79,8 @@ Cria/atualiza um contato no Google Contatos pra cada lead elegível (nunca pra q
 
 ## Fluxo ao rodar (depois de configurado)
 
+**Escrevendo mais de ~20 células de uma vez** (ex: backfill retroativo): usar `batch_update_cells()` de `sheets_client.py`, nunca um loop de `update_cell()` — a Sheets API tem quota de 60 write requests/min, e um loop célula-a-célula estoura isso rápido.
+
 1. `python3 verificar_duplicados.py` — pente-fino, sempre primeiro, só leitura. Se achar algo estranho (marcação órfã), pare e avise — não conserte sozinho sem contexto.
 2. Se ativou a ferramenta 2: `python3 plan_duplicado.py` → mostrar pro usuário → só com confirmação, `python3 execute_duplicado.py`.
 3. Se ativou a ferramenta 3: listar quem precisa de contato (`Status CRM` vazio + `COMPROU` ≠ Sim), gerando o link com `gerar_link_whatsapp.py` (a função `gerar_link()` exige o valor de `Consentiu WA` como argumento e recusa gerar link se não for `"Sim"` — trava embutida no código, não só regra de documentação); quem não consentiu, só o nome + aviso de usar e-mail.
