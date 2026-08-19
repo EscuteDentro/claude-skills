@@ -64,6 +64,60 @@ Design notes / hard-won lessons (2026-07-21/22, see reference_legenda_padrao_vid
      glues short-lived (<min_display_duration) groups forward when safe, so
      that job doesn't belong in pass 1. Never gate sentence-boundary
      recognition on how many words happen to be in the group so far.
+  8. Pass 3 (glue short-lived groups forward) must never glue across a
+     sentence-ending punctuation boundary, even when the resulting group is
+     shorter than min_display_duration (2026-08-13, real bug: pass 1 correctly
+     split "né?" and "sabedoria." into their own groups per PUNCT_END, but
+     pass 3 re-merged them into the NEXT sentence purely because their own
+     duration was under 0.70s - "né? Isso" and "sabedoria. Calma" rendered as
+     single cards straddling two unrelated sentences). Pass 4 already extends
+     a short card's on-screen hold using the following silence, so pass 3
+     doesn't need to steal words from the next sentence to solve visibility.
+     Fix: pass 3 now breaks on the same PUNCT_END check pass 1 uses, same as
+     it already does for a segment-boundary change.
+  9. "?" and "!" stay at a card's real end, "." doesn't (2026-08-13, two
+     rounds of live feedback same day). First pass stripped ?/! too, on the
+     theory that any end-mark breaks flow. Refined: the actual complaint was
+     ?/! landing MID-card ("né? Isso") - item 8 already fixes that by forcing
+     the break there. Once ?/! can only ever land on a card's real last word,
+     showing them is correct (they carry the line's emotional/interrogative
+     beat on purpose); "." stays stripped everywhere - a literal full stop
+     reads like a caption bug regardless of position, the gap to the next
+     card already signals the pause.
+  10. Card breaks follow SEMANTIC coherence, not just width (2026-08-15, real feedback:
+      "ver as coisas com mais clareza, clica" landed in one card, gluing the end of one clause
+      to the start of an unrelated CTA sentence). `_greedy_split` packed words to the width
+      limit blind to punctuation. Fix: when a group overflows, look back for the most recent
+      comma already inside what fits and break there instead of at the raw width cutoff - the
+      comma itself still gets stripped from display (TRAILING_GRAMMATICAL_PUNCT), only its
+      position as a break point matters. Falls back to blind width-packing when no comma exists
+      in the overflowing span.
+  11. Fixed cohesive phrases (`COHESIVE_PHRASES`, e.g. "clica aqui") always render as their own
+      isolated card, never split across cards or glued to neighboring text (same feedback). In
+      real speech these carry a pause on both sides; after pause-cutting shrinks that pause in
+      the final video/audio, pass 1's gap-based grouping alone no longer sees it - so isolation
+      is forced structurally in pass 1, independent of the surviving gap duration.
+  12. `COHESIVE_PHRASES` is NOT just about call-to-action wording (2026-08-15, generalized from
+      `CTA_PHRASES`). The real principle: any brand-anchor expression whose persuasive/visual
+      impact depends on being read as one unit - "sentir na pele" is the case that motivated the
+      rename, same mechanism as "clica aqui" but nothing to do with CTAs. Any future phrase that
+      fits this description (reads with more weight together than split) is a candidate entry,
+      not just literal action phrases.
+  13. A self-interrupted false start ("ti--" before the real word "tenho") is a SEPARATE ASR word
+      token from the word that completes it, unlike the hyphen-glued stutter item in
+      `normalize_stutter` ("auto-automatismo", one token). `normalize_stutter` operates on
+      already-formed display text and can only edit a string, not delete a whole neighboring
+      token - so it can't fix this case. Real bug found in production (2026-08-18, "aprendeu
+      tudo isso" video): "ti--" survived to a card by itself right before "tenho dez anos". Fix:
+      drop any word token that is ENTIRELY a fragment plus 1-2 trailing dashes
+      (`_FALSE_START_PATTERN`) at `load_words()` time, before grouping ever sees it - the same
+      class of noise as the audio_event tags item 3 already filters, just ASR-specific instead of
+      Scribe-tag-specific. Fragment length cap is 1-12 chars (2026-08-18, same session, second
+      real case: "ansie--" in the "ansiedade e comer" video is 5 chars - the original 1-4 cap
+      missed it, same lesson as item 12's `_STUTTER_PATTERN` cap. A false start can ALSO have no
+      nearby completion at all (the speaker abandons the word and starts a different sentence,
+      not just a stutter-then-immediate-retry) - `_FALSE_START_PATTERN` doesn't care either way,
+      it just drops any standalone fragment+dash token unconditionally.
 """
 import argparse
 import json
@@ -82,9 +136,13 @@ from PIL import Image, ImageChops, ImageDraw, ImageFont
 # conta como boundary "fraco", resolvido por largura real + regra de lista.
 PUNCT_END = (".", "?", "!", ":")
 
-# Pontuação puramente gramatical nunca fecha uma legenda visualmente - a quebra
-# para o card seguinte já comunica a pausa. "?" e "!" ficam (carregam intenção
-# emocional/interrogativa, nao so gramatical).
+# "." "," ":" ";" nunca fecham um card visualmente - a quebra pro card seguinte
+# já comunica a pausa. "?" e "!" ficam, mas só porque item 8 (acima) garante
+# que uma palavra terminada em pontuação forte SEMPRE fecha o card ali - ou
+# seja, "?"/"!" só aparecem no fim real de um card, nunca colados no meio
+# puxando a frase seguinte junto ("né? Isso"). Sem essa garantia, "?"/"!" no
+# meio do card lê como bug; no fim real, carrega a intenção emocional/
+# interrogativa de propósito (decidido 2026-08-13, revisado no mesmo dia).
 TRAILING_GRAMMATICAL_PUNCT = (".", ",", ":", ";")
 
 
@@ -105,6 +163,64 @@ def normalize_ce_para_voce(text: str) -> str:
     return _CE_PATTERN.sub(repl, text)
 
 
+_STUTTER_PATTERN = re.compile(
+    r"\b(\w{1,12})-(\1\w*)\b", re.IGNORECASE
+)
+
+
+def normalize_stutter(text: str) -> str:
+    """Gaguejo/falso início transcrito literalmente pelo ASR ("auto-automatismo",
+    "cir-circunstância", "mes-mesmo", "complemen-complementar") nunca aparece em
+    legenda - a legenda mostra o que foi dito, não como foi hesitado. Detecta um
+    fragmento hifenizado imediatamente antes de uma palavra que começa com esse
+    mesmo fragmento, e mantém só a palavra completa (2026-08-14, achado real em
+    produção: "ásanas" nao é isso, é sanscrito - ver normalize_sanskrit_terms - mas
+    "auto-automatismo" e "cir-circunstância" sao gaguejo genuíno). Limite do
+    fragmento é 1-12 letras (2026-08-18, achado real: "complemen-complementar" tem
+    fragmento de 9 letras, o limite antigo de 4 não cobria - repetição literal do
+    prefixo é o que garante que a regra não bata em palavra composta legítima tipo
+    "guarda-chuva", não o tamanho do fragmento)."""
+    def repl(m: re.Match) -> str:
+        return m.group(2)
+    return _STUTTER_PATTERN.sub(repl, text)
+
+
+# Termos de origem sânscrita/estrangeira que o ASR (afinado pra português)
+# transcreve errado - seja por acento agudo em vez de mácron IAST ("ásana" como
+# se fosse "câmera") seja por grafia simplificada. Mapa cresce sob demanda,
+# conforme aparece em produção (2026-08-14, "ásanas"; 2026-08-18, "raga"/"rāga"
+# e "dwesha" no vídeo de ansiedade). Cada valor já vem em minúsculo - a
+# capitalização de saída é decidida por posição na frase, nunca lida daqui.
+_SANSKRIT_FIXES = {
+    "ásana": "āsana", "ásanas": "āsanas",
+    "raga": "rāga", "dwesha": "dwesha",
+}
+
+
+def normalize_sanskrit_terms(text: str, sentence_start: bool = False) -> str:
+    """Substitui grafia errada por IAST correto. Capitalização segue a MESMA
+    regra do português - maiúscula só em início de frase (`sentence_start`),
+    nunca só por ser termo estrangeiro/sânscrito (2026-08-18, correção de regra:
+    a versão anterior preservava a capitalização que o ASR dava ao termo, e o
+    ASR capitaliza por tratar termo estranho como nome próprio - "chamado Raga e
+    Dwesha", no meio da frase, saía com maiúscula sem motivo nenhum). Quem chama
+    essa função é responsável por rastrear `sentence_start` ao longo da lista de
+    palavras (word anterior termina em `PUNCT_END`, ou é a primeira do vídeo)."""
+    def repl(m: re.Match) -> str:
+        word = m.group(0)
+        core = word.strip('"\'.,:;!?')
+        prefix = word[:len(word) - len(word.lstrip('"\''))]
+        suffix = word[len(prefix) + len(core):]
+        fixed = _SANSKRIT_FIXES.get(core.lower())
+        if fixed is None:
+            return word
+        if sentence_start:
+            fixed = fixed[0].upper() + fixed[1:]
+        return prefix + fixed + suffix
+    pattern = re.compile(r"[\"']?\w+[\"'.,:;!?]*")
+    return pattern.sub(repl, text)
+
+
 def capitalize_first(text: str) -> str:
     """Primeira letra do hook (card do frame 0) sempre maiúscula, independente
     de onde o corte começou na frase original."""
@@ -115,6 +231,45 @@ _QUOTED_WORD_PATTERN = re.compile(r'^"([^"]+)"([,.:;!?]*)$')
 _CTA_TRIGGER_PATTERN = re.compile(r"^comenta", re.IGNORECASE)
 _OPENS_QUOTE = re.compile(r'^"')
 _CLOSES_QUOTE = re.compile(r'"[,.:;!?]*$')
+
+# Frases fixas que carregam peso semântico/persuasivo JUNTAS e por isso sempre
+# viram card isolado (item 11/12 do docstring) - nunca divididas entre cards,
+# nunca coladas em outra oração. Generalizado de "CTA_PHRASES" (2026-08-14) pra
+# "COHESIVE_PHRASES" (2026-08-15): não é só sobre call-to-action ("clica aqui"),
+# é qualquer expressão-âncora da marca cujo impacto visual/persuasivo depende de
+# ler tudo junto - "sentir na pele" é o outro exemplo real que motivou a
+# generalização (variantes com "sua"/"própria" também contam, cada uma sua
+# própria entrada). Cada entrada é uma tupla de 2+ palavras em minúsculo, sem
+# pontuação. Cresce sob demanda conforme aparece em produção.
+COHESIVE_PHRASES = [
+    ("clica", "aqui"),
+    ("sentir", "na", "pele"),
+    ("sentir", "na", "sua", "pele"),
+    ("sentir", "na", "própria", "pele"),
+    ("hatha", "yoga"),
+]
+
+
+def _find_cohesive_spans(words: list[dict]) -> tuple[set[int], set[int]]:
+    """Retorna (índices que iniciam uma frase coesa, índices que fecham uma).
+    Casa frases de qualquer tamanho em COHESIVE_PHRASES, testando da mais longa
+    pra mais curta em cada posição pra não parar numa correspondência parcial
+    quando uma variante mais longa também se aplica ali."""
+    starts: set[int] = set()
+    ends: set[int] = set()
+    phrases_by_len = sorted(COHESIVE_PHRASES, key=len, reverse=True)
+    n = len(words)
+    for i in range(n):
+        for phrase in phrases_by_len:
+            L = len(phrase)
+            if i + L > n:
+                continue
+            candidate = tuple(words[i + k]["text"].rstrip('",.:;!?').lower() for k in range(L))
+            if candidate == phrase:
+                starts.add(i)
+                ends.add(i + L - 1)
+                break
+    return starts, ends
 
 
 def normalize_cta_quotes(words: list[dict], lookback: int = 6) -> None:
@@ -150,6 +305,9 @@ def _deep_update(base: dict, override: dict) -> None:
             base[k] = v
 
 
+_FALSE_START_PATTERN = re.compile(r"^\w{1,12}-{1,2}$", re.IGNORECASE)
+
+
 def load_words(transcript_path: str) -> list[dict]:
     data = json.loads(Path(transcript_path).read_text())
     words = data.get("words", data) if isinstance(data, dict) else data
@@ -157,6 +315,7 @@ def load_words(transcript_path: str) -> list[dict]:
         words = words.get("words", [])
     words = [w for w in words if w.get("type", "word") == "word"]  # drop spacing/audio_event
     words = [w for w in words if (w.get("text") or "").strip()]
+    words = [w for w in words if not _FALSE_START_PATTERN.match(w["text"].strip())]
     return words
 
 
@@ -240,8 +399,21 @@ def _greedy_split(words_group, font, max_w, draw, stroke_width, max_lines) -> li
         trial = cur + [w]
         text = " ".join(x["text"] for x in trial)
         if len(wrap_fits(text, font, max_w, draw, stroke_width)) > max_lines and cur:
-            result.append(cur)
-            cur = [w]
+            # Prefer breaking at the most recent comma already inside `cur` over
+            # the raw width cutoff - a card that ends mid-clause because a word
+            # happened to still fit reads worse than one that ends clean at the
+            # clause boundary, even if a little shorter than the max.
+            comma_idx = None
+            for i in range(len(cur) - 1, -1, -1):
+                if cur[i]["text"].rstrip().endswith(","):
+                    comma_idx = i
+                    break
+            if comma_idx is not None and comma_idx < len(cur) - 1:
+                result.append(cur[:comma_idx + 1])
+                cur = cur[comma_idx + 1:] + [w]
+            else:
+                result.append(cur)
+                cur = [w]
         else:
             cur.append(w)
     if cur:
@@ -380,8 +552,12 @@ def main() -> None:
 
     words, total_dur = output_timeline(args.edl, args.transcript, fps=args.fps)
     normalize_cta_quotes(words)
+    sentence_start = True
     for w in words:
         w["text"] = normalize_ce_para_voce(w["text"])
+        w["text"] = normalize_stutter(w["text"])
+        w["text"] = normalize_sanskrit_terms(w["text"], sentence_start=sentence_start)
+        sentence_start = w["text"].rstrip('"\'').endswith(PUNCT_END)
     if args.text_rules:
         apply_text_rules(words, json.loads(Path(args.text_rules).read_text()))
 
@@ -442,6 +618,7 @@ def main() -> None:
 
     # pass 1: natural phrase groups - punctuation, silence gap, OR a segment
     # (cut) boundary, which must always break regardless of gap/punctuation.
+    cohesive_starts, cohesive_ends = _find_cohesive_spans(body_words)
     groups, cur = [], []
     for i, w in enumerate(body_words):
         if _OPENS_QUOTE.match(w["text"]) and cur:
@@ -454,12 +631,18 @@ def main() -> None:
             else:
                 groups.append(cur)
             cur = []
+        if i in cohesive_starts and cur:
+            # frase coesa fixa (COHESIVE_PHRASES, ex. "clica aqui", "sentir na
+            # pele") sempre isolada - nunca cola no final da oracao anterior.
+            groups.append(cur)
+            cur = []
         cur.append(w)
         closes_quote = bool(_CLOSES_QUOTE.search(w["text"]))
         end_here = w["text"].rstrip('"\'').endswith(PUNCT_END)
+        is_cohesive_end = i in cohesive_ends
         gap = (body_words[i + 1]["start"] - w["end"]) if i + 1 < len(body_words) else 999
         seg_changes = (i + 1 < len(body_words)) and (body_words[i + 1]["seg"] != w["seg"])
-        if closes_quote or end_here or gap >= gap_thresh or seg_changes or i == len(body_words) - 1:
+        if closes_quote or end_here or is_cohesive_end or gap >= gap_thresh or seg_changes or i == len(body_words) - 1:
             groups.append(cur)
             cur = []
     if cur:
@@ -479,6 +662,8 @@ def main() -> None:
         j = i
         while dur < min_dur and j + 1 < len(groups):
             if groups[j][-1]["seg"] != groups[j + 1][0]["seg"]:
+                break
+            if groups[j][-1]["text"].rstrip('"\'').endswith(PUNCT_END):
                 break
             if groups[j][-1].get("_no_glue") or groups[j + 1][0].get("_no_glue"):
                 break

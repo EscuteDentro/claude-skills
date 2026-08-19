@@ -17,7 +17,38 @@ cards.json and the card_*.png files).
 import argparse
 import json
 import subprocess
+import sys
 from pathlib import Path
+
+from PIL import Image
+
+
+def validate_cards(cards: list[dict], cards_dir: Path) -> None:
+    """Each card's overlay position is computed from its stored w/h, so a
+    PNG that doesn't match its recorded dimensions renders at the wrong
+    position - or, if the file itself holds the wrong content (e.g. a stale
+    file left over from hand-editing cards.json after the original
+    build_captions.py run), silently shows the wrong text in the right spot.
+    Catch both by failing before any ffmpeg time is spent, not after."""
+    errors = []
+    for i, c in enumerate(cards):
+        path = cards_dir / c["file"]
+        if not path.exists():
+            errors.append(f"  card {i} ({c['text']!r}): arquivo não existe: {c['file']}")
+            continue
+        with Image.open(path) as im:
+            real_size = im.size
+        expected = (c["w"], c["h"])
+        if real_size != expected:
+            errors.append(
+                f"  card {i} ({c['text']!r}): {c['file']} tem {real_size}px, "
+                f"cards.json espera {expected}px - regenere o card com render_card()"
+            )
+    if errors:
+        sys.exit(
+            "cards.json desalinhado com os PNGs em disco (comum após editar cards.json ou "
+            "trocar um card_body_*.png à mão):\n" + "\n".join(errors)
+        )
 
 
 def load_config(config_path: str | None) -> dict:
@@ -54,6 +85,8 @@ def main() -> None:
     data = json.loads((cards_dir / "cards.json").read_text())
     cards = data["cards"]
     canvas_w = cfg["canvas_w"]
+
+    validate_cards(cards, cards_dir)
 
     inputs = ["-i", args.base_video]
     filter_parts = []

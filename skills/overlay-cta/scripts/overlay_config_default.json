@@ -1,0 +1,13 @@
+{
+  "shape": "rounded_tail",
+  "shape_kwargs": {},
+  "font_path": "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+  "font_index": 0,
+  "font_size": 58,
+  "max_w_target": 460,
+  "fill_color": [90, 90, 90, 255],
+  "text_color": [255, 255, 255, 255],
+  "shadow_color": [0, 0, 0, 120],
+  "border_color": null,
+  "border_px": 10
+}
