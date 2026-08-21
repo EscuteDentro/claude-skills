@@ -200,11 +200,11 @@ Badge estático (`<span class="pc-ddi-badge" id="pc-ddi-badge">`) + input numér
 
 ## Follow-up de leads pré-checkout (opcional)
 
-O modal acima já salva o lead na Sheet — isso funciona sozinho, sem nada abaixo. O skill **`leads-precheckout-fup`** (`skills/leads-precheckout-fup/` neste repo) é uma extensão **opcional** que transforma essa Sheet numa mini-CRM: status de contato com cor automática, detecção de gente que se cadastrou 2x, link do WhatsApp pronto pra clicar, e-mail diário avisando de lead novo, e sincronização com Google Contatos.
+O modal acima já salva o lead na Sheet — isso funciona sozinho, sem nada abaixo. O skill **`crm-lead`** (`skills/crm-lead/` neste repo) é uma extensão **opcional** que transforma essa Sheet numa mini-CRM: status de contato com cor automática, detecção de gente que se cadastrou 2x, link do WhatsApp pronto pra clicar, e-mail diário avisando de lead novo, e sincronização com Google Contatos.
 
 **LGPD:** todo o desenho respeita consentimento explícito antes de qualquer contato, nunca envia mensagem sozinho (todo link é clique manual), e o dado fica só na Sheet/Contatos do próprio usuário. Peça ao Claude os detalhes da lógica de compliance a qualquer momento — ele explica antes de configurar.
 
-**É modular.** Cada uma das 6 ferramentas é independente e tem seu próprio requisito de configuração — o usuário escolhe quais quer e avisa quais não quer. Lista completa, requisitos e regras de cada uma: ver `skills/leads-precheckout-fup/SKILL.md`.
+**É modular.** Cada uma das 6 ferramentas é independente e tem seu próprio requisito de configuração — o usuário escolhe quais quer e avisa quais não quer. Lista completa, requisitos e regras de cada uma: ver `skills/crm-lead/SKILL.md`.
 
 | # | Ferramenta | Depende de |
 |---|---|---|

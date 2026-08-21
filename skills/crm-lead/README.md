@@ -1,4 +1,4 @@
-# leads-precheckout-fup
+# crm-lead
 
 Extensão opcional do modal pré-checkout: planilha de acompanhamento com CRM (status + semáforo), sinalização de duplicata, e-mail diário de leads novos, link `wa.me` pronto pra clicar e sincronização com Google Contatos. Ver [SKILL.md](./SKILL.md) pra descrição completa de cada ferramenta e o que cada uma exige.
 
@@ -11,7 +11,7 @@ Extensão opcional do modal pré-checkout: planilha de acompanhamento com CRM (s
 
 ## Instalação
 
-1. Copiar esta pasta inteira pra `.claude/skills/leads-precheckout-fup/` no seu projeto.
+1. Copiar esta pasta inteira pra `.claude/skills/crm-lead/` no seu projeto.
 2. Instalar as dependências Python:
    ```bash
    pip install -r scripts/requirements.txt

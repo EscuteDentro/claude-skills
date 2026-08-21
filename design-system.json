@@ -510,7 +510,7 @@
   },
 
   "precheckout_followup_automation": {
-    "descricao": "Extensao OPCIONAL da Sheet que ja recebe os leads do precheckout_modal. Skill: skills/leads-precheckout-fup/. Nao afeta o modal em si -- sem essa extensao, o modal continua funcionando normalmente.",
+    "descricao": "Extensao OPCIONAL da Sheet que ja recebe os leads do precheckout_modal. Skill: skills/crm-lead/. Nao afeta o modal em si -- sem essa extensao, o modal continua funcionando normalmente.",
     "habilitado": false,
     "lgpd": "Consentimento explicito antes de qualquer contato (coluna Consentiu WA); nenhum envio automatico em massa (todo link e clique manual); dado fica so na Sheet/Contatos do proprio usuario. Detalhe completo sob pedido ao Claude.",
     "ferramentas": {
@@ -539,6 +539,6 @@
         "requer": "People API + OAuth Client"
       }
     },
-    "nota": "Cada ferramenta acima e independente -- o usuario escolhe quais quer e avisa quais nao quer. Ver skills/leads-precheckout-fup/SKILL.md para o fluxo completo, regras absolutas e requisitos de setup."
+    "nota": "Cada ferramenta acima e independente -- o usuario escolhe quais quer e avisa quais nao quer. Ver skills/crm-lead/SKILL.md para o fluxo completo, regras absolutas e requisitos de setup."
   }
 }
