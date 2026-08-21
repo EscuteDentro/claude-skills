@@ -13,7 +13,8 @@ Avalia se uma ideia, ferramenta ou skill que alguém compartilhou (slide, link d
 **Regra dura:** avaliar o objeto real, não a descrição dele.
 
 - **Link de repositório/skill (GitHub etc.):** localizar e ler o código-fonte de verdade antes de opinar. Nunca julgar pelo README, pitch ou marketing — pode ter algo genial (ou um problema grave) que só aparece no código.
-- **Link de Reddit/X/artigo:** abrir o link real (WebFetch/leitura de página), não confiar só no texto que a pessoa colou — thread e comentários podem mudar a leitura.
+- **Link de Reddit/X/artigo:** abrir o link real (WebFetch/leitura de página), não confiar só no texto que a pessoa colou. **Padrão pra X/Twitter: sempre ler os comentários também**, não só o post principal (rolar a página) — frequentemente têm o link real da ferramenta citada, a resposta do próprio autor sobre "como" (mecanismo, não só o resultado), e sinais de ceticismo/checagem da comunidade que mudam a leitura. WebFetch costuma ser bloqueado em x.com (erro 402) — usar navegação de browser (ex: extensão Claude in Chrome) + extração de texto/scroll nesse caso.
+  - **Autor é parte interessada:** checar se quem postou é fundador/afiliado da ferramenta sendo indicada (aparece no card "Relevant people" ou na bio) — se for, tratar o post como material promocional próprio, não relato neutro de terceiro, mesmo com formato de "dica que descobri".
 - **Slide/screenshot:** ler visualmente, extrair a ideia central. Ignorar o quão bem produzido o slide é — isso não é sinal de qualidade da ideia.
 - **Texto colado direto:** usar como está, mas checar se há link embutido que vale abrir.
 
@@ -88,7 +89,9 @@ Um veredito por oportunidade relevante que sobreviveu à passada 2 — não um v
 
 **Assimetria de erro:** dúvida real entre veredictos vizinhos resolve pra cima (Vigiar > Descartar, Adaptar > Vigiar) — perder oportunidade boa custa mais que investigar uma ruim. **Descartar** só com risco eliminatório concreto ou redundância comprovada, nunca por incerteza.
 
-Resposta final **concisa por padrão**: entregar o veredito e o essencial de cada passada, não o raciocínio completo. Aprofundar qualquer seção só se pedido depois.
+**Resposta final abre com o veredito, não termina nele:** primeira coisa no output é o resumo de conclusão — veredito de cada oportunidade em 1 linha — antes de qualquer detalhe de fonte, leque ou risco. O detalhamento das passadas vem depois, como sustentação, pra quem quiser aprofundar. Concisa por padrão: essencial de cada passada, não o raciocínio completo — aprofundar só se pedido.
+
+**Visibilidade do backlog, sempre junto do veredito:** ler o arquivo de backlog do seu projeto e citar o estado atual — pelo menos contagem por área (ex: "hoje no backlog: 2 ideias de edição de vídeo, 1 de revisão de copy, 1 de CRM") — antes de fechar a resposta. Objetivo: nunca deixar o usuário sem saber o que já está na fila sem precisar abrir o arquivo. Se o backlog estiver vazio, dizer isso também.
 
 ## 5. Registro se aprovada
 
