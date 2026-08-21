@@ -3,16 +3,31 @@
 Formatação condicional de linha inteira, 3 regras em ordem de prioridade
 (Sheets aplica só a 1ª regra que bate, nunca soma -- por isso a ordem
 importa):
-1) Consentiu WA = "Não" -> linha inteira cinza claro (prioridade máxima:
-   nunca sinaliza "precisa contatar" quem não pode ser contatado).
-2) COMPROU = "Sim" -> linha inteira verde claro.
-3) Status CRM vazio -> só a célula dessa coluna fica vermelha (sinal visual
-   "precisa contatar"). Por estar em 3º lugar, só aparece quando as regras
-   1-2 não capturaram a linha.
+1) COMPROU = "Sim" -> linha inteira verde claro (prioridade máxima: virou
+   cliente, isso é mais relevante que qualquer outro sinal -- contato
+   pós-compra costuma ter base legal própria, execução de contrato,
+   independente do consentimento de WhatsApp pré-checkout. Confirme a
+   base legal aplicável ao seu caso antes de assumir isso como regra).
+2) Consentiu WA = "Não" -> linha inteira cinza claro (nunca contatar via
+   WhatsApp quem não consentiu -- só perde pra COMPROU=Sim acima).
+3) Status CRM vazio E Nome preenchido -> só a célula dessa coluna fica
+   vermelha (sinal visual "precisa contatar"). O "E Nome preenchido" evita
+   pintar linha vazia sem dado nenhum -- a condição sozinha "Status CRM
+   vazio" também é verdadeira pra linha em branco, pintando de vermelho
+   até o final do range sem necessidade.
 
-Requer as colunas "Status CRM", "COMPROU" e "Consentiu WA" na aba (nomes
-exatos -- resolvidos por cabeçalho E consultados via metadata da própria
-Sheet, nunca hardcoded, entao funciona em qualquer ordem/tamanho de coluna).
+Requer as colunas "Status CRM", "COMPROU", "Consentiu WA" e "Nome" na aba
+(nomes exatos -- resolvidos por cabeçalho E consultados via metadata da
+própria Sheet, nunca hardcoded, então funciona em qualquer ordem/tamanho
+de coluna).
+
+CRÍTICO -- locale da Sheet: fórmula CUSTOM_FORMULA com múltiplos argumentos
+(AND, OR, SUM...) precisa usar o separador do LOCALE da planilha -- em
+pt_BR é `;`, não `,`. A API rejeita com "Invalid ConditionValue.userEnteredValue"
+se usar o separador errado pro locale. Verifique o locale da sua Sheet
+(`spreadsheets().get().execute()['properties']['locale']`) antes de usar
+fórmula com mais de 1 argumento. Comparação simples (`=A2="Sim"`) não tem
+separador, então não é afetada.
 """
 from sheets_client import get_service, get_all_rows
 import config
@@ -33,13 +48,24 @@ def get_tab_gid(service, tab_name):
                 if s["properties"]["title"] == tab_name)
 
 
+def get_locale_separator(service):
+    """AND()/OR() etc. usam ';' em locales que usam ',' como separador
+    decimal (ex: pt_BR, de_DE), e ',' em locales que usam '.' (ex: en_US).
+    Heurística simples: locales latinos/europeus usam ';'."""
+    meta = service.spreadsheets().get(spreadsheetId=config.SHEET_ID, fields="properties.locale").execute()
+    locale = meta.get("properties", {}).get("locale", "en_US")
+    return ";" if locale.split("_")[0] in ("pt", "de", "es", "fr", "it", "nl", "pl", "ru") else ","
+
+
 def main():
     service = get_service()
     headers, _ = get_all_rows()
     idx = {h: i for i, h in enumerate(headers)}
     gid = get_tab_gid(service, config.SHEET_TAB)
     n_cols = len(headers)
+    sep = get_locale_separator(service)
 
+    col_nome = col_letter(idx["Nome"])
     col_status_crm = col_letter(idx["Status CRM"])
     col_comprou = col_letter(idx["COMPROU"])
     col_consentiu = col_letter(idx["Consentiu WA"])
@@ -59,9 +85,9 @@ def main():
                     "booleanRule": {
                         "condition": {
                             "type": "CUSTOM_FORMULA",
-                            "values": [{"userEnteredValue": f'=${col_consentiu}2="Não"'}],
+                            "values": [{"userEnteredValue": f'=${col_comprou}2="Sim"'}],
                         },
-                        "format": {"backgroundColor": gray},
+                        "format": {"backgroundColor": green},
                     },
                 },
                 "index": 0,
@@ -77,9 +103,9 @@ def main():
                     "booleanRule": {
                         "condition": {
                             "type": "CUSTOM_FORMULA",
-                            "values": [{"userEnteredValue": f'=${col_comprou}2="Sim"'}],
+                            "values": [{"userEnteredValue": f'=${col_consentiu}2="Não"'}],
                         },
-                        "format": {"backgroundColor": green},
+                        "format": {"backgroundColor": gray},
                     },
                 },
                 "index": 1,
@@ -96,7 +122,7 @@ def main():
                     "booleanRule": {
                         "condition": {
                             "type": "CUSTOM_FORMULA",
-                            "values": [{"userEnteredValue": f'={col_status_crm}2=""'}],
+                            "values": [{"userEnteredValue": f'=AND(${col_status_crm}2=""{sep}${col_nome}2<>"")'}],
                         },
                         "format": {"backgroundColor": red},
                     },
