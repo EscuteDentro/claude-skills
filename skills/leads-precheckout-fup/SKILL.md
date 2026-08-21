@@ -41,6 +41,8 @@ Coluna "Status CRM" na Sheet + cor de linha automática: cinza (sem consentiment
 
 A mesma pessoa pode se cadastrar mais de uma vez (curiosidade, esquecimento, dispositivo diferente). Esta ferramenta detecta isso (por e-mail OU telefone repetido), numera as entradas em ordem cronológica (`1`, `2`, `3*`...) e marca com `*` quando o telefone ou e-mail muda entre uma entrada e outra da mesma pessoa. Scripts: `verificar_duplicados.py` (pente-fino, só leitura), `plan_duplicado.py` (dry-run) → `execute_duplicado.py` (escreve, só após confirmação), `validar_logica_numeracao.py` (auditoria a qualquer momento).
 
+**Princípio da âncora de contato: só existe UMA âncora de contato por pessoa, nunca mais de uma.** Follow-up não é contato novo — é parte da mesma conversa/thread. A âncora é a linha do grupo onde `Status CRM` tem o texto real (`Contato via WhatsApp (data)`); todas as outras linhas do grupo — mais antigas OU mais novas que ela — apontam pra ela via `Ver linha N`, nunca o contrário. Scripts: `plan_status_crm.py` (dry-run, acha a âncora de cada grupo e propõe os `Ver linha N`; alerta ⚠️ sem bloquear se a entrada mais nova estiver a mais de 7 dias da âncora) → `execute_status_crm.py` (escreve, só após confirmação).
+
 **Requer:** só o pré-requisito comum.
 **Se não quiser:** avise — cada novo cadastro vira uma linha nova sem checagem de duplicata; você mesmo identifica manualmente se quiser.
 

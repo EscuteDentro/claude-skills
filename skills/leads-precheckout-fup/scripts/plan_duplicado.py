@@ -27,9 +27,11 @@ def pad(row, length):
     return row + [""] * (length - len(row))
 
 
-def compute_expected_groups(headers, rows):
-    """Retorna {row_index_0based: {"expected_dup", "expected_obs", "actual_dup"}}
-    só pra linhas que pertencem a um grupo de duplicata (>=2 membros).
+def build_duplicate_groups(headers, rows):
+    """Union-find por e-mail OU telefone. Retorna {root_index: [member_indices]}
+    só pra grupos com >=2 membros (linhas padded, mesmo índice 0-based que
+    `rows`). Fonte única do agrupamento -- plan_status_crm.py importa isto
+    diretamente em vez de reimplementar, nunca duplicar essa lógica.
     """
     idx = {h: i for i, h in enumerate(headers)}
     rows = [pad(r, len(headers)) for r in rows]
@@ -64,10 +66,20 @@ def compute_expected_groups(headers, rows):
     for i in range(n):
         groups[find(i)].append(i)
 
+    return {root: members for root, members in groups.items() if len(members) >= 2}
+
+
+def compute_expected_groups(headers, rows):
+    """Retorna {row_index_0based: {"expected_dup", "expected_obs", "actual_dup"}}
+    só pra linhas que pertencem a um grupo de duplicata (>=2 membros).
+    """
+    idx = {h: i for i, h in enumerate(headers)}
+    rows = [pad(r, len(headers)) for r in rows]
+    groups = build_duplicate_groups(headers, rows)
+
     result = {}
     for root, members in groups.items():
-        if len(members) < 2:
-            continue
+        members = list(members)
         members.sort(key=lambda i: rows[i][idx["Timestamp"]])
         first_phone = rows[members[0]][idx["Telefone"]].strip()
         first_email = rows[members[0]][idx["E-mail"]].strip().lower()
