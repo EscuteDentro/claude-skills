@@ -1,0 +1,5 @@
+scripts/config.py
+scripts/__pycache__/
+scripts/captura_*.json
+scripts/diff_resultado.json
+scripts/achados*.json
