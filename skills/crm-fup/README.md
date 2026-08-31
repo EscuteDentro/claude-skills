@@ -1,6 +1,6 @@
 # crm-fup
 
-CRM efetivo de recuperação de venda por WhatsApp: verifica status de conversa de cada lead marcado (Ghost/Esperar/FUP/Responder/Convertida), captura dor/desejo real do cliente numa aba viva ("Dores e Desejos"), e sincroniza com a aba de leads original. Skill irmã do `crm-lead` — reaproveita a mesma Sheet e credencial. Ver [SKILL.md](./SKILL.md) pra fluxo completo e regras de segurança.
+CRM efetivo de recuperação de venda por WhatsApp: verifica status de conversa de cada lead marcado (Ghost/Esperar/FUP/Responder/Convertida), captura dor/desejo real ("Dores e Desejos") e objeção real ("Objeções") do cliente em abas vivas, e sincroniza com a aba de leads original. Skill irmã do `crm-lead` — reaproveita a mesma Sheet e credencial. Ver [SKILL.md](./SKILL.md) pra fluxo completo e regras de segurança.
 
 ## Pré-requisitos
 
@@ -20,8 +20,9 @@ CRM efetivo de recuperação de venda por WhatsApp: verifica status de conversa 
    ```bash
    python3 scripts/fup_criar_tab.py
    python3 scripts/dores_desejos_criar_tab.py
+   python3 scripts/objecoes_criar_tab.py
    ```
-5. Criar a aba "Banco de Copies" manualmente na sua Sheet se for usar essa ferramenta opcional (o script `banco_copies_popular.py` escreve nela, mas não a cria sozinho).
+5. Ferramentas de síntese opcionais, só se for usá-las: "Banco de Copies" (crie a aba manualmente, o script `banco_copies_popular.py` escreve nela mas não a cria sozinho) e "Banco de Objeções" (`python3 scripts/banco_objecoes_criar_tab.py` cria a aba vazia).
 
 ## Uso
 
@@ -31,4 +32,4 @@ Ver a seção "Fluxo ao rodar" no [SKILL.md](./SKILL.md). Peça ao Claude pra ro
 
 ## LGPD / privacidade
 
-A aba "Dores e Desejos" guarda fala real de cliente extraída de conversa de recuperação de venda — trate como dado sensível. Nome completo não é necessário pra rastreabilidade (telefone/Id bastam); considere anonimizar ainda mais se for compartilhar a Sheet com terceiros. Nunca automatiza contato em lote — todo re-contato continua manual, pelo próprio usuário.
+As abas "Dores e Desejos" e "Objeções" guardam fala real de cliente extraída de conversa de recuperação de venda — trate como dado sensível. Nome completo não é necessário pra rastreabilidade (telefone/Id bastam); considere anonimizar ainda mais se for compartilhar a Sheet com terceiros. Nunca automatiza contato em lote — todo re-contato continua manual, pelo próprio usuário.

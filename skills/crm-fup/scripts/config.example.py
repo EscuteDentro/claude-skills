@@ -19,6 +19,8 @@ LEADS_TAB = "Leads"
 FUP_TAB = "FUP"
 DORES_DESEJOS_TAB = "Dores e Desejos"
 BANCO_COPIES_TAB = "Banco de Copies"
+OBJECOES_TAB = "Objeções"
+BANCO_OBJECOES_TAB = "Banco de Objeções"
 
 # Caminho da credencial de Service Account (Sheets API). Nunca commitar
 # esse arquivo em lugar nenhum -- fica fora de qualquer repositório git.

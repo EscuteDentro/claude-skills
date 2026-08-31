@@ -1,10 +1,10 @@
 ---
 name: crm-fup
-description: CRM efetivo de recuperação de venda — verifica no WhatsApp todos os contatos marcados como lead, classifica status de follow-up (Ghost 1/2, Esperar, FUP, Responder, Convertida), captura dor/desejo real do cliente numa aba viva, e sincroniza com a aba de leads original. Só leitura, nunca envia nada.
+description: CRM efetivo de recuperação de venda — verifica no WhatsApp todos os contatos marcados como lead, classifica status de follow-up (Ghost 1/2, Esperar, FUP, Responder, Convertida), captura dor/desejo real e objeção real do cliente em abas vivas, e sincroniza com a aba de leads original. Só leitura, nunca envia nada.
 user-invocable: true
 ---
 
-> **Instalação:** copiar esta pasta para `.claude/skills/crm-fup/` no projeto. Preencher `scripts/config.py` (copiar de `config.example.py` — reaproveite os valores de `crm-lead` se já tiver esse skill instalado) antes de usar. Rodar `python3 scripts/fup_criar_tab.py` e `python3 scripts/dores_desejos_criar_tab.py` uma vez, na instalação. Ver [README.md](./README.md) para o passo a passo completo.
+> **Instalação:** copiar esta pasta para `.claude/skills/crm-fup/` no projeto. Preencher `scripts/config.py` (copiar de `config.example.py` — reaproveite os valores de `crm-lead` se já tiver esse skill instalado) antes de usar. Rodar `python3 scripts/fup_criar_tab.py`, `python3 scripts/dores_desejos_criar_tab.py` e `python3 scripts/objecoes_criar_tab.py` uma vez, na instalação. Ver [README.md](./README.md) para o passo a passo completo.
 
 ---
 
@@ -66,13 +66,14 @@ Pra cada contato do lote:
    - **Convertida**: virou cliente (confirmado na aba de leads, ou evidência textual explícita na própria conversa — nunca por inferência, ver regra abaixo).
    - **Novo**: contato criado pelo sync do `crm-lead`, ainda não verificado no WhatsApp.
    - **Verificar**: dado insuficiente pra classificar com confiança (ex: só reação/figurinha, sem abrir o resto).
-4. **Capturar Dores e Desejos**: só entra motivação REAL que levou o cliente a buscar o produto, nunca objeção pura (preço, dúvida) isolada. Se a fala citar sintoma/detalhe junto, incluir na frase literal, não resumir — frase literal é sempre a fala quase exata, nunca parafraseada. Preencher também **Categoria** (`config.CATEGORIAS`) — se a fala não couber bem em nenhuma categoria existente, marcar "Outro" e sinalizar pro usuário, pode virar categoria nova.
-5. **Campo `Converteu?` — regra crítica**: só marcar "Sim" com confirmação explícita (a pessoa dizendo que comprou/pagou, ou o campo já confirmado na aba de leads). Sinal indireto forte (parcelamento discutido, relação longa, uso contínuo) NUNCA vira "Sim" — um campo binário não carrega nuance, e uma ressalva na Observação não corrige um "Sim" errado lido isoladamente por quem for analisar os dados depois. Na dúvida, "Não", e pergunte ao usuário antes de registrar qualquer suspeita de conversão.
-6. **Restaurar "Não lida" IMEDIATAMENTE se estava assim antes de abrir** — fazer logo depois de ler cada conversa, nunca deixar pro fim do lote (se a rodada for interrompida no meio, o que já foi restaurado fica certo).
+4. **Capturar Dores e Desejos**: só entra motivação REAL que levou o cliente a buscar o produto, nunca objeção pura (preço, dúvida) isolada — objeção vai pra aba Objeções (item 5 abaixo), não aqui. Se a fala citar sintoma/detalhe junto, incluir na frase literal, não resumir — frase literal é sempre a fala quase exata, nunca parafraseada. Preencher também **Categoria** (`config.CATEGORIAS`) — se a fala não couber bem em nenhuma categoria existente, marcar "Outro" e sinalizar pro usuário, pode virar categoria nova.
+5. **Capturar Objeção**: resistência real do lead a avançar (preço, tempo, "já tentei outra coisa", ceticismo, timing pessoal) costuma aparecer mais adiante no diálogo, depois do D&D. Quando aparecer, registrar em Objeções: frase literal da objeção + a resposta que você de fato deu (não a resposta ideal, a real) + **Superada?** (mesma regra de nunca inferir do campo `Converteu?`: "Sim" só com confirmação explícita de que o lead seguiu em frente; "Não" só com confirmação explícita de que não seguiu; "Não sei" na ausência de sinal claro). Objeção nunca entra em Dores e Desejos, mesmo se envolver um sintoma junto (ex: "não tenho tempo com a ansiedade que eu tenho" é objeção de tempo com pista de dor — a dor, se ainda não capturada, também vira linha em D&D; a objeção em si vira linha separada em Objeções).
+6. **Campo `Converteu?` — regra crítica**: só marcar "Sim" com confirmação explícita (a pessoa dizendo que comprou/pagou, ou o campo já confirmado na aba de leads). Sinal indireto forte (parcelamento discutido, relação longa, uso contínuo) NUNCA vira "Sim" — um campo binário não carrega nuance, e uma ressalva na Observação não corrige um "Sim" errado lido isoladamente por quem for analisar os dados depois. Na dúvida, "Não", e pergunte ao usuário antes de registrar qualquer suspeita de conversão.
+7. **Restaurar "Não lida" IMEDIATAMENTE se estava assim antes de abrir** — fazer logo depois de ler cada conversa, nunca deixar pro fim do lote (se a rodada for interrompida no meio, o que já foi restaurado fica certo).
 
 ### 4. Dry-run antes de escrever
 
-Mostrar pro usuário: linhas novas/atualizadas propostas pra FUP, linhas novas propostas pra Dores e Desejos, e o que vai sincronizar de volta pra aba de leads. Só escrever após confirmação.
+Mostrar pro usuário: linhas novas/atualizadas propostas pra FUP, linhas novas propostas pra Dores e Desejos, linhas novas propostas pra Objeções, e o que vai sincronizar de volta pra aba de leads. Só escrever após confirmação.
 
 ```python
 from fup_update_rows import apply_updates
@@ -81,6 +82,11 @@ apply_updates([...])
 
 ```python
 from dores_desejos_add_rows import add_rows
+add_rows([...])
+```
+
+```python
+from objecoes_add_rows import add_rows
 add_rows([...])
 ```
 
@@ -100,6 +106,17 @@ Quantos novos, quantos mudaram, distribuição de Status, quantas linhas novas e
 ## Banco de Copies — síntese pra uso direto em copy (opcional)
 
 Aba separada, não populada automaticamente pelo fluxo principal — síntese exige leitura humana/IA pra agrupar por padrão, não só contagem de string. Editar `scripts/banco_copies_popular.py` (é um template, ROWS é exemplo) e rodar manualmente quando Dores e Desejos tiver crescido o suficiente pra valer revisão dos agrupamentos. Ver o docstring do arquivo pras regras de agrupamento (Categoria como eixo primário, "leads distintos" separado de "linhas", relato indireto nunca vira citação direta). Se você tiver um manual de hooks (`config.MANUAL_HOOKS_PATH`), aplicar a mecânica dele no campo "Hook sugerido" — hook forte é sensorial e específico, nunca frase que serviria pra qualquer pessoa em qualquer situação.
+
+## Banco de Objeções — síntese pra estudo de argumentação de venda (opcional)
+
+Aba separada, papel distinto de Banco de Copies: aquele existe pra gerar ideia de anúncio/conteúdo (hook), este existe pra estudar e melhorar a argumentação de venda 1:1. Mesma disciplina de Banco de Copies — não populada automaticamente, síntese exige leitura humana/IA. Rodar `scripts/banco_objecoes_criar_tab.py` uma vez pra criar a aba (só cabeçalho), depois popular manualmente (mesmo espírito de `banco_copies_popular.py` — adapte um script parecido) quando Objeções tiver massa real o suficiente pra generalizar um padrão.
+
+**Schema**: `Categoria | Objeção padrão | Leads distintos | Fontes (linhas Objeções) | Caminho eficaz | Frase(s) de referência | Observação`.
+
+**Regras de agrupamento:**
+- "Caminho eficaz" só entra com base numa "Resposta dada" real registrada em Objeções que teve "Superada?" confirmado como Sim — nunca inventar o que "deveria" funcionar. Se o padrão se repete mas nenhuma resposta registrada teve confirmação de sucesso, deixar "Caminho eficaz" vazio e sinalizar na Observação (é lacuna real, não preencher por plausibilidade).
+- "Leads distintos" é sempre o número de pessoas reais por trás do padrão, não de linhas — mesma regra de Banco de Copies.
+- Se você mantém uma identidade de consumidor/framework de objeções documentado à parte (ex: objeções pré-mapeadas com argumentos prontos), este banco é o dado empírico que confirma ou corrige esse documento — comparar quando houver massa suficiente, sinalizar divergência ao usuário, nunca editar o documento original sozinho.
 
 ## Corner cases conhecidos
 
