@@ -310,16 +310,18 @@ export function buildGroups(words: TimedWord[], sceneEndFrame: number, size = 5,
 export type CaptionGroup = ReturnType<typeof buildGroups>[number];
 
 /** Estilo "massinha": contorno grosso + camadas de sombra empilhadas simulam
- * profundidade 3D sem precisar de fonte customizada. Ajustar cores/espessura
- * pro seu estilo visual — o principio (stroke grosso + shadow em camadas
- * escalonadas) vale pra qualquer efeito "esculpido/brinquedo". */
+ * profundidade 3D sem precisar de fonte customizada. Valores abaixo são
+ * PLACEHOLDER de propósito (cor/fonte genéricas, não a identidade visual de
+ * nenhum personagem real) — sempre trocar por cor/fonte/espessura do SEU
+ * estilo visual antes de usar. O princípio (stroke grosso + shadow em
+ * camadas escalonadas) vale pra qualquer efeito "esculpido/brinquedo". */
 export const CLAY_TEXT_STYLE: React.CSSProperties = {
-  fontFamily: "'Arial Rounded MT Bold', ui-rounded, system-ui, sans-serif",
+  fontFamily: "ui-rounded, system-ui, sans-serif",
   fontWeight: 800,
-  color: "#ffedcf",
-  WebkitTextStroke: "9px #3a2010",
+  color: "#f2f2f2",
+  WebkitTextStroke: "9px #333333",
   paintOrder: "stroke fill",
-  textShadow: "0 3px 0 #3a2010, 0 6px 0 #2c1809, 0 9px 0 #2c1809, 0 13px 22px rgba(0,0,0,0.5)",
+  textShadow: "0 3px 0 #333333, 0 6px 0 #1a1a1a, 0 9px 0 #1a1a1a, 0 13px 22px rgba(0,0,0,0.5)",
   lineHeight: 1.12,
   display: "inline-block",
 };
@@ -367,11 +369,12 @@ export type GlyphMeta = { file: string; w: number; h: number };
 export type GlyphTable = Record<string, GlyphMeta>;
 
 // Sombra opcional (drop-shadow segue o alpha do PNG, ao contrario de
-// box-shadow) pra dar contraste contra fundos de tom proximo ao da massinha
-// (ceu bege/laranja/dourado, tipico em cenas de por-do-sol). Empilhar 2-3
-// camadas simula o contorno+sombra em camadas do CLAY_TEXT_STYLE em CSS.
+// box-shadow) pra dar contraste quando o fundo tem tom proximo ao do glifo
+// (ex: fundo claro atras de um personagem claro). Cor abaixo e PLACEHOLDER,
+// trocar pra combinar com o seu fundo. Empilhar 2-3 camadas simula o
+// contorno+sombra em camadas do CLAY_TEXT_STYLE em CSS.
 export const GLYPH_SHADOW_DEFAULT =
-  "drop-shadow(0 2px 0 #2c1809) drop-shadow(0 4px 0 #2c1809) drop-shadow(0 7px 10px rgba(0,0,0,0.55))";
+  "drop-shadow(0 2px 0 #1a1a1a) drop-shadow(0 4px 0 #1a1a1a) drop-shadow(0 7px 10px rgba(0,0,0,0.55))";
 
 function layoutGlyphLines(
   text: string,
