@@ -99,6 +99,8 @@ python3 execute_sync_leads.py achados.json
 
 Só preenche `Status CRM` pra quem está vazio (nunca sobrescreve valor humano), só quando o telefone bate com exatamente 1 linha na aba de leads (telefone duplicado = pula e avisa, resolver duplicata é trabalho do `crm-lead`).
 
+**`achados.json` sempre com TODOS os contatos abertos/atualizados nesta rodada, nunca uma lista escolhida a dedo.** Montar o sync só com quem teve achado "interessante" (D&D/Objeção) e esquecer quem só teve conversa comum é o erro mais fácil de cometer aqui — gerar a lista programaticamente a partir de quem foi de fato processado no passo 3 (novos + mudados do diff), não filtrar antes de montar o payload.
+
 ### 6. Fechar com resumo
 
 Quantos novos, quantos mudaram, distribuição de Status, quantas linhas novas em Dores e Desejos, quantas células sincronizadas de volta pra aba de leads. Confirmar que toda conversa aberta nesta rodada teve o "Não lida" original restaurado. Sem inventar número — só o que os scripts realmente reportaram.
