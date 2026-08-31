@@ -124,6 +124,7 @@ Aba separada, papel distinto de Banco de Copies: aquele existe pra gerar ideia d
 - **Contato renomeado** (ex: perdeu o marcador de busca do nome ao virar cliente): some da busca e a linha da FUP fica congelada no último estado conhecido. Sem detecção automática disso — se o usuário perceber, avisar e resolver manualmente.
 - **Reação/figurinha sem texto**: conta como sinal de vida (não é Ghost), mas não dá dado suficiente pra Status completo sem abrir — cai em `Verificar` até alguém abrir de fato.
 - **Contato de relacionamento/comunidade, não comercial** (gente próxima que tem o marcador de busca no nome por engano de convenção antiga): incluir na FUP igual, mas com nota clara na Observação pra não confundir com funil de vendas.
+- **Captura de busca pode vir incompleta sem erro nenhum**: a lista de resultados da busca do WhatsApp Web pode renderizar parcial dependendo do estado de carregamento no momento da leitura da página — não assumir que a captura foi exaustiva só porque não deu erro. Se o usuário sinalizar qualquer divergência ("mandei mensagem pra alguém que você marcou como sem contato"), reabrir a busca do zero antes de responder, nunca confiar na lista já capturada.
 
 ## Se faltar credencial ou o fluxo quebrar
 
