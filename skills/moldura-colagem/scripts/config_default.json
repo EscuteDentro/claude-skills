@@ -1,0 +1,11 @@
+{
+  "canvas_w": 1080,
+  "canvas_h": 1920,
+  "video_inset": 0.055,
+  "paper_inset": 0.028,
+  "video_band_px": 16,
+  "paper_band_px": 26,
+  "paper_color": [238, 229, 208],
+  "noise_seed": 7,
+  "background_image": null
+}
