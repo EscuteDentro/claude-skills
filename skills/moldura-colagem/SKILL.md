@@ -80,6 +80,16 @@ duplicar o arquivo de config só pra trocar de fundo.
   principal (finito) acaba — bug real (2026-09-02): rodou 47min de encode pra uma fonte de 60s,
   só parou porque foi morto manualmente. Já corrigido no script; se algum fork/cópia não tiver
   o `-shortest`, adicionar antes de rodar em produção.
+- **Fundo/vídeo com proporção diferente do canvas distorcia (stretch), não cortava**: tanto
+  `aplicar_video.py` (`scale=w:h` no ffmpeg) quanto `aplicar_frames.py` (`.resize()` do PIL)
+  esticavam a imagem pra caber exatamente no canvas em vez de recortar preservando proporção —
+  bug real (2026-09-03), passou despercebido porque os 2 primeiros fundos usados em produção
+  coincidiam exatamente com a proporção do canvas (9:16). Confirmado com imagem de teste
+  quadrada (círculo virava oval). Fix: `scale=w:h:force_original_aspect_ratio=increase,
+  crop=w:h` no ffmpeg; função `cover_resize()` (crop central preservando proporção) no PIL —
+  aplicado a fundo E vídeo/frame de entrada nos dois scripts. Testado: resultado idêntico
+  (diferença de recompressão apenas, média <1/255) nos vídeos já entregues cuja proporção já
+  batia, e círculo perfeito preservado no teste com proporção deliberadamente diferente.
 - **Fps do vídeo de saída**: sempre force `--fps` explicitamente igual ao do vídeo de entrada.
   As imagens de fundo/máscara em loop (`-loop 1`) não têm fps próprio — sem isso, o ffmpeg
   negocia um fps default (25) pro grafo de filtros inteiro, dessincronizando com o vídeo fonte

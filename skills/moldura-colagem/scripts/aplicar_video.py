@@ -56,11 +56,11 @@ def main():
             "-loop", "1", "-framerate", str(args.fps), "-i", video_mask_path,
             "-loop", "1", "-framerate", str(args.fps), "-i", paper_layer_path,
             "-filter_complex",
-            f"[0:v]scale={w}:{h},setsar=1,fps={args.fps}[vid];"
+            f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setsar=1,fps={args.fps}[vid];"
             "[2:v]format=gray[mask];"
             "[vid]format=rgba[vidrgba];"
             "[vidrgba][mask]alphamerge[vidmasked];"
-            f"[1:v]scale={w}:{h},setsar=1,format=rgba[bg];"
+            f"[1:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setsar=1,format=rgba[bg];"
             "[3:v]format=rgba[paper];"
             "[bg][paper]overlay=format=auto[step1];"
             "[step1][vidmasked]overlay=format=auto[final]",
