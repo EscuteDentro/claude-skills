@@ -19,7 +19,7 @@ import re
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 from scipy.ndimage import distance_transform_edt
 
 SS = 4  # fator de supersample (anti-aliasing) - todo desenho roda nessa escala, reduz no final
@@ -136,24 +136,29 @@ def render_emoji_img(ch: str, px_size: int) -> Image.Image:
 
 
 def layout_lines(text, font, max_w, draw, cap_h):
-    tokens = tokenize(text)
+    # "\n" no texto de entrada é quebra de linha FORÇADA (ex: CTA de 2 linhas exatas
+    # tipo "Clica em SAIBA MAIS\ne faz uma prática gratuita") - cada segmento entre
+    # quebras roda o wrap automático normal por conta própria, nunca funde com o
+    # segmento vizinho mesmo que coubesse na mesma linha.
     space_w = draw.textbbox((0, 0), " ", font=font)[2]
-    items = []
-    for kind, val in tokens:
-        if kind == "text":
-            w = draw.textbbox((0, 0), val, font=font)[2]
-            items.append(("text", val, w))
-        else:
-            img = render_emoji_img(val, cap_h)
-            items.append(("emoji", img, img.width))
-    lines, cur, cur_w = [], [], 0
-    for it in items:
-        add_w = it[2] + (space_w if cur else 0)
-        if cur_w + add_w > max_w and cur:
-            lines.append(cur); cur, cur_w = [], 0
-            add_w = it[2]
-        cur.append(it); cur_w += add_w
-    if cur:
+    lines = []
+    for segment in text.split("\n"):
+        tokens = tokenize(segment)
+        items = []
+        for kind, val in tokens:
+            if kind == "text":
+                w = draw.textbbox((0, 0), val, font=font)[2]
+                items.append(("text", val, w))
+            else:
+                img = render_emoji_img(val, cap_h)
+                items.append(("emoji", img, img.width))
+        cur, cur_w = [], 0
+        for it in items:
+            add_w = it[2] + (space_w if cur else 0)
+            if cur_w + add_w > max_w and cur:
+                lines.append(cur); cur, cur_w = [], 0
+                add_w = it[2]
+            cur.append(it); cur_w += add_w
         lines.append(cur)
     return lines, space_w
 
@@ -174,6 +179,9 @@ def render_overlay(
     border_px: int = 10,
     rotation_deg: float = 0.0,
     out_scale: float = 1.0,
+    flip_h: bool = False,
+    flip_v: bool = False,
+    text_stroke_px: int = 0,
     out: str = "overlay.png",
 ):
     """Gera o elemento de overlay como PNG. Todo eixo de customização é parâmetro:
@@ -192,6 +200,15 @@ def render_overlay(
       border_px     espessura da borda em px (só importa se border_color setado)
       rotation_deg  rotação aplicada no final (graus). 0 = sem rotação.
       out_scale     fator de escala do PNG final (1.2 = 20% maior que o tamanho base)
+      flip_h        espelha a FORMA (rabicho incluso) no eixo horizontal - texto não é afetado
+      flip_v        espelha a FORMA (rabicho incluso) no eixo vertical - texto não é afetado
+                    (ex: rabicho que nasce embaixo-esquerda por padrão vira em cima-direita
+                    com flip_h+flip_v juntos, sem virar o texto de cabeça pra baixo - o
+                    corpo do balão "anda" pro lado oposto de onde a máscara tinha espaço
+                    extra, e o texto acompanha via `content_dy`, não via rotação de pixel)
+      text_stroke_px  contorno do texto na MESMA cor do preenchimento (px, antes do supersample)
+                    - engrossa o traço da fonte pra um efeito "leve bold" sem trocar de
+                    arquivo de fonte. 0 = desativado (default, comportamento antigo idêntico).
       out           path de saída
     """
     shape_kwargs = shape_kwargs or {}
@@ -212,11 +229,18 @@ def render_overlay(
     w, h = int(tw + pad_x * 2), th + pad_y * 2
 
     mask = SHAPES[shape](w, h, **shape_kwargs)
+    if flip_h:
+        mask = ImageOps.mirror(mask)
+    if flip_v:
+        mask = ImageOps.flip(mask)
     mw, mh = mask.size
     # deslocamento do conteúdo de texto dentro da máscara (formas sem rabicho ou com
     # padding próprio, ex. ellipse_shape, podem ser MAIORES que w/h - centraliza a
-    # diferença nos dois eixos em vez de assumir que o texto começa em (0,0) da máscara)
-    content_dx, content_dy = (mw - w) // 2, 0
+    # diferença nos dois eixos em vez de assumir que o texto começa em (0,0) da máscara).
+    # Contrato de forma: corpo principal sempre em [0,h), espaço extra (rabicho) em
+    # [h,mh) - com flip_v esse extra migra pro topo, então o texto desloca por (mh-h)
+    # pra continuar caindo em cima do corpo, não do rabicho.
+    content_dx, content_dy = (mw - w) // 2, (mh - h) if flip_v else 0
 
     border_extra = (border_px * SS if border_color else 0)
     shadow_offset = 8 * SS
@@ -254,7 +278,8 @@ def render_overlay(
         emoji_y = y + (line_h - cap_h) / 2
         for it in ln:
             if it[0] == "text":
-                td.text((x, text_y), it[1], font=font, fill=text_color)
+                td.text((x, text_y), it[1], font=font, fill=text_color,
+                         stroke_width=text_stroke_px * SS, stroke_fill=text_color)
                 x += it[2] + space_w
             else:
                 text_layer.paste(it[1], (int(x), int(emoji_y)), it[1])
@@ -295,6 +320,9 @@ def main() -> None:
     ap.add_argument("--out", default="overlay.png")
     ap.add_argument("--rotation-deg", type=float, default=0.0)
     ap.add_argument("--out-scale", type=float, default=1.0)
+    ap.add_argument("--flip-h", action="store_true", help="Espelha a forma (rabicho) no eixo horizontal, texto fica normal")
+    ap.add_argument("--flip-v", action="store_true", help="Espelha a forma (rabicho) no eixo vertical, texto fica normal")
+    ap.add_argument("--text-stroke-px", type=int, default=0, help="Contorno do texto na mesma cor pra efeito 'leve bold' (px)")
     args = ap.parse_args()
 
     cfg = load_config(args.config)
@@ -314,6 +342,9 @@ def main() -> None:
         border_px=cfg.get("border_px", 10),
         rotation_deg=args.rotation_deg,
         out_scale=args.out_scale,
+        flip_h=args.flip_h,
+        flip_v=args.flip_v,
+        text_stroke_px=args.text_stroke_px,
         out=args.out,
     )
 
