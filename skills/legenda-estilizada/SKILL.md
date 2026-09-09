@@ -34,8 +34,10 @@ Cada camada (`hook`/`body`) escolhe um modo:
   real fica constante mesmo comparando um card de 1 linha com um de 2, curto ou longo (um
   `center_y` fixo não consegue garantir isso, já que a altura do card muda).
 
-Default do skill: corpo em `"bottom"` com `bottom_margin: 0` (rente ao rodapé, convenção mais
-comum de legenda). O exemplo `serif-editorial.json` usa `"center"` nas duas camadas, com os
+Default do skill: corpo em `"bottom"` com `bottom_margin: 672` (2026-09-09: corrigido de `0` —
+rente à borda real cai dentro da zona de ícones/UI de Reels/Stories; `672` mantém a borda do
+texto em ~65% de altura, fora da faixa de segurança de ~14%-65%, ver `_safe_zone` em
+`config_default.json`). O exemplo `serif-editorial.json` usa `"center"` nas duas camadas, com os
 pontos específicos validados pra formato 9:16/Reels (evita a zona de ícones de UI no rodapé).
 
 ## Uso
