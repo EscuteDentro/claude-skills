@@ -1,4 +1,5 @@
 {
+  "_formato": "9:16 vertical (Reels/Stories). canvas_w/canvas_h é resolução DE REFERÊNCIA (1080p) pra calibrar font_size/posições — build_captions.py escala automaticamente pra qualquer resolução real no mesmo formato 9:16 (ex: 4K/2160x3840), não precisa bater exato",
   "canvas_w": 1080,
   "canvas_h": 1920,
   "font_path": "/System/Library/Fonts/HelveticaNeue.ttc",

@@ -63,9 +63,13 @@ cores (`fill_color`, `outline_color`, RGBA), tamanho de canvas, e por camada (ho
 `font_size`, `stroke_width`, `max_width`, `max_lines` (só body), `anchor` (`"center"` ou
 `"bottom"`), `center_y` (se `anchor: "center"`) ou `bottom_margin` (se `anchor: "bottom"`).
 
-**`canvas_w`/`canvas_h` precisam bater com a resolução REAL do vídeo — `build_captions.py`
-verifica isso sozinho (2026-09-09).** Todo valor em pixel do config foi calibrado pra um
-tamanho de tela específico; se o vídeo de entrada tiver outra resolução, `build_captions.py`
+**`canvas_w`/`canvas_h` é resolução DE REFERÊNCIA, não trava de formato — `build_captions.py`
+escala sozinho pra qualquer resolução real do mesmo aspect ratio (2026-09-09).** Não confundir
+resolução (quantidade de pixels, ex: 1080p vs 4K) com formato/aspect ratio (ex: 9:16 vertical
+vs 16:9 horizontal) — `config_default.json` usa `1080x1920` só como referência calibrada de um
+9:16 vertical (Reels/Stories); um vídeo real em 4K vertical (`2160x3840`) é o MESMO formato,
+resolução maior, e escala automaticamente. Todo valor em pixel do config foi calibrado pra essa
+referência; se o vídeo de entrada tiver outra resolução, `build_captions.py`
 lê a resolução real da fonte no EDL (via `ffprobe`) e escala automaticamente `font_size`,
 `stroke_width`, `max_width`, `center_y`/`bottom_margin` pela razão entre as duas — só quando
 o aspect ratio bate exatamente (escala uniforme); aspect ratio diferente é erro fatal (`sys.exit`
