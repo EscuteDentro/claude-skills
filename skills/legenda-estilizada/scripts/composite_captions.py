@@ -23,6 +23,37 @@ from pathlib import Path
 from PIL import Image
 
 
+def probe_resolution(video_path: str) -> tuple[int, int]:
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0",
+         "-show_entries", "stream=width,height", "-of", "csv=p=0", video_path],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    w, h = out.split(",")
+    return int(w), int(h)
+
+
+def check_canvas_matches_video(cfg: dict, video_path: str) -> None:
+    """This script overlays PNGs at raw pixel coordinates computed from
+    cfg["canvas_w"/"canvas_h"] - it has zero awareness of the base video's
+    REAL resolution. If cards.json (from build_captions.py) was generated
+    against a config already correctly scaled to this video, cfg["canvas_w"]
+    here will match; if it doesn't, the overlay lands at the wrong scale AND
+    position, silently (bug found in production 2026-09-09, see
+    build_captions.py's scale_config_to_video for the full incident). Hard
+    warning here, not silent - by this point build_captions.py already baked
+    the (possibly wrong) canvas into every card's rendered PNG, so this script
+    can't fix it, only flag it before burning ffmpeg time."""
+    video_w, video_h = probe_resolution(video_path)
+    if (video_w, video_h) != (cfg["canvas_w"], cfg["canvas_h"]):
+        print(
+            f"  AVISO: vídeo é {video_w}x{video_h}, --config passado aqui é "
+            f"{cfg['canvas_w']}x{cfg['canvas_h']} - se cards.json foi gerado com um config "
+            f"DIFERENTE (já escalado), isso é esperado e inofensivo; se for o MESMO config "
+            f"usado nos dois passos, os cards vão sair no tamanho/posição errados."
+        )
+
+
 def validate_cards(cards: list[dict], cards_dir: Path) -> None:
     """Each card's overlay position is computed from its stored w/h, so a
     PNG that doesn't match its recorded dimensions renders at the wrong
@@ -84,6 +115,17 @@ def main() -> None:
     cards_dir = Path(args.cards_dir)
     data = json.loads((cards_dir / "cards.json").read_text())
     cards = data["cards"]
+    canvas_w = cfg["canvas_w"]
+
+    # cards.json (written by build_captions.py) records the config it actually
+    # used, including any resolution auto-scale - that's the source of truth
+    # for canvas size, not whatever --config this script was independently
+    # handed. Falls back to the passed --config only for old cards.json files
+    # that predate this field.
+    baked_cfg = data.get("config")
+    if baked_cfg:
+        cfg["canvas_w"], cfg["canvas_h"] = baked_cfg["canvas_w"], baked_cfg["canvas_h"]
+    check_canvas_matches_video(cfg, args.base_video)
     canvas_w = cfg["canvas_w"]
 
     validate_cards(cards, cards_dir)

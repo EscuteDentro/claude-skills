@@ -123,6 +123,8 @@ import argparse
 import json
 import math
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -191,9 +193,20 @@ def normalize_stutter(text: str) -> str:
 # conforme aparece em produção (2026-08-14, "ásanas"; 2026-08-18, "raga"/"rāga"
 # e "dwesha" no vídeo de ansiedade). Cada valor já vem em minúsculo - a
 # capitalização de saída é decidida por posição na frase, nunca lida daqui.
+#
+# EXCEÇÃO AO IAST - som "sh": qualquer termo cujo IAST correto usa "ś" ou "ṣ"
+# (som "sh") sempre vira grafia plana com "sh" na LEGENDA, nunca o diacrítico
+# (2026-08-21, decisão do usuário: "as pessoas não entendem os diacríticos, e dá
+# problema na renderização da legenda" - achado real: o ASR, já com a captura de
+# áudio corrigida, transcreve "dveṣa" sozinho, corretíssimo em IAST, mas o
+# diacrítico ṣ tanto confunde o espectador quanto arrisca render quebrado da
+# fonte). Vale só pra LEGENDA - documentação/texto escrito fora de vídeo pode
+# seguir IAST completo normalmente. Outros diacríticos (mácron em "rāga", por
+# exemplo) NÃO têm esse problema e continuam em IAST pleno.
 _SANSKRIT_FIXES = {
     "ásana": "āsana", "ásanas": "āsanas",
-    "raga": "rāga", "dwesha": "dwesha",
+    "raga": "rāga",
+    "dwesha": "dwesha", "dvesha": "dwesha", "dveṣa": "dwesha", "dvesa": "dwesha",
 }
 
 
@@ -303,6 +316,53 @@ def _deep_update(base: dict, override: dict) -> None:
             _deep_update(base[k], v)
         else:
             base[k] = v
+
+
+def probe_resolution(video_path: str) -> tuple[int, int]:
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0",
+         "-show_entries", "stream=width,height", "-of", "csv=p=0", video_path],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    w, h = out.split(",")
+    return int(w), int(h)
+
+
+def scale_config_to_video(cfg: dict, video_w: int, video_h: int) -> dict:
+    """`cfg["canvas_w"/"canvas_h"]` describe the pixel space every absolute-pixel
+    value in the config (font_size, stroke_width, max_width, center_y,
+    bottom_margin) was calibrated for. Neither this script nor
+    composite_captions.py ever checks that against the REAL video's resolution -
+    ffmpeg's overlay filter places PNGs at raw pixel coordinates, zero awareness
+    of an "intended" canvas. Bug found in production (2026-09-09): 8 videos at
+    2160x3840 captioned with a config calibrated for 1080x1920 - captions came
+    out at half the intended size, in the wrong relative position, and nobody
+    caught it before all 8 were delivered. Auto-scales uniformly when the
+    aspect ratio matches exactly (the common case: same video shot at a higher
+    native resolution); hard-fails when it doesn't (guessing a non-uniform
+    scale is worse than stopping and asking for a real config)."""
+    cw, ch = cfg["canvas_w"], cfg["canvas_h"]
+    if (video_w, video_h) == (cw, ch):
+        return cfg
+    sx, sy = video_w / cw, video_h / ch
+    if abs(sx - sy) > 0.01:
+        sys.exit(
+            f"vídeo é {video_w}x{video_h}, config calibrado pra {cw}x{ch} - aspect ratio não "
+            f"bate ({sx:.3f}x vs {sy:.3f}x). Passe um --config calibrado pra esse vídeo; "
+            f"escalar automaticamente aqui seria adivinhação."
+        )
+    if abs(sx - 1.0) > 0.01:
+        print(f"  aviso: vídeo é {video_w}x{video_h}, config calibrado pra {cw}x{ch} - escalando por {sx:.3f}x")
+
+    def scale_layer(layer: dict) -> None:
+        for k in ("font_size", "stroke_width", "max_width", "center_y", "bottom_margin", "max_auto_font_size"):
+            if k in layer:
+                layer[k] = round(layer[k] * sx)
+
+    cfg["canvas_w"], cfg["canvas_h"] = video_w, video_h
+    scale_layer(cfg.get("hook", {}))
+    scale_layer(cfg.get("body", {}))
+    return cfg
 
 
 _FALSE_START_PATTERN = re.compile(r"^\w{1,12}-{1,2}$", re.IGNORECASE)
@@ -481,18 +541,31 @@ def render_card(text, out_path, font, stroke_w, max_w, canvas_w, fill, outline,
     stroke as a diagonal gradient (e.g. a sheen effect) instead of a flat outline
     color. Only isolates the stroke RING (full glyph+stroke silhouette minus the
     plain-fill silhouette), so the gradient never bleeds into the fill itself."""
-    img = Image.new("RGBA", (canvas_w, 900), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    lines = wrap_fits(text, font, max_w, draw, stroke_w)
+    # Canvas height used to be a hardcoded 900px, sized for the original
+    # font-size range (60-148px, 1-2 lines) - fine there, but silently clips
+    # any card whose wrapped text is taller than that (bug found in production
+    # 2026-09-09: a manually-bumped hook font_size of 240px wrapped a long
+    # sentence into 4 lines, total text height > 900px, and PIL simply never
+    # draws pixels requested at a negative y on a fixed-size Image - the top
+    # line rendered cut off, no error, no warning). Fix: measure the actual
+    # wrapped height FIRST on a throwaway probe canvas, then size the real
+    # canvas to fit it with generous margin - no fixed cap, works at any font
+    # size/line count.
+    probe_img = Image.new("RGBA", (canvas_w, 10), (0, 0, 0, 0))
+    probe_draw = ImageDraw.Draw(probe_img)
+    lines = wrap_fits(text, font, max_w, probe_draw, stroke_w)
     line_heights, total_h = [], 0
     for ln in lines:
-        bbox = draw.textbbox((0, 0), ln, font=font, stroke_width=stroke_w)
+        bbox = probe_draw.textbbox((0, 0), ln, font=font, stroke_width=stroke_w)
         h = bbox[3] - bbox[1]
         line_heights.append(h)
         total_h += h
     font_size = font.size
     spacing = int(font_size * 0.28)
     total_h += spacing * (len(lines) - 1)
+    canvas_h = total_h + font_size * 2  # margin for ascenders/descenders + stroke width, any font size
+    img = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
     y = (img.height - total_h) // 2
     positions = []
     for ln, h in zip(lines, line_heights):
@@ -547,6 +620,12 @@ def main() -> None:
     args = ap.parse_args()
 
     cfg = load_config(args.config)
+    edl_sources = {r["source"] for r in json.loads(Path(args.edl).read_text())["ranges"]}
+    if len(edl_sources) == 1:
+        video_w, video_h = probe_resolution(next(iter(edl_sources)))
+        cfg = scale_config_to_video(cfg, video_w, video_h)
+    else:
+        print(f"  aviso: EDL tem {len(edl_sources)} sources diferentes, pulando checagem de resolução (não dá pra saber qual escala usar)")
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 

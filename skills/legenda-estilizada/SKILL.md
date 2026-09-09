@@ -63,6 +63,19 @@ cores (`fill_color`, `outline_color`, RGBA), tamanho de canvas, e por camada (ho
 `font_size`, `stroke_width`, `max_width`, `max_lines` (só body), `anchor` (`"center"` ou
 `"bottom"`), `center_y` (se `anchor: "center"`) ou `bottom_margin` (se `anchor: "bottom"`).
 
+**`canvas_w`/`canvas_h` precisam bater com a resolução REAL do vídeo — `build_captions.py`
+verifica isso sozinho (2026-09-09).** Todo valor em pixel do config foi calibrado pra um
+tamanho de tela específico; se o vídeo de entrada tiver outra resolução, `build_captions.py`
+lê a resolução real da fonte no EDL (via `ffprobe`) e escala automaticamente `font_size`,
+`stroke_width`, `max_width`, `center_y`/`bottom_margin` pela razão entre as duas — só quando
+o aspect ratio bate exatamente (escala uniforme); aspect ratio diferente é erro fatal (`sys.exit`
+com a mensagem explicando), nunca adivinha. `composite_captions.py` lê o canvas de
+`cards.json` (o config que `build_captions.py` REALMENTE usou, já escalado), não do `--config`
+que você passar pra ele — evita depender de lembrar de passar o mesmo config duas vezes. Bug
+real que motivou isso: 8 vídeos em 2160x3840 legendados com o config privado do Escute Dentro
+(calibrado pra 1080x1920, metade da resolução) — legenda saiu em metade do tamanho e na
+posição errada, sem nenhum aviso, e só foi pego depois de entregues.
+
 `--text-rules` aceita uma lista de `{"pattern": "regex", "replacement": "..."}` (regex Python,
 aplicado ANTES de qualquer medição de largura — necessário pra decisão de quebra de linha ficar
 certa). **Atenção ao escapar barra invertida em JSON**: `\b` sozinho em JSON é o caractere de
