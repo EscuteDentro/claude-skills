@@ -165,6 +165,17 @@ def normalize_ce_para_voce(text: str) -> str:
     return _CE_PATTERN.sub(repl, text)
 
 
+_IOGA_PATTERN = re.compile(r"\bioga\b", re.IGNORECASE)
+
+
+def normalize_yoga(text: str) -> str:
+    """"Yoga" sempre com Y, nunca "ioga" (grafia que a ASR às vezes usa para a mesma
+    palavra) - decisão do usuário (2026-09-10), vale sempre, não só num vídeo específico."""
+    def repl(m: re.Match) -> str:
+        return "Yoga" if m.group(0)[0].isupper() else "yoga"
+    return _IOGA_PATTERN.sub(repl, text)
+
+
 _STUTTER_PATTERN = re.compile(
     r"\b(\w{1,12})-(\1\w*)\b", re.IGNORECASE
 )
@@ -241,7 +252,7 @@ def capitalize_first(text: str) -> str:
 
 
 _QUOTED_WORD_PATTERN = re.compile(r'^"([^"]+)"([,.:;!?]*)$')
-_CTA_TRIGGER_PATTERN = re.compile(r"^comenta", re.IGNORECASE)
+_CTA_TRIGGER_PATTERN = re.compile(r"^(coment|digit)", re.IGNORECASE)
 _OPENS_QUOTE = re.compile(r'^"')
 _CLOSES_QUOTE = re.compile(r'"[,.:;!?]*$')
 
@@ -286,12 +297,14 @@ def _find_cohesive_spans(words: list[dict]) -> tuple[set[int], set[int]]:
 
 
 def normalize_cta_quotes(words: list[dict], lookback: int = 6) -> None:
-    """Quando o criador fala um CTA de comentário ("comenta aqui embaixo: 'palavra'"), a
-    ASR transcreve a keyword entre aspas (trata como fala reportada). Mas aspas nesse
-    contexto leem mal em legenda e competem visualmente com aspas de discurso reportado
-    genuíno (ex: citando um pensamento interno, que deve continuar com aspas). Fix: só
-    quando uma das últimas `lookback` palavras começa com "comenta" (comenta, comente,
-    comentem...), troca aspas por CAIXA ALTA - preserva aspas em qualquer outro contexto."""
+    """Quando o criador fala um CTA de comentário ("comenta aqui embaixo: 'palavra'") ou
+    pede pra digitar algo ("digita 'respira'", 2026-09-10, regra permanente pra qualquer
+    vídeo futuro), a ASR transcreve a keyword entre aspas (trata como fala reportada). Mas
+    aspas nesse contexto leem mal em legenda e competem visualmente com aspas de discurso
+    reportado genuíno (ex: citando um pensamento interno, que deve continuar com aspas).
+    Fix: só quando uma das últimas `lookback` palavras começa com "coment" (comenta,
+    comente, comentem...) ou "digit" (digita, digite, digitar...), troca aspas por CAIXA
+    ALTA - preserva aspas em qualquer outro contexto."""
     for i, w in enumerate(words):
         m = _QUOTED_WORD_PATTERN.match(w["text"])
         if not m:
@@ -641,6 +654,7 @@ def main() -> None:
     sentence_start = True
     for w in words:
         w["text"] = normalize_ce_para_voce(w["text"])
+        w["text"] = normalize_yoga(w["text"])
         w["text"] = normalize_stutter(w["text"])
         w["text"] = normalize_sanskrit_terms(w["text"], sentence_start=sentence_start)
         sentence_start = w["text"].rstrip('"\'').endswith(PUNCT_END)
