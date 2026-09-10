@@ -616,6 +616,13 @@ def main() -> None:
     ap.add_argument("--hook-duration", type=float, default=2.0,
                      help="Display duration in seconds for an editorial --hook-text card (default 2.0s). "
                           "Ignored when --hook-text is not set (verbatim hook times off the real words).")
+    ap.add_argument("--body-start-time", type=float, default=None,
+                     help="Drop every body caption word before this output-timeline second (e.g. skip an "
+                          "intro clause an editorial --hook-text already covers, so body captioning picks "
+                          "up at a later, more relevant line instead of repeating the hook's own words). "
+                          "Words before this time are simply not captioned at all - not merged, not shown "
+                          "elsewhere. Timestamps are in the EDL's OUTPUT timeline, same space as every "
+                          "other time in this script.")
     ap.add_argument("--fps", type=float, default=24.0, help="Framerate do render final (render.py usa -r 24) - usado pra arredondar duração de segmento igual ao encode real, evitando deriva cumulativa em cortes com muitos segmentos")
     args = ap.parse_args()
 
@@ -690,6 +697,9 @@ def main() -> None:
                                  outline_gradient=hook_gradient)
         cards.append({"file": "card_hook.png", "start": hook_out_start, "end": hook_out_end, "style": "hook",
                       "text": hook_text, "w": hw, "h": hh})
+
+    if args.body_start_time is not None:
+        body_words = [w for w in body_words if w["start"] >= args.body_start_time]
 
     body_max_lines = cfg["body"]["max_lines"]
     min_dur = cfg["min_display_duration"]
