@@ -43,9 +43,23 @@ def main():
     if not bg_path:
         raise SystemExit("Falta o fundo: passe --background ou defina 'background_image' no config.")
 
+    # video_zoom/video_pan_x (opcionais, default 1.0/0.0 = comportamento antigo
+    # inalterado): pedido real (2026-09-10) de recentralizar a pessoa dentro do
+    # retangulo do video sem editar a fonte. zoom>1 escala o video ALEM do
+    # minimo que cobre o canvas, sobrando espaco horizontal pra escolher QUAL
+    # fatia manter; pan_x em [-1,1] escolhe onde dentro desse espaco (-1 =
+    # mantem só a fatia mais à ESQUERDA da fonte, cortando o lado direito;
+    # +1 = mantem só a mais à DIREITA, cortando o esquerdo; 0 = centralizado,
+    # igual antes). Aplicado só no [0:v] principal, nunca no fundo.
+    zoom = cfg.get("video_zoom", 1.0)
+    pan_x = cfg.get("video_pan_x", 0.0)
+
     with tempfile.TemporaryDirectory() as tmp:
         video_mask_path, paper_layer_path = export_ffmpeg_layers(cfg, tmp)
         w, h = cfg["canvas_w"], cfg["canvas_h"]
+        zw, zh = round(w * zoom), round(h * zoom)
+        slack = zw - w
+        crop_x = f"{round(slack / 2 * (1 + pan_x))}"
 
         cmd = ["ffmpeg", "-y"]
         if args.ss is not None:
@@ -56,7 +70,7 @@ def main():
             "-loop", "1", "-framerate", str(args.fps), "-i", video_mask_path,
             "-loop", "1", "-framerate", str(args.fps), "-i", paper_layer_path,
             "-filter_complex",
-            f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setsar=1,fps={args.fps}[vid];"
+            f"[0:v]scale={zw}:{zh}:force_original_aspect_ratio=increase,crop={w}:{h}:{crop_x}:(ih-{h})/2,setsar=1,fps={args.fps}[vid];"
             "[2:v]format=gray[mask];"
             "[vid]format=rgba[vidrgba];"
             "[vidrgba][mask]alphamerge[vidmasked];"

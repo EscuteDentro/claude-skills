@@ -72,6 +72,10 @@ duplicar o arquivo de config só pra trocar de fundo.
 | `paper_color` | Cor do aro de papel, `[R, G, B]`. |
 | `noise_seed` | Determinístico — mesma seed = mesmo padrão de rasgo (útil pra manter consistência entre clipes do mesmo projeto). |
 | `background_image` | Caminho absoluto da imagem de fundo (a "página" onde o vídeo é colado). Único campo sem default genérico — obrigatório informar. |
+| `video_zoom` (opcional, default `1.0`, só `aplicar_video.py`) | Escala o vídeo principal além do mínimo que cobre o canvas, sobrando espaço horizontal pra escolher qual fatia manter. `1.0` = sem zoom, comportamento antigo. |
+| `video_pan_x` (opcional, default `0.0`, só `aplicar_video.py`) | Onde dentro do espaço sobrando (de `video_zoom`) ancorar o corte, de `-1` a `1`. `-1` mantém só a fatia mais à ESQUERDA da fonte (corta a direita); `1` mantém só a mais à DIREITA (corta a esquerda); `0` = centralizado. Sem efeito se `video_zoom` for `1.0` (não sobra espaço pra escolher). |
+
+**`video_zoom`/`video_pan_x`, pra quê servem**: recentralizar o sujeito dentro do retângulo do vídeo sem reeditar a fonte (2026-09-10, pedido real: pessoa levemente descentralizada, sobrava planta de fundo do lado errado). Efeito é só no vídeo principal (`[0:v]`), nunca no `background_image`. Gerar um preview curto antes de aplicar no vídeo inteiro é barato: `--ss INICIO --t 0.2` processa só uma fração de segundo pra conferir o enquadramento.
 
 ## Corner cases / decisões já tomadas
 
