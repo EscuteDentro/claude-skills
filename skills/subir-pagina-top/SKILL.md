@@ -244,6 +244,7 @@ Criar na raiz de `{pasta-base}/`:
     { "source": "/",            "headers": [{"key": "Cache-Control", "value": "public, max-age=0, s-maxage=86400, stale-while-revalidate=86400"}] },
     { "source": "/(.*)\\.html", "headers": [{"key": "Cache-Control", "value": "public, max-age=0, s-maxage=86400, stale-while-revalidate=86400"}] },
     { "source": "/assets/(.*)", "headers": [{"key": "Cache-Control", "value": "public, max-age=31536000, s-maxage=31536000, immutable"}] },
+    { "source": "/sw.js",       "headers": [{"key": "Cache-Control", "value": "no-cache"}] },
     { "source": "/robots.txt",  "headers": [{"key": "Cache-Control", "value": "public, max-age=86400"}] },
     { "source": "/sitemap.xml", "headers": [{"key": "Cache-Control", "value": "public, max-age=86400"}] }
   ]
@@ -274,7 +275,9 @@ if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
 n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
+'/api/pixel-js');  /* proxy first-party — ver 9e.1; fallback: 'https://connect.facebook.net/en_US/fbevents.js' */
+/* Se usar relay (9e.2): fbq('set','endpoint','https://SEU-DOMINIO.com/api/fb-relay') DEVE vir ANTES do fbq('init') */
+fbq('set', 'endpoint', 'https://SEU-DOMINIO.com/api/fb-relay');  /* REMOVER se não usar relay */
 fbq('init', '{PIXEL_ID}');
 fbq('track', 'PageView');
 </script>
@@ -408,6 +411,134 @@ module.exports = async function handler(req, res) {
 
 Após criar: configurar `META_CAPI_KEY` como env var encrypted no projeto Vercel (Settings → Environment Variables → tipo Sensitive). **Nunca colocar o token no código ou em arquivos commitados.**
 
+#### 9e.1 — Proxy de pixel first-party (`api/pixel-js.js`) — RECOMENDADO
+
+Serve `fbevents.js` do mesmo domínio via `/api/pixel-js`, em vez de `connect.facebook.net`. Bypassa adblockers que bloqueiam o domínio do Meta mas não o domínio do site.
+
+**RC-B1 crítico:** o catch block DEVE ter `Cache-Control: no-store`. Sem isso o CDN cacheia o script de fallback de erro por até 24h e nenhum evento browser dispara nesses dias.
+
+```js
+// api/pixel-js.js
+module.exports = async function handler(req, res) {
+  var PIXEL_URL = 'https://connect.facebook.net/en_US/fbevents.js';
+  var ctrl = new AbortController();
+  var timeout = setTimeout(function() { ctrl.abort(); }, 4000);
+  try {
+    var upstream = await fetch(PIXEL_URL, { signal: ctrl.signal });
+    clearTimeout(timeout);
+    var body = await upstream.text();
+    if (!upstream.ok) body = '// upstream error ' + upstream.status;
+    var upstreamCC = upstream.headers.get('cache-control') || '';
+    var browserAge = 3600;
+    var m = upstreamCC.match(/max-age=(\d+)/);
+    if (m) browserAge = Math.min(parseInt(m[1], 10), 3600);
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=' + browserAge + ', s-maxage=86400');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    return res.status(200).send(body);
+  } catch (e) {
+    clearTimeout(timeout);
+    // RC-B1: no-store impede CDN de cachear o fallback de erro por 24h
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).send('// pixel proxy unavailable');
+  }
+};
+```
+
+No snippet HTML (9c), substituir a URL do Facebook por `/api/pixel-js`:
+```js
+t.src='/api/pixel-js';
+```
+
+Registrar o SW (9l) para cache-first offline do proxy.
+
+#### 9e.2 — Relay de eventos first-party (`api/fb-relay.js`) — RECOMENDADO
+
+Recebe requests do SDK do pixel (POST/GET, mesmo domínio) e encaminha para `facebook.com/tr`, preservando IP real e User-Agent. Bypassa adblockers que bloqueiam `facebook.com/tr` diretamente.
+
+**LGPD — CRÍTICO: NUNCA logar o body desta função.** O payload pode conter dados hashed do Advanced Matching (em/ph/fn/ln).
+
+**`bodyParser: false` obrigatório** — `sendBeacon` usa raw POST; o bodyParser padrão da Vercel corromperia o payload.
+
+Ativar com `fbq('set', 'endpoint', 'https://SEU-DOMINIO.com/api/fb-relay')` **ANTES** do `fbq('init')` — o SDK ignora a configuração se chamado depois.
+
+```js
+// api/fb-relay.js
+// LGPD — CRÍTICO: NUNCA logar o body desta função.
+// O payload pode conter dados hashed do Advanced Matching (em/ph/fn/ln).
+
+var TARGET = 'https://www.facebook.com/tr/';
+
+module.exports = async function handler(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
+
+  var xfwd = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  var userIP = xfwd || req.headers['x-real-ip'] || '';
+  var userAgent = req.headers['user-agent'] || '';
+
+  var upstreamHeaders = {};
+  if (userIP)    upstreamHeaders['X-Forwarded-For'] = userIP;
+  if (userAgent) upstreamHeaders['User-Agent'] = userAgent;
+
+  var ctrl = new AbortController();
+  var t = setTimeout(function() { ctrl.abort(); }, 5000);
+
+  try {
+    var upstream;
+    if (req.method === 'GET' || req.method === 'HEAD') {
+      var qs = new URL(req.url, 'https://SEU-DOMINIO.com').search;
+      upstream = await fetch(TARGET + (qs || ''), {
+        method: req.method, headers: upstreamHeaders, signal: ctrl.signal,
+      });
+    } else {
+      // NUNCA logar chunks — podem conter dados hashed do Advanced Matching
+      var chunks = [];
+      for await (var chunk of req) { chunks.push(chunk); }
+      var rawBody = Buffer.concat(chunks);
+      upstreamHeaders['Content-Type'] =
+        req.headers['content-type'] || 'application/x-www-form-urlencoded';
+      upstreamHeaders['Content-Length'] = String(rawBody.length);
+      upstream = await fetch(TARGET, {
+        method: 'POST', headers: upstreamHeaders, body: rawBody, signal: ctrl.signal,
+      });
+    }
+    clearTimeout(t);
+    res.status(200).end();
+  } catch (e) {
+    clearTimeout(t);
+    res.status(200).end(); // Sempre 200: evita retry loop no pixel SDK
+  }
+};
+
+module.exports.config = { api: { bodyParser: false } };
+```
+
+#### 9e.3 — ITP bypass para `_fbp` (`api/fbp-init.js`) — OPCIONAL
+
+Safari ITP capa cookies definidos via JavaScript a 7 dias. Este endpoint renova `_fbp` via `Set-Cookie` header HTTP (server-side), que o ITP não toca — vida útil de 90 dias.
+
+Adaptar `Domain=.SEU-DOMINIO.com` e o nome do cookie de consent (`{CONSENT_COOKIE}=1`).
+
+```js
+// api/fbp-init.js
+module.exports = function handler(req, res) {
+  var cookies = req.headers.cookie || '';
+  if (!cookies.includes('{CONSENT_COOKIE}=1')) {
+    return res.status(200).json({ ok: false }); // Sem consentimento: não opera (LGPD)
+  }
+  var fbpMatch = cookies.match(/_fbp=([^;]+)/);
+  var fbpValue = fbpMatch ? fbpMatch[1] : null;
+  if (!fbpValue) {
+    var crypto = require('crypto');
+    fbpValue = 'fb.1.' + Date.now() + '.' + Math.floor(Math.random() * 2147483647);
+  }
+  // Set-Cookie via header HTTP = ITP não aplica cap de 7 dias
+  res.setHeader('Set-Cookie', '_fbp=' + fbpValue + '; Max-Age=' + (90 * 24 * 3600) + '; Path=/; Domain=.SEU-DOMINIO.com; SameSite=Lax; Secure');
+  return res.status(200).json({ ok: true });
+};
+```
+
 #### 9f. Helpers JS no HTML (obrigatório com CAPI)
 
 Adicionar no HTML antes do `loadTracking()`:
@@ -520,6 +651,121 @@ window.addEventListener('scroll', function() {
 - `modal-precheckout.html` — modal standalone com CSS/HTML/JS isolados (sem dependências externas)
 - `checkout-config.md` — copy do checkout, config do timer, imagem do produto, URL de oferta, parâmetros de pré-preenchimento testados, tracking IDs
 
+#### 9l. Service Worker (`src/sw.js`) — cache-first para pixel proxy
+
+Cache-first com background revalidation para `/api/pixel-js`. Intercepta só esse path — tudo mais passa direto.
+
+**RC-B2 crítico:** antes de `cache.put`, verificar `Cache-Control: no-store`. Sem isso o SW cacheia o script de fallback de erro do pixel proxy e o problema persiste mesmo após o upstream ser corrigido.
+
+**Versionamento obrigatório:** ao mudar qualquer comportamento do SW, bumpar `CACHE_NAME` (ex: `app-pixel-v1` → `app-pixel-v2`). O activate handler deleta caches antigos via `skipWaiting` — sem o bump, visitantes com aba aberta continuam com o cache ruim até fechar o browser.
+
+```js
+// src/sw.js
+var CACHE_NAME = 'app-pixel-v1'; // bumpar ao mudar comportamento — activate apaga versões anteriores
+var PIXEL_PATH = '/api/pixel-js';
+
+self.addEventListener('install', function(e) { self.skipWaiting(); });
+
+self.addEventListener('activate', function(e) {
+  e.waitUntil(
+    caches.keys().then(function(ks) {
+      return Promise.all(
+        ks.filter(function(k) { return k !== CACHE_NAME; })
+          .map(function(k) { return caches.delete(k); })
+      );
+    }).then(function() { return self.clients.claim(); })
+  );
+});
+
+self.addEventListener('fetch', function(e) {
+  if (new URL(e.request.url).pathname !== PIXEL_PATH) return;
+  e.respondWith(
+    caches.open(CACHE_NAME).then(function(cache) {
+      return cache.match(e.request).then(function(cached) {
+        var networkRequest = fetch(e.request).then(function(r) {
+          // RC-B2: não cachear resposta com no-store (fallback de erro do proxy)
+          var cc = r.headers.get('cache-control') || '';
+          if (r.ok && !cc.includes('no-store')) cache.put(e.request, r.clone());
+          return r;
+        }).catch(function() {
+          return new Response('// pixel proxy unavailable',
+            { headers: { 'Content-Type': 'application/javascript' } });
+        });
+        if (cached) { e.waitUntil(networkRequest); return cached; }
+        return networkRequest;
+      });
+    }).catch(function() {
+      return fetch(e.request).catch(function() {
+        return new Response('// pixel proxy unavailable',
+          { headers: { 'Content-Type': 'application/javascript' } });
+      });
+    })
+  );
+});
+```
+
+Registrar no HTML (antes de `</body>`):
+```js
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+```
+
+`vercel.json` já deve ter `{ "source": "/sw.js", "headers": [{"key": "Cache-Control", "value": "no-cache"}] }` (ver 9a).
+
+#### 9m. Healthcheck endpoints (`api/healthcheck.js` + `api/capi-check.js`)
+
+Canary endpoints para monitoring automático (UptimeRobot, intervalo 5 min):
+
+```js
+// api/healthcheck.js — confirma que a Lambda carrega
+module.exports = function handler(req, res) {
+  res.status(200).json({ ok: true, ts: Date.now() });
+};
+```
+
+`api/capi-check.js` testa a stack CAPI completa (token presente, Meta API alcançável, evento recebido). Requer env var `META_CAPI_CHECK_CODE` = test_event_code do Meta Events Manager (**permanente — nunca remover**). Substituir `{PIXEL_ID}` e `{API_VER}` pelos valores reais. `META_CAPI_CHECK_CODE` é separado de `META_CAPI_TEST_CODE` (esse último é opcional, usado só para testes de visita real):
+
+```js
+// api/capi-check.js
+const PIXEL_ID = '{PIXEL_ID}';
+const API_VER  = 'v26.0';
+
+module.exports = async function handler(req, res) {
+  var token    = process.env.META_CAPI_KEY;
+  var testCode = process.env.META_CAPI_CHECK_CODE; // permanente — nunca vai a produção
+  if (!token)    return res.status(500).json({ ok: false, error: 'META_CAPI_KEY ausente' });
+  if (!testCode) return res.status(500).json({ ok: false, error: 'META_CAPI_CHECK_CODE ausente' });
+
+  var payload = {
+    data: [{
+      event_name: 'PageView', event_time: Math.floor(Date.now() / 1000),
+      event_id: 'capi-healthcheck-monitor', // fixo → Meta deduplica, sem ruído em produção
+      action_source: 'website',
+      event_source_url: 'https://SEU-DOMINIO.com',
+      user_data: { client_ip_address: '127.0.0.1', client_user_agent: 'HealthCheck/1.0' }
+    }],
+    test_event_code: testCode,
+    access_token: token
+  };
+  try {
+    var r = await fetch(
+      'https://graph.facebook.com/' + API_VER + '/' + PIXEL_ID + '/events',
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
+    );
+    var data = await r.json();
+    if (r.ok && data.events_received >= 0) return res.status(200).json({ ok: true, events_received: data.events_received });
+    return res.status(500).json({ ok: false, error: data.error?.message || 'meta error', detail: data });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+};
+```
+
+**Setup UptimeRobot (após primeiro deploy):**
+1. Pegar `test_event_code` em Meta Events Manager → Test Events
+2. Adicionar `META_CAPI_CHECK_CODE` = código copiado nas env vars do projeto Vercel (Production, tipo Sensitive)
+3. Criar monitor Keyword em `https://SEU-DOMINIO.com/api/capi-check`, keyword `"ok":true`, intervalo 5 min
+4. Se retornar erro: CAPI quebrado — checar env vars antes de reverter deploy
+
 ### 10. Confirmar e orientar
 
 Informar ao usuário:
@@ -527,6 +773,7 @@ Informar ao usuário:
 2. Lista de campos `⬜` que restaram
 3. **Gerar preview da paleta** — sem esperar pedido: criar `preview-paleta.html` em `{pasta-base}/` com swatches de todas as cores do DS, exemplos de tipografia (H1, H2, H3, body) e variantes do botão CTA. Perguntar: "Essa paleta está certa?" — só avançar com aprovação.
 4. Próximo passo após paleta aprovada: construir a copy da LP e depois o HTML com os eventos de tracking configurados neste skill.
+5. **Análise de performance:** com Clarity e a planilha do Apps Script, o Claude consegue analisar — heatmap de atenção por scroll, dados de leads (criativo, canal, botão de origem, evolução temporal) e performance de campanhas no Meta Ads (CPL, criativo, placement) diretamente via API.
 
 ---
 
