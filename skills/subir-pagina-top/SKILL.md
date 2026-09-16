@@ -276,8 +276,6 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 '/api/pixel-js');  /* proxy first-party — ver 9e.1; fallback: 'https://connect.facebook.net/en_US/fbevents.js' */
-/* Se usar relay (9e.2): fbq('set','endpoint','https://SEU-DOMINIO.com/api/fb-relay') DEVE vir ANTES do fbq('init') */
-fbq('set', 'endpoint', 'https://SEU-DOMINIO.com/api/fb-relay');  /* REMOVER se não usar relay */
 fbq('init', '{PIXEL_ID}');
 fbq('track', 'PageView');
 </script>
@@ -453,66 +451,9 @@ t.src='/api/pixel-js';
 
 Registrar o SW (9l) para cache-first offline do proxy.
 
-#### 9e.2 — Relay de eventos first-party (`api/fb-relay.js`) — RECOMENDADO
+#### 9e.2 — Não criar relay de `facebook.com/tr`
 
-Recebe requests do SDK do pixel (POST/GET, mesmo domínio) e encaminha para `facebook.com/tr`, preservando IP real e User-Agent. Bypassa adblockers que bloqueiam `facebook.com/tr` diretamente.
-
-**LGPD — CRÍTICO: NUNCA logar o body desta função.** O payload pode conter dados hashed do Advanced Matching (em/ph/fn/ln).
-
-**`bodyParser: false` obrigatório** — `sendBeacon` usa raw POST; o bodyParser padrão da Vercel corromperia o payload.
-
-Ativar com `fbq('set', 'endpoint', 'https://SEU-DOMINIO.com/api/fb-relay')` **ANTES** do `fbq('init')` — o SDK ignora a configuração se chamado depois.
-
-```js
-// api/fb-relay.js
-// LGPD — CRÍTICO: NUNCA logar o body desta função.
-// O payload pode conter dados hashed do Advanced Matching (em/ph/fn/ln).
-
-var TARGET = 'https://www.facebook.com/tr/';
-
-module.exports = async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store');
-
-  var xfwd = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-  var userIP = xfwd || req.headers['x-real-ip'] || '';
-  var userAgent = req.headers['user-agent'] || '';
-
-  var upstreamHeaders = {};
-  if (userIP)    upstreamHeaders['X-Forwarded-For'] = userIP;
-  if (userAgent) upstreamHeaders['User-Agent'] = userAgent;
-
-  var ctrl = new AbortController();
-  var t = setTimeout(function() { ctrl.abort(); }, 5000);
-
-  try {
-    var upstream;
-    if (req.method === 'GET' || req.method === 'HEAD') {
-      var qs = new URL(req.url, 'https://SEU-DOMINIO.com').search;
-      upstream = await fetch(TARGET + (qs || ''), {
-        method: req.method, headers: upstreamHeaders, signal: ctrl.signal,
-      });
-    } else {
-      // NUNCA logar chunks — podem conter dados hashed do Advanced Matching
-      var chunks = [];
-      for await (var chunk of req) { chunks.push(chunk); }
-      var rawBody = Buffer.concat(chunks);
-      upstreamHeaders['Content-Type'] =
-        req.headers['content-type'] || 'application/x-www-form-urlencoded';
-      upstreamHeaders['Content-Length'] = String(rawBody.length);
-      upstream = await fetch(TARGET, {
-        method: 'POST', headers: upstreamHeaders, body: rawBody, signal: ctrl.signal,
-      });
-    }
-    clearTimeout(t);
-    res.status(200).end();
-  } catch (e) {
-    clearTimeout(t);
-    res.status(200).end(); // Sempre 200: evita retry loop no pixel SDK
-  }
-};
-
-module.exports.config = { api: { bodyParser: false } };
-```
+Não usar `fbq('set', 'endpoint', ...)` apontando para uma função que repassa hits a `facebook.com/tr`. A função sai do IP de datacenter da Vercel e a Meta não documenta aceitar `X-Forwarded-For`: o IP real do visitante se perde em todos os eventos de navegador. Cobertura para usuários com adblocker vem do CAPI no mesmo domínio (`api/capi.js`, 9f) e, se ativado no Events Manager, do Conversions API Gateway. O pixel envia direto para `facebook.com/tr`.
 
 #### 9e.3 — ITP bypass para `_fbp` (`api/fbp-init.js`) — OPCIONAL
 
@@ -722,49 +663,40 @@ module.exports = function handler(req, res) {
 };
 ```
 
-`api/capi-check.js` testa a stack CAPI completa (token presente, Meta API alcançável, evento recebido). Requer env var `META_CAPI_CHECK_CODE` = test_event_code do Meta Events Manager (**permanente — nunca remover**). Substituir `{PIXEL_ID}` e `{API_VER}` pelos valores reais. `META_CAPI_CHECK_CODE` é separado de `META_CAPI_TEST_CODE` (esse último é opcional, usado só para testes de visita real):
+`api/capi-check.js` testa a stack CAPI: token presente, Graph API alcançável, token válido. **Nunca enviar evento ao pixel no healthcheck**: com monitor de 5 em 5 min são 288 eventos falsos por dia nas estatísticas de produção (mesmo com `test_event_code`), derrubando o EMQ e distorcendo a razão navegador:servidor. `debug_token` valida o token sem gerar evento:
 
 ```js
 // api/capi-check.js
-const PIXEL_ID = '{PIXEL_ID}';
-const API_VER  = 'v26.0';
+const API_VER = 'v26.0';
 
 module.exports = async function handler(req, res) {
-  var token    = process.env.META_CAPI_KEY;
-  var testCode = process.env.META_CAPI_CHECK_CODE; // permanente — nunca vai a produção
-  if (!token)    return res.status(500).json({ ok: false, error: 'META_CAPI_KEY ausente' });
-  if (!testCode) return res.status(500).json({ ok: false, error: 'META_CAPI_CHECK_CODE ausente' });
-
-  var payload = {
-    data: [{
-      event_name: 'PageView', event_time: Math.floor(Date.now() / 1000),
-      event_id: 'capi-healthcheck-monitor', // fixo → Meta deduplica, sem ruído em produção
-      action_source: 'website',
-      event_source_url: 'https://SEU-DOMINIO.com',
-      user_data: { client_ip_address: '127.0.0.1', client_user_agent: 'HealthCheck/1.0' }
-    }],
-    test_event_code: testCode,
-    access_token: token
-  };
+  res.setHeader('Cache-Control', 'no-store');
+  var token = process.env.META_CAPI_KEY;
+  if (!token) return res.status(500).json({ ok: false, error: 'META_CAPI_KEY ausente' });
+  var ctrl = new AbortController();
+  var t = setTimeout(function() { ctrl.abort(); }, 8000);
   try {
     var r = await fetch(
-      'https://graph.facebook.com/' + API_VER + '/' + PIXEL_ID + '/events',
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
+      'https://graph.facebook.com/' + API_VER + '/debug_token?input_token=' + encodeURIComponent(token) +
+        '&access_token=' + encodeURIComponent(token),
+      { signal: ctrl.signal }
     );
-    var data = await r.json();
-    if (r.ok && data.events_received >= 0) return res.status(200).json({ ok: true, events_received: data.events_received });
-    return res.status(500).json({ ok: false, error: data.error?.message || 'meta error', detail: data });
+    clearTimeout(t);
+    var data = await r.json(); var d = data && data.data;
+    if (r.ok && d && d.is_valid === true) return res.status(200).json({ ok: true, token_valid: true });
+    return res.status(500).json({ ok: false, error: (d && d.error && d.error.message) || (data.error && data.error.message) || 'token inválido' });
   } catch (e) {
-    return res.status(500).json({ ok: false, error: e.message });
+    clearTimeout(t);
+    return res.status(500).json({ ok: false, error: e.name === 'AbortError' ? 'timeout Graph API' : e.message });
   }
 };
 ```
 
 **Setup UptimeRobot (após primeiro deploy):**
-1. Pegar `test_event_code` em Meta Events Manager → Test Events
-2. Adicionar `META_CAPI_CHECK_CODE` = código copiado nas env vars do projeto Vercel (Production, tipo Sensitive)
-3. Criar monitor Keyword em `https://SEU-DOMINIO.com/api/capi-check`, keyword `"ok":true`, intervalo 5 min
-4. Se retornar erro: CAPI quebrado — checar env vars antes de reverter deploy
+1. Criar monitor Keyword em `https://SEU-DOMINIO.com/api/capi-check`, keyword `"ok":true`, intervalo 5 min
+2. Se retornar erro: CAPI quebrado — checar `META_CAPI_KEY` nas env vars antes de reverter deploy
+
+**Ler a razão navegador:servidor pela Graph API** (`GET /{PIXEL_ID}/stats?aggregation=event_source`), que conta só eventos de visitantes. Servidor > navegador é normal com CAPI + Conversions API Gateway ativos.
 
 ### 10. Confirmar e orientar
 
