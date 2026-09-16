@@ -543,7 +543,9 @@ Para cada evento rastreado: gerar `event_id` **antes** do par `fbq()` + `_capi()
 ```js
 var evId = window._cId();
 fbq('track', 'Lead', { /* custom data */ }, { eventID: evId });
-window._capi('Lead', evId, { email: email, phone: phone, name: nome, value: 0, currency: 'BRL' });
+var leadCapi = window._capi('Lead', evId, { email: email, phone: phone, name: nome, value: 0, currency: 'BRL' });
+// Se o Lead redireciona (checkout): aguardar entrega antes de sair (ver 9n)
+// Promise.race([leadCapi, new Promise(function(r){ setTimeout(r, 800); })]).then(go, go); setTimeout(go, 1500);
 ```
 
 **Eventos que devem ter CAPI** (lista de exemplo para LP de vendas com VSL):
@@ -693,10 +695,218 @@ module.exports = async function handler(req, res) {
 ```
 
 **Setup UptimeRobot (após primeiro deploy):**
-1. Criar monitor Keyword em `https://SEU-DOMINIO.com/api/capi-check`, keyword `"ok":true`, intervalo 5 min
+1. Criar monitor Keyword em `https://SEU-DOMINIO.com/api/capi-check`, keyword `"ok":true`, intervalo 5 min (e o mesmo em `/api/tracking-health`, ver 9n)
 2. Se retornar erro: CAPI quebrado — checar `META_CAPI_KEY` nas env vars antes de reverter deploy
 
 **Ler a razão navegador:servidor pela Graph API** (`GET /{PIXEL_ID}/stats?aggregation=event_source`), que conta só eventos de visitantes. Servidor > navegador é normal com CAPI + Conversions API Gateway ativos.
+
+#### 9n. Medição da base e saúde dos eventos (obrigatório em página com tracking sob consentimento)
+
+Por quê: a taxa de carregamento da Meta só registra visita com pixel disparado. Com consentimento, ela mede chegada × consentimento e não basta pra avaliar a página. Proporção bruta servidor:navegador também engana (ver abaixo). As três peças abaixo separam "ferramenta quebrada" de "base quebrada".
+
+- **Contador anônimo de chegadas** (`api/m.js` + snippet inline logo no início do `<head>`): contagens diárias agregadas em Redis (Upstash gratuito via Vercel Marketplace, que injeta `UPSTASH_REDIS_REST_URL/TOKEN` ou `KV_REST_API_URL/TOKEN`). Eventos: chegou, carregou (`load`), interagiu, tracking ativo (chamar `window._mConsent()` dentro de `loadTracking()`), faixa de permanência na saída. Tráfego pago separado por `utm_source`/`utm_term` quando `utm_medium=paid` (url_tags dos anúncios: `utm_source={{site_source_name}}&utm_medium=paid&utm_term={{placement}}`).
+	- Privacidade: sem cookie, storage, ID, IP ou UA gravados; dado agregado sem identificador não é dado pessoal. Nunca logar body/headers.
+	- Corner cases: reload e voltar não contam (`navigation.type !== 'navigate'`); página prerender/`hidden` só conta ao ficar visível ou na primeira interação (webview pode reportar `hidden` por engano); fonte fora do padrão é descartada; sem env de storage o endpoint vira no-op (deploy seguro antes do storage).
+	- Relatório: `GET /api/m?k=METRICS_REPORT_KEY&days=N` (env própria, mín. 24 caracteres). Comparar chegadas pagas com cliques de saída do Ads Manager por dia e plataforma.
+- **Monitor de saúde** (`api/tracking-health.js`): Dataset Quality API (`GET /dataset_quality?dataset_id=`, funciona com o mesmo token do CAPI) → EMQ, cobertura de servidor (meta da Meta: 75%) e dedup por `event_id`. Cache de CDN 1h. UptimeRobot Keyword monitor `"ok":true`. EMQ e cobertura só reprovam após `ENFORCE_FROM`, pra janela da Meta renovar depois de correções.
+- **Evento seguido de navegação** (Lead → checkout): `_capi()` retorna a promise do fetch; aguardar `Promise.race([capi, 800ms])` antes do redirect, com rede de segurança de 1,5s. Navegação imediata cancela envios do pixel (img/iframe) e, em alguns navegadores in-app, o fetch keepalive.
+- **Proporção servidor:navegador é diagnóstico, não meta.** Servidor > navegador é o esperado com CAPI próprio + CAPI da Meta (se ativa) + visitantes com bloqueador. Nunca desligar fonte correta nem criar canal duplicado (ex: relay de `/tr`) pra aproximar o número. Saúde = cobertura ≥75%, dedup por `event_id` ≥90% nos dois lados, nenhum evento indevido.
+- **Compra de teste nunca no checkout de produção com pixel ativo**: vira Purchase real e contamina a otimização de campanha.
+
+Snippet (início do `<head>`):
+```html
+<script>/* Contador anônimo de chegadas (api/m.js): sem cookie, sem storage, sem ID. Mede a base independente da Meta. */
+(function(){try{
+if(navigator.webdriver||!navigator.sendBeacon||!window.URLSearchParams)return;
+var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];
+if(n&&n.type&&n.type!=='navigate')return;
+var q=new URLSearchParams(location.search),paid=q.get('utm_medium')==='paid';
+var s=paid?(q.get('utm_source')||'na'):'org',p=paid?(q.get('utm_term')||'na'):'';
+var sent={},eng=0,t0=0,on=0;
+function b(e,x){if(sent[e])return;sent[e]=1;navigator.sendBeacon('/api/m','e='+e+'&s='+encodeURIComponent(s.slice(0,40))+'&p='+encodeURIComponent(p.slice(0,40))+'&g='+eng+(x?'&x='+x:''));}
+window._mConsent=function(){if(on)b('consent');};
+function start(){if(on)return;on=1;t0=Date.now();b('arrive');
+if(document.readyState==='complete')b('loaded');else addEventListener('load',function(){b('loaded');});
+['scroll','click','touchstart','keydown'].forEach(function(ev){addEventListener(ev,function(){if(!eng){eng=1;b('engaged');}},{passive:true,capture:true});});
+if(window._trackingLoaded)b('consent');
+addEventListener('pagehide',function(){var d=(Date.now()-t0)/1000;b('exit',d<3?'lt3':d<10?'3to10':d<30?'10to30':'gt30');});}
+if(document.prerendering)document.addEventListener('prerenderingchange',start,{once:true});
+else if(document.visibilityState==='hidden'){document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')start();});
+['focus','pointerdown','touchstart','scroll','keydown'].forEach(function(ev){addEventListener(ev,function(e){start();if(e.type!=='focus'&&!eng){eng=1;b('engaged');}},{passive:true,capture:true,once:true});});}/* webview que reporta hidden por engano: interação prova que é visível */
+else start();
+}catch(e){}})();</script>
+```
+
+`api/m.js`:
+```js
+const crypto = require('crypto');
+
+// Contador anônimo de chegadas — mede a base (quem realmente chega à página), independente da Meta.
+// Grava SÓ contagens diárias agregadas (Redis hash m:AAAA-MM-DD). Sem cookie, sem ID, sem IP/UA gravados.
+// LGPD: dado agregado sem identificador não é dado pessoal. NUNCA logar body nem headers aqui.
+//
+// POST (sendBeacon text/plain): e=<evento>&s=<fonte>&p=<posicionamento>&x=<faixa>&g=<0|1>
+//   e: arrive | loaded | engaged | consent | exit     (consent = tracking carregado nesta visita)
+//   s: utm_source quando utm_medium=paid (ig, fb, an, msg...) ou "org"
+//   p: utm_term ({{placement}} dos anúncios) — só tráfego pago
+//   x: faixa de permanência no exit (lt3 | 3to10 | 10to30 | gt30); g: já tinha interagido (1) ou não (0)
+// GET ?k=<METRICS_REPORT_KEY>&days=N → relatório agregado
+//
+// Sem UPSTASH_REDIS_REST_URL/TOKEN (ou KV_REST_API_URL/TOKEN) → no-op silencioso (deploy seguro antes do Upstash).
+
+const EVENTS = new Set(['arrive', 'loaded', 'engaged', 'consent', 'exit']);
+const EXITS  = new Set(['lt3', '3to10', '10to30', 'gt30']);
+const TTL    = 180 * 24 * 3600;
+
+function redisCfg() {
+  var url   = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  var token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  return url && token ? { url: url.replace(/\/$/, ''), token: token } : null;
+}
+
+// Dia no fuso de Brasília (mesmo fuso da conta de anúncios)
+function dayKey(offsetDays) {
+  var d = new Date(Date.now() - 3 * 3600 * 1000 - (offsetDays || 0) * 86400 * 1000);
+  return d.toISOString().slice(0, 10);
+}
+
+function token(s) {
+  s = String(s || '');
+  return /^[A-Za-z0-9_.-]{1,40}$/.test(s) ? s : 'x';
+}
+
+async function redis(cfg, commands) {
+  var r = await fetch(cfg.url + '/pipeline', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + cfg.token, 'Content-Type': 'application/json' },
+    body: JSON.stringify(commands),
+  });
+  return r.json();
+}
+
+// Chave do relatório: env METRICS_REPORT_KEY (mín. 24 caracteres). Sem ela, relatório desativado (404).
+function reportKey() {
+  var k = process.env.METRICS_REPORT_KEY;
+  return k && k.length >= 24 ? k : null;
+}
+
+module.exports = async function handler(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
+  var cfg = redisCfg();
+
+  if (req.method === 'GET') {
+    var expected = reportKey();
+    var given = String((req.query && req.query.k) || '');
+    if (!expected || given.length !== expected.length ||
+        !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected))) {
+      return res.status(404).end();
+    }
+    if (!cfg) return res.status(200).json({ ok: false, error: 'storage não configurado' });
+    var days = Math.min(Math.max(parseInt(req.query.days, 10) || 14, 1), 90);
+    var keys = []; for (var i = 0; i < days; i++) keys.push(dayKey(i));
+    try {
+      var out = await redis(cfg, keys.map(function(d) { return ['HGETALL', 'm:' + d]; }));
+      var data = {};
+      keys.forEach(function(d, idx) {
+        var arr = (out[idx] && out[idx].result) || [], obj = {};
+        for (var j = 0; j + 1 < arr.length; j += 2) obj[arr[j]] = parseInt(arr[j + 1], 10);
+        if (arr.length) data[d] = obj;
+      });
+      return res.status(200).json({ ok: true, days: data });
+    } catch (e) {
+      return res.status(502).json({ ok: false, error: 'storage indisponível' });
+    }
+  }
+
+  if (req.method !== 'POST') return res.status(405).end();
+  if (!cfg) return res.status(204).end();
+
+  var raw = typeof req.body === 'string' ? req.body : '';
+  if (!raw || raw.length > 300) return res.status(204).end();
+  var q = new URLSearchParams(raw);
+  var e = q.get('e');
+  if (!EVENTS.has(e)) return res.status(204).end();
+
+  var s = token(q.get('s'));
+  if (s === 'x') return res.status(204).end(); // fonte inválida: descarta em vez de poluir a contagem
+  var key = 'm:' + dayKey(0);
+  var fields = [s + ':' + e];
+  if (s !== 'org') fields.push(s + ':' + token(q.get('p')) + ':' + e);
+  if (e === 'exit') {
+    var x = EXITS.has(q.get('x')) ? q.get('x') : 'x';
+    var g = q.get('g') === '1' ? 'eng' : 'noeng';
+    fields = [s + ':exit:' + g + ':' + x];
+  }
+
+  var cmds = fields.map(function(f) { return ['HINCRBY', key, f, 1]; });
+  cmds.push(['EXPIRE', key, TTL]);
+  try { await redis(cfg, cmds); } catch (err) { /* falha silenciosa: contador nunca afeta o visitante */ }
+  return res.status(204).end();
+};
+```
+
+`api/tracking-health.js` (substituir `SEU_PIXEL_ID` e `ENFORCE_FROM`):
+```js
+const API_VER = 'v26.0';
+const DATASET = 'SEU_PIXEL_ID';
+
+// GET /api/tracking-health — saúde dos eventos pela Dataset Quality API da Meta (token META_CAPI_KEY).
+// UptimeRobot Keyword monitor ("ok":true). Resposta cacheada 1h no CDN: o monitor de 5 min não martela a Graph API.
+//
+// Falha imediata: API inacessível; deduplicação por event_id < 90% (navegador ou servidor) em evento-chave.
+// Falha a partir de ENFORCE_FROM: nota de correspondência (EMQ) < 6 em PageView/ViewContent; cobertura de
+// servidor < 75% (meta da própria Meta) em evento-chave. A data existe porque a janela da Meta ainda contém
+// os PageView falsos do healthcheck antigo.
+const KEY_EVENTS   = ['PageView', 'ViewContent', 'PrecheckoutOpen', 'Lead'];
+const EMQ_EVENTS   = ['PageView', 'ViewContent'];
+const ENFORCE_FROM = 'AAAA-MM-DD'; // 7 dias após o deploy (janela da Meta)
+
+module.exports = async function handler(req, res) {
+  var token = process.env.META_CAPI_KEY;
+  if (!token) { res.setHeader('Cache-Control', 'no-store'); return res.status(500).json({ ok: false, error: 'META_CAPI_KEY ausente' }); }
+
+  var fields = 'web{event_name,event_match_quality{composite_score},event_coverage{percentage,goal_percentage},' +
+    'dedupe_key_feedback{dedupe_key,browser_events_with_dedupe_key{percentage},server_events_with_dedupe_key{percentage}}}';
+  var url = 'https://graph.facebook.com/' + API_VER + '/dataset_quality?dataset_id=' + DATASET +
+    '&fields=' + encodeURIComponent(fields) + '&access_token=' + encodeURIComponent(token);
+
+  var ctrl = new AbortController();
+  var t = setTimeout(function() { ctrl.abort(); }, 9000);
+  var data;
+  try {
+    var r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(t);
+    data = await r.json();
+    if (!r.ok || !data.web) throw new Error((data.error && data.error.message) || 'resposta sem web');
+  } catch (e) {
+    clearTimeout(t);
+    res.setHeader('Cache-Control', 'public, s-maxage=300');
+    return res.status(500).json({ ok: false, error: 'Dataset Quality API: ' + (e.name === 'AbortError' ? 'timeout' : e.message) });
+  }
+
+  var enforce = new Date().toISOString().slice(0, 10) >= ENFORCE_FROM;
+  var failures = [], warnings = [], events = {};
+  data.web.forEach(function(w) {
+    if (KEY_EVENTS.indexOf(w.event_name) === -1) return;
+    var emq = w.event_match_quality && w.event_match_quality.composite_score;
+    var cov = w.event_coverage && w.event_coverage.percentage;
+    var dd  = (w.dedupe_key_feedback || []).filter(function(x) { return x.dedupe_key === 'event_id'; })[0];
+    var ddB = dd && dd.browser_events_with_dedupe_key && dd.browser_events_with_dedupe_key.percentage;
+    var ddS = dd && dd.server_events_with_dedupe_key && dd.server_events_with_dedupe_key.percentage;
+    events[w.event_name] = { emq: emq, coverage: cov, dedup_event_id_browser: ddB, dedup_event_id_server: ddS };
+
+    if (ddB != null && ddB < 90) failures.push(w.event_name + ': event_id em ' + ddB + '% dos eventos de navegador');
+    if (ddS != null && ddS < 90) failures.push(w.event_name + ': event_id em ' + ddS + '% dos eventos de servidor');
+    var list = enforce ? failures : warnings;
+    if (cov != null && cov < 75) list.push(w.event_name + ': cobertura de servidor ' + cov + '% (meta 75%)');
+    if (EMQ_EVENTS.indexOf(w.event_name) !== -1 && emq != null && emq < 6) list.push(w.event_name + ': EMQ ' + emq + ' (mínimo 6)');
+  });
+  KEY_EVENTS.forEach(function(n) { if (!events[n]) warnings.push(n + ': sem dados na janela da Meta'); });
+
+  res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=600');
+  return res.status(200).json({ ok: failures.length === 0, enforce_from: ENFORCE_FROM, failures: failures, warnings: warnings, events: events });
+};
+```
 
 ### 10. Confirmar e orientar
 
