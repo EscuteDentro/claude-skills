@@ -92,7 +92,12 @@ def build_groups():
         canonical_i = members[-1]  # mais recente
         canonical = rows[canonical_i]
         comprou = canonical[idx["COMPROU"]].strip()
-        consentiu = canonical[idx["Consentiu WA"]].strip()
+        # Consentimento é agregado no grupo, nunca só da linha mais recente:
+        # um "Sim" em qualquer submissão vale pra sempre. Reenvio posterior
+        # sem marcar a caixa (Não/vazio) não revoga -- é falta de ação, não
+        # recusa ativa (caso real: lead consentiu, reenviou o formulário
+        # depois sem marcar, consentimento continua Sim).
+        consentiu = "Sim" if any(rows[i][idx["Consentiu WA"]].strip() == "Sim" for i in members) else canonical[idx["Consentiu WA"]].strip()
         elegivel = comprou != "Sim" and consentiu != "Não"
         leads.append({
             "row_num": canonical_i + 2,

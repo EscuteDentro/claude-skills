@@ -73,11 +73,20 @@ Um e-mail por dia (só se houver lead novo nas últimas 24h — nunca envia à t
 
 Cria/atualiza um contato no Google Contatos pra cada lead elegível (nunca pra quem comprou ou não consentiu), com nome padronizado (`{Nome} {marcador} {mês.ano}`) — facilita reconhecer o lead quando ele te chama depois. Scripts: `oauth_setup.py` (rodar 1x), `contacts_client.py`, `plan_contacts_update.py` (dry-run) → `execute_contacts_update.py` (escreve, só após confirmação).
 
+**Regra fixa de formato: telefone salvo no Google Contatos é sempre E.164** (`+` seguido só de dígitos, sem espaço/traço/parêntese), nunca o texto cru da Sheet. `to_e164()` em `execute_contacts_update.py` já limpa qualquer caractere não-dígito antes de prefixar `+` — independe de a Sheet guardar o telefone como número ou como texto.
+
 **Requer:** People API habilitada no mesmo projeto Google Cloud + OAuth Client (tipo "App para computador").
+
+**Consentimento é agregado por telefone (grupo de duplicata), nunca só a linha mais recente:** um "Sim" em qualquer submissão do mesmo lead vale pra sempre — reenvio posterior do formulário sem marcar a caixa (Não/vazio) é falta de ação, não recusa ativa. Se a linha mais recente não tiver "Sim" mas uma linha mais antiga do mesmo grupo tiver, o lead continua elegível.
 
 **Antes de configurar, pergunte ao usuário: qual conta Google deve receber esses contatos?** Pode ser diferente da conta pessoal dele — é comum usar um número de WhatsApp Business separado, ou um e-mail dedicado só a isso, justamente pra manter os contatos de lead separados dos contatos pessoais. O OAuth (`oauth_setup.py`) autoriza a conta que a pessoa escolher no navegador na hora — confirme qual é antes de gerar o token.
 
 **Se não quiser:** avise — as ferramentas 1, 2, 3 e 5 funcionam normalmente sem isso; só perde o reconhecimento automático do lead nos seus contatos e a ferramenta 4 (correção de telefone) fica sem efeito.
+
+**Lead que converteu sozinho (COMPROU virou Sim sem passar pelo fluxo de WhatsApp do skill, ex: reimpactado por outro anúncio e comprou por conta própria):** `plan_contacts_update.py` já detecta esse caso (contato existe mas o lead não é mais elegível) e sinaliza, mas não age sozinho, só avisa. Tratar na hora, não deixar acumular:
+- Sheet: `COMPROU = Sim` na linha âncora do grupo (se for duplicata, só na âncora); `Status CRM` ganha o fato: data, como foi reimpactado, se já tinha sido contatado e respondeu ou não.
+- Google Contatos: renomear de `{Nome} {marcador} {mês.ano}` para `{Nome, com sobrenome se souber} {marcador de aluno}`, telefone não muda nesse rename. Via People API: escrever em `givenName`, nunca em `displayName` direto (a API computa `displayName` a partir de `givenName`; escrever só em `displayName` é ignorado).
+- Se o skill irmão de follow-up estiver em uso, sincronizar o status lá também (nome + status de conversão), mesma regra.
 
 ---
 
@@ -103,6 +112,10 @@ Cria/atualiza um contato no Google Contatos pra cada lead elegível (nunca pra q
 Ver o aviso completo no topo de `apps_script_template.gs`. Resumo: salvar no editor do navegador **não** republica a URL `/exec` já em produção — é preciso ir em Implantar → Gerenciar implantações → Nova versão → Implantar. Depois de republicar, valide com um POST real contra a URL (mesmo formato que o modal usa), nunca só pela aparência do código salvo no editor.
 
 Pra editar código diretamente no editor Monaco do navegador (script.google.com): usar a API do Monaco via ferramenta de JavaScript (`window.monaco.editor.getModels()[0].getLineContent(n)` pra inspecionar, `getEditors()[0].executeEdits(...)` pra editar) — nunca colar via clipboard do sistema operacional (pode ser sobrescrito silenciosamente por sync entre dispositivos) nem usar tecla de navegação com nome especial tipo "Page Down"/"End" (pode ser digitada como texto literal em vez de navegar).
+
+**O dropdown de função do editor ("Executar") tem atraso de propagação: nunca confiar no rótulo exibido na tela.** Selecionar uma função e clicar Executar em seguida às vezes roda a função selecionada ANTES da atual, não a exibida — mesmo confirmando visualmente o nome certo no momento do clique. Sinal de que isso aconteceu: execução "Concluída" sem erro mas rápida/curta demais pro que a função deveria fazer (um handler que espera argumento e recebe `undefined`, se tiver `try/catch`, engole o erro e "conclui" sem executar a lógica real). Pra confirmar qual função rodou de fato: aba "Execuções" (ícone de lista na lateral) → coluna "Função" — nunca a UI do editor. Se o rótulo não bater com o esperado: esperar alguns segundos após selecionar no dropdown antes de clicar Executar, ou recarregar a página inteira e selecionar de novo.
+
+**Nunca concluir "nenhum resultado" (nenhum lead novo, nenhum e-mail disparado) só pela ausência num canal secundário (busca de e-mail, log de execução) — verificar direto na fonte primária (a Sheet) antes de afirmar.** Uma execução "Concluída" sem erro não é prova de que a lógica esperada rodou (ver bug do dropdown acima); a Sheet é sempre a fonte de verdade dos dados.
 
 ## Se faltar credencial ou o fluxo quebrar
 

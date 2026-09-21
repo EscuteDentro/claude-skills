@@ -29,18 +29,18 @@ def alt_format(raw):
 
 def main():
     contacts = list_lead_contacts()
-    updated, skipped = 0, 0
+    updated, ja_tinha, formato_inesperado = 0, 0, 0
     service = get_service()
 
     for c in contacts:
         if len(c["phones"]) != 1:
-            skipped += 1
+            ja_tinha += 1
             continue
         original = c["phones"][0]
         alt = alt_format(original)
         if not alt:
             print(f"PULADO (formato inesperado): {c['name']} | {original!r}")
-            skipped += 1
+            formato_inesperado += 1
             continue
         body = {
             "etag": c["etag"],
@@ -54,7 +54,7 @@ def main():
         print(f"OK: {c['name']} -> {original!r} / {alt!r}")
         updated += 1
 
-    print(f"\nTotal: {updated} atualizados, {skipped} pulados (formato inesperado)")
+    print(f"\nTotal: {updated} atualizados, {ja_tinha} já tinham as 2 variantes, {formato_inesperado} pulados por formato inesperado")
 
 
 if __name__ == "__main__":
