@@ -84,7 +84,7 @@ Cria/atualiza um contato no Google Contatos pra cada lead elegível (nunca pra q
 **Se não quiser:** avise — as ferramentas 1, 2, 3 e 5 funcionam normalmente sem isso; só perde o reconhecimento automático do lead nos seus contatos e a ferramenta 4 (correção de telefone) fica sem efeito.
 
 **Lead que converteu sozinho (COMPROU virou Sim sem passar pelo fluxo de WhatsApp do skill, ex: reimpactado por outro anúncio e comprou por conta própria):** `plan_contacts_update.py` já detecta esse caso (contato existe mas o lead não é mais elegível) e sinaliza, mas não age sozinho, só avisa. Tratar na hora, não deixar acumular:
-- Sheet: `COMPROU = Sim` na linha âncora do grupo (se for duplicata, só na âncora); `Status CRM` ganha o fato: data, como foi reimpactado, se já tinha sido contatado e respondeu ou não.
+- Sheet: `COMPROU = Sim` em TODAS as linhas do grupo de duplicata, não só na âncora. Se a Sheet tiver formatação condicional pra destacar quem comprou, ela costuma ler a coluna de cada linha individualmente, então deixar em branco nas duplicatas quebra o destaque mesmo com a compra confirmada. `Status CRM` (só na âncora, as demais continuam apontando pra ela) ganha o fato: data, como foi reimpactado, se já tinha sido contatado e respondeu ou não.
 - Google Contatos: renomear de `{Nome} {marcador} {mês.ano}` para `{Nome, com sobrenome se souber} {marcador de aluno}`, telefone não muda nesse rename. Via People API: escrever em `givenName`, nunca em `displayName` direto (a API computa `displayName` a partir de `givenName`; escrever só em `displayName` é ignorado).
 - Se o skill irmão de follow-up estiver em uso, sincronizar o status lá também (nome + status de conversão), mesma regra.
 
