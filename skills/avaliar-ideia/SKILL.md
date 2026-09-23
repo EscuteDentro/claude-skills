@@ -60,7 +60,7 @@ Nunca fazer esta parte primeiro.
 
 - **Sinergia e arquitetura, antes de propor qualquer integração:** para cada oportunidade que sobreviver até aqui, mapear contra o catálogo real de skills/agentes/commands já ativos no projeto (listar `.claude/skills/`, `.claude/commands/`, agentes disponíveis) — não propor "criar skill nova" ou "integrar em X" sem antes checar se algo equivalente já existe.
   - **Redundância:** é upgrade real, é redundante com algo que já cobre isso, ou preenche gap genuíno? Nomear a skill/ferramenta irmã se houver.
-  - **Arquitetura e paths explícitos, sempre:** desenhar onde cada peça mora antes de propor qualquer coisa — arquivo/pasta exatos que seriam criados vs. tocados, e se envolve par privado/público (ver seção 3), path de cada lado separado e nomeado. Nunca falar em abstrato ("integraria com o sistema de X"); listar os paths como bloco visível (ex: lista com `caminho/arquivo.ext` — criado, `caminho/outro.ext` — modificado), delimitado do resto do texto, fácil de escanear.
+  - **Arquitetura e paths explícitos (raciocínio interno):** desenhar onde cada peça mora antes de propor qualquer coisa, arquivo/pasta exatos criados vs. tocados, par privado/público separado (ver seção 3). Nunca falar em abstrato. Mostrar os paths na resposta só quando o usuário pedir ou aprovar a implementação (ver formato em "4. Veredito").
   - **Reforço nos dois lados:** se a proposta é reforçar uma skill existente (não criar uma nova), garantir que a mudança fique registrada nela mesma (nota de manutenção, seção nova) e não só na conversa — mesma lógica do padrão de skills gêmeas (ver seção 3), pra não passar batido numa sessão futura.
 - **Esforço e viabilidade:** tempo pra adotar/adaptar, dependência externa, custo de API (converter pra moeda local se relevante). Se a decisão for "essa ferramenta OU uma alternativa já cotada", usar os 4 critérios: qualidade, esforço, viabilidade, custo.
 - **Qualquer custo, avisar antes de prosseguir:** custo de API, assinatura, ou uso elevado de tokens/agentes (ex: pipeline que dispara vários agents/forks, pesquisa longa, loop de refinamento) — mesmo sem dinheiro saindo do bolso diretamente, consumo desproporcional de tokens é custo real e precisa ser declarado, não só custo em API explícito.
@@ -89,9 +89,15 @@ Um veredito por oportunidade relevante que sobreviveu à passada 2 — não um v
 
 **Assimetria de erro:** dúvida real entre veredictos vizinhos resolve pra cima (Vigiar > Descartar, Adaptar > Vigiar) — perder oportunidade boa custa mais que investigar uma ruim. **Descartar** só com risco eliminatório concreto ou redundância comprovada, nunca por incerteza.
 
-**Resposta final abre com o veredito, não termina nele:** primeira coisa no output é o resumo de conclusão — veredito de cada oportunidade em 1 linha — antes de qualquer detalhe de fonte, leque ou risco. O detalhamento das passadas vem depois, como sustentação, pra quem quiser aprofundar. Concisa por padrão: essencial de cada passada, não o raciocínio completo — aprofundar só se pedido.
+**Formato da resposta (obrigatório, curta):** as passadas 1 e 2 são raciocínio interno; a resposta mostra só a conclusão. Teto ~15 linhas, linguagem de leigo, sem jargão da fonte (traduzir termo técnico ou não usar). Estrutura fixa:
 
-**Visibilidade do backlog, sempre junto do veredito:** ler o arquivo de backlog do seu projeto e citar o estado atual — pelo menos contagem por área (ex: "hoje no backlog: 2 ideias de edição de vídeo, 1 de revisão de copy, 1 de CRM") — antes de fechar a resposta. Objetivo: nunca deixar o usuário sem saber o que já está na fila sem precisar abrir o arquivo. Se o backlog estiver vazio, dizer isso também.
+1. **Vale a pena?** 1 linha (sim / em parte / não).
+2. **O que é:** 1-2 frases, o mecanismo em palavras simples.
+3. **Onde encaixa:** no máximo 3 itens, cada um em 1-2 linhas: o que muda na prática pro usuário + veredito (Adotar/Adaptar/Vigiar).
+4. **Custo/risco:** 1 linha, só se relevante pra decisão.
+5. **Pergunta final:** 1 linha, a próxima decisão do usuário.
+
+Fora da resposta por padrão (entregar só se pedido): paths de arquivo, leque completo, risco eixo a eixo, descartados, detalhe da fonte, contagem do backlog (citar em 1 linha só se houver item relacionado). Em dúvida entre incluir ou cortar: cortar.
 
 ## 5. Registro se aprovada
 
