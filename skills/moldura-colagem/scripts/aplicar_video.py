@@ -25,6 +25,24 @@ sys.path.insert(0, os.path.dirname(__file__))
 from moldura_core import load_config, export_ffmpeg_layers
 
 
+def _has_audio_stream(path: str) -> bool:
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "a",
+         "-show_entries", "stream=index", "-of", "csv=p=0", path],
+        capture_output=True, text=True,
+    )
+    return bool(out.stdout.strip())
+
+
+def _video_duration(path: str) -> float:
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0",
+         "-show_entries", "stream=duration", "-of", "default=noprint_wrappers=1:nokey=1", path],
+        capture_output=True, text=True,
+    )
+    return float(out.stdout.strip())
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("video_in")
@@ -78,14 +96,35 @@ def main():
             "[3:v]format=rgba[paper];"
             "[bg][paper]overlay=format=auto[step1];"
             "[step1][vidmasked]overlay=format=auto[final]",
-            "-map", "[final]", "-map", "0:a",
+            "-map", "[final]",
+        ]
+        # Bug real corrigido 2026-09-13: `-map 0:a` incondicional quebrava
+        # ("Stream map '' matches no streams") toda vez que o vídeo de entrada
+        # não tinha trilha de áudio (b-roll silencioso, moldura vazia sem som).
+        has_audio = _has_audio_stream(args.video_in)
+        if has_audio:
+            cmd += ["-map", "0:a", "-c:a", "copy"]
+        cmd += [
             "-r", str(args.fps),
             "-c:v", "libx264", "-preset", "fast", "-crf", "18", "-pix_fmt", "yuv420p",
-            "-c:a", "copy",
             "-shortest",
         ]
-        if args.t is not None:
-            cmd += ["-t", str(args.t)]
+        effective_t = args.t
+        if effective_t is None and not has_audio:
+            # 2º bug real, achado testando o fix acima: `-shortest` só tinha
+            # efeito antes porque `0:a` (fonte finita) sempre estava mapeado
+            # junto com [final] (que sai de 2 loops infinitos de fundo/papel
+            # — sem áudio, [final] nunca chega a um EOF natural sozinho).
+            # Sem essa trilha, `-shortest` não tinha mais nada finito pra
+            # comparar e o encode nunca parava sozinho (mesma classe do bug
+            # de 47min já documentado no topo do arquivo, reproduzido de
+            # verdade aqui: travou rodando até ser morto manualmente).
+            # Fix: sem áudio, sempre fixar -t explícito pela duração real da
+            # fonte de vídeo (contando o --ss, se houver).
+            source_duration = _video_duration(args.video_in)
+            effective_t = max(0.0, source_duration - (args.ss or 0.0))
+        if effective_t is not None:
+            cmd += ["-t", str(effective_t)]
         cmd += [args.video_out]
 
         print("rodando:", " ".join(cmd))

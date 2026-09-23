@@ -111,22 +111,33 @@ def main() -> None:
     ap.add_argument("--config", default=None)
     args = ap.parse_args()
 
-    cfg = load_config(args.config)
     cards_dir = Path(args.cards_dir)
     data = json.loads((cards_dir / "cards.json").read_text())
     cards = data["cards"]
-    canvas_w = cfg["canvas_w"]
 
-    # cards.json (written by build_captions.py) records the config it actually
-    # used, including any resolution auto-scale - that's the source of truth
-    # for canvas size, not whatever --config this script was independently
-    # handed. Falls back to the passed --config only for old cards.json files
-    # that predate this field.
+    # cards.json (written by build_captions.py) records the FULL config it
+    # actually used - font sizes, anchors, center_y/bottom_margin, colors,
+    # canvas, including any resolution auto-scale. That's the only source of
+    # truth for where each card's PNG should land; a --config passed
+    # independently to THIS script is a different object that can silently
+    # diverge (bug found in production 2026-09-09: composite ran with no
+    # --config, fell back to config_default.json's generic body position -
+    # anchor "bottom", bottom_margin 0 - while the PNGs themselves had been
+    # rendered by build_captions.py against the real brand config, anchor
+    # "center" at ~66% down; every card composited flush against the bottom
+    # edge, past any safe zone, across all 8 videos in that batch). Only
+    # falls back to loading --config (or the bare default) for old cards.json
+    # files that predate this baked field.
     baked_cfg = data.get("config")
     if baked_cfg:
-        cfg["canvas_w"], cfg["canvas_h"] = baked_cfg["canvas_w"], baked_cfg["canvas_h"]
-    check_canvas_matches_video(cfg, args.base_video)
+        cfg = baked_cfg
+        if args.config:
+            print("  aviso: cards.json já tem o config completo (o que build_captions.py REALMENTE usou) - ignorando --config passado aqui, pra nunca divergir do que foi renderizado")
+    else:
+        cfg = load_config(args.config)
     canvas_w = cfg["canvas_w"]
+
+    check_canvas_matches_video(cfg, args.base_video)
 
     validate_cards(cards, cards_dir)
 
