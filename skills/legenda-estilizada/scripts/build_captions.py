@@ -646,6 +646,9 @@ def main() -> None:
                           "Words before this time are simply not captioned at all - not merged, not shown "
                           "elsewhere. Timestamps are in the EDL's OUTPUT timeline, same space as every "
                           "other time in this script.")
+    ap.add_argument("--clean-first-frame", action="store_true",
+                    help="Frame 0 sem legenda de corpo (ele vira a capa do grid do Instagram): cards de "
+                         "corpo começam no frame 1. O hook, se houver, continua no frame 0.")
     ap.add_argument("--fps", type=float, default=24.0, help="Framerate do render final (render.py usa -r 24) - usado pra arredondar duração de segmento igual ao encode real, evitando deriva cumulativa em cortes com muitos segmentos")
     args = ap.parse_args()
 
@@ -838,6 +841,12 @@ def main() -> None:
         if cards[k]["end"] > cards[k + 1]["start"] - 0.01:
             cards[k]["end"] = max(cards[k]["start"] + 0.15, cards[k + 1]["start"] - 0.02)
 
+    if args.clean_first_frame:
+        # enable='between(t,start,end)' inclui t=start: começar em 1 frame + folga tira o frame 0
+        first = round(1.0 / args.fps + 0.001, 3)
+        for c in cards:
+            if c["style"] == "body" and c["start"] < first:
+                c["start"] = first
     (out_dir / "cards.json").write_text(json.dumps({"cards": cards, "total_duration": total_dur, "config": cfg},
                                                      indent=2, ensure_ascii=False))
     print(f"gerados {len(cards)} cards (1 hook + {len(groups)} body), duracao total {total_dur:.2f}s")

@@ -151,6 +151,8 @@ backspace (`\x08`), não o word-boundary de regex — sempre escrever `\\b` no a
 14. **Quebra na vírgula só se o pedaço antes dela ficar ≥0,5s na tela** (`MIN_COMMA_PIECE`).
     Vírgula de vocativo logo no início ("Cara, nem acredito...") gerava card de 1 palavra
     piscando por 0,15s.
+15. **`--clean-first-frame`**: o frame 0 sai sem legenda de corpo, porque vira a capa do grid do
+    Instagram. O corpo entra no frame 1; o hook, se houver, fica no frame 0.
 
 ## Formato dos arquivos de entrada
 
