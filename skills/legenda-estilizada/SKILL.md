@@ -145,6 +145,12 @@ backspace (`\x08`), não o word-boundary de regex — sempre escrever `\\b` no a
     frase do primeiro antes da fala do segundo; só com a regra de pontuação o card grande do frame
     0 engolia a fala da outra pessoa até o primeiro ponto final. Usa o `speaker_id` da Scribe,
     carregado em cada palavra como `spk`.
+13. **Verbo de CTA nunca se separa da palavra-chave em CAIXA ALTA** ("digita FATURAMENTO",
+    "comenta PAZ"), mesmo com pausa entre os dois. Separados, o card "digita" sozinho perde o
+    sentido da instrução.
+14. **Quebra na vírgula só se o pedaço antes dela ficar ≥0,5s na tela** (`MIN_COMMA_PIECE`).
+    Vírgula de vocativo logo no início ("Cara, nem acredito...") gerava card de 1 palavra
+    piscando por 0,15s.
 
 ## Formato dos arquivos de entrada
 

@@ -393,6 +393,7 @@ def load_words(transcript_path: str) -> list[dict]:
     return words
 
 
+MIN_COMMA_PIECE = 0.5  # s mínimos do pedaço antes da vírgula pra preferir quebrar nela
 HOOK_MAX_GAP = 0.7  # s de silêncio que encerra o hook mesmo sem pontuação
 
 
@@ -485,6 +486,11 @@ def _greedy_split(words_group, font, max_w, draw, stroke_width, max_lines) -> li
                 if cur[i]["text"].rstrip().endswith(","):
                     comma_idx = i
                     break
+            # vírgula logo no começo ("Cara, nem acredito...") deixaria um card de
+            # 1 palavra que pisca (0,15s): só quebra na vírgula se o pedaço antes
+            # dela ficar pelo menos MIN_COMMA_PIECE na tela.
+            if comma_idx is not None and cur[comma_idx]["end"] - cur[0]["start"] < MIN_COMMA_PIECE:
+                comma_idx = None
             if comma_idx is not None and comma_idx < len(cur) - 1:
                 result.append(cur[:comma_idx + 1])
                 cur = cur[comma_idx + 1:] + [w]
@@ -758,6 +764,14 @@ def main() -> None:
         is_cohesive_end = i in cohesive_ends
         gap = (body_words[i + 1]["start"] - w["end"]) if i + 1 < len(body_words) else 999
         seg_changes = (i + 1 < len(body_words)) and (body_words[i + 1]["seg"] != w["seg"])
+        # verbo de CTA ("digita", "comenta", "escreve") nunca se separa da palavra-chave
+        # em CAIXA ALTA que vem logo depois (normalize_cta_quotes), mesmo com pausa entre
+        # os dois: "digita" sozinho num card e "FATURAMENTO" no seguinte quebra a instrução.
+        nxt = body_words[i + 1]["text"] if i + 1 < len(body_words) else ""
+        nxt_core = re.sub(r"[^\w]", "", nxt)
+        cta_pair = bool(_CTA_TRIGGER_PATTERN.match(w["text"])) and len(nxt_core) > 1 and nxt_core.isupper()
+        if cta_pair and not seg_changes:
+            continue
         if closes_quote or end_here or is_cohesive_end or gap >= gap_thresh or seg_changes or i == len(body_words) - 1:
             groups.append(cur)
             cur = []
