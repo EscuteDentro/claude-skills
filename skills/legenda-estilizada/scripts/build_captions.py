@@ -393,6 +393,9 @@ def load_words(transcript_path: str) -> list[dict]:
     return words
 
 
+HOOK_MAX_GAP = 0.7  # s de silêncio que encerra o hook mesmo sem pontuação
+
+
 def output_timeline(edl_path: str, transcript_path: str, fps: float = 24.0) -> tuple[list[dict], float]:
     """`seg_offset` acumula usando a duração de cada segmento ARREDONDADA PRA CIMA pro
     múltiplo de frame mais próximo (render.py extrai cada clipe com `-r {fps} -t <duration>`,
@@ -415,7 +418,7 @@ def output_timeline(edl_path: str, transcript_path: str, fps: float = 24.0) -> t
                 continue
             out_start = max(wst, s) - s + seg_offset
             out_end = min(wen, e) - s + seg_offset
-            out_words.append({"text": w["text"].strip(), "start": out_start, "end": max(out_end, out_start), "seg": seg_idx})
+            out_words.append({"text": w["text"].strip(), "start": out_start, "end": max(out_end, out_start), "seg": seg_idx, "spk": w.get("speaker_id")})
         real_dur = math.ceil(round((e - s) * fps, 6)) / fps
         seg_offset += real_dur
     return out_words, seg_offset
@@ -677,6 +680,15 @@ def main() -> None:
     else:
         hook_words = []
         for w in words:
+            # A frase do hook também termina sem pontuação: quando muda quem fala
+            # (react/entrevista, o ASR não fecha a frase de um antes da fala do outro)
+            # ou numa pausa longa. Sem isso o hook engolia 12s de depoimento de outra
+            # pessoa no card grande do frame 0.
+            if hook_words and (
+                (w.get("spk") is not None and w.get("spk") != hook_words[-1].get("spk"))
+                or w["start"] - hook_words[-1]["end"] >= HOOK_MAX_GAP
+            ):
+                break
             hook_words.append(w)
             if w["text"].rstrip('"\'').endswith((":", ".", "?", "!")):
                 break

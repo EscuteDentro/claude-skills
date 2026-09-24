@@ -140,6 +140,11 @@ backspace (`\x08`), não o word-boundary de regex — sempre escrever `\\b` no a
     devem continuar entre aspas normalmente). Só ativa quando uma das últimas ~6 palavras
     começa com "comenta" (comenta, comente, comentem) — fora desse contexto, aspas ficam
     intactas. Implementado em `normalize_cta_quotes()`.
+12. **O hook termina também sem pontuação: na troca de quem fala ou numa pausa ≥0,7s**
+    (`HOOK_MAX_GAP`). Em vídeo com duas vozes (react, entrevista) a ASR muitas vezes não fecha a
+    frase do primeiro antes da fala do segundo; só com a regra de pontuação o card grande do frame
+    0 engolia a fala da outra pessoa até o primeiro ponto final. Usa o `speaker_id` da Scribe,
+    carregado em cada palavra como `spk`.
 
 ## Formato dos arquivos de entrada
 
