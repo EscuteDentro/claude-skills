@@ -708,7 +708,7 @@ Por quê: a taxa de carregamento da Meta só registra visita com pixel disparado
 	- Privacidade: sem cookie, storage, ID, IP ou UA gravados; dado agregado sem identificador não é dado pessoal. Nunca logar body/headers.
 	- Corner cases: reload e voltar não contam (`navigation.type !== 'navigate'`); página prerender/`hidden` só conta ao ficar visível ou na primeira interação (webview pode reportar `hidden` por engano); fonte fora do padrão é descartada; sem env de storage o endpoint vira no-op (deploy seguro antes do storage).
 	- Relatório: `GET /api/m?k=METRICS_REPORT_KEY&days=N` (env própria, mín. 24 caracteres). Comparar chegadas pagas com cliques de saída do Ads Manager por dia e plataforma.
-- **Monitor de saúde** (`api/tracking-health.js`): Dataset Quality API (`GET /dataset_quality?dataset_id=`, funciona com o mesmo token do CAPI) → EMQ, cobertura de servidor (meta da Meta: 75%) e dedup por `event_id`. Cache de CDN 1h. UptimeRobot Keyword monitor `"ok":true`. EMQ e cobertura só reprovam após `ENFORCE_FROM`, pra janela da Meta renovar depois de correções.
+- **Monitor de saúde** (`api/tracking-health.js`): Dataset Quality API (`GET /dataset_quality?dataset_id=`, funciona com o mesmo token do CAPI) → EMQ, cobertura de servidor (meta da Meta: 75%) e dedup por `event_id`, incluindo InitiateCheckout (vigia a CAPI do checkout). Cache de CDN 1h. UptimeRobot Keyword monitor `"ok":true`. EMQ e cobertura só reprovam após `ENFORCE_FROM`, pra janela da Meta renovar depois de correções.
 - **Evento seguido de navegação** (Lead → checkout): `_capi()` retorna a promise do fetch; aguardar `Promise.race([capi, 800ms])` antes do redirect, com rede de segurança de 1,5s. Navegação imediata cancela envios do pixel (img/iframe) e, em alguns navegadores in-app, o fetch keepalive.
 - **Proporção servidor:navegador é diagnóstico, não meta.** Servidor > navegador é o esperado com CAPI próprio + CAPI da Meta (se ativa) + visitantes com bloqueador. Nunca desligar fonte correta nem criar canal duplicado (ex: relay de `/tr`) pra aproximar o número. Saúde = cobertura ≥75%, dedup por `event_id` ≥90% nos dois lados, nenhum evento indevido.
 - **Compra de teste nunca no checkout de produção com pixel ativo**: vira Purchase real e contamina a otimização de campanha.
@@ -862,7 +862,8 @@ const DATASET = 'SEU_PIXEL_ID';
 // Falha a partir de ENFORCE_FROM: nota de correspondência (EMQ) < 6 em PageView/ViewContent; cobertura de
 // servidor < 75% (meta da própria Meta) em evento-chave. A data existe porque a janela da Meta ainda contém
 // os PageView falsos do healthcheck antigo.
-const KEY_EVENTS   = ['PageView', 'ViewContent', 'PrecheckoutOpen', 'Lead'];
+// InitiateCheckout: vem da CAPI do checkout (ex.: Hotmart); a cobertura dele denuncia se o checkout parar de enviar por servidor
+const KEY_EVENTS   = ['PageView', 'ViewContent', 'PrecheckoutOpen', 'Lead', 'InitiateCheckout'];
 const EMQ_EVENTS   = ['PageView', 'ViewContent'];
 const ENFORCE_FROM = 'AAAA-MM-DD'; // 7 dias após o deploy (janela da Meta)
 
