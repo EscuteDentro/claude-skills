@@ -1,6 +1,7 @@
 {
   "_formato": "9:16 vertical (Reels/Stories). canvas_w/canvas_h é resolução DE REFERÊNCIA (1080p) pra calibrar font_size/posições — build_captions.py escala automaticamente pra qualquer resolução real no mesmo formato 9:16 (ex: 4K/2160x3840), não precisa bater exato",
   "_safe_zone": "hook.center_y (700/1920=36%) e body.bottom_margin (672px -> borda inferior do texto em 1248/1920=65%) mantêm os dois dentro de ~14%-65% de altura, fora da faixa de UI de Reels/Stories (perfil/'Patrocinado' no topo, legenda/ícones de curtir-comentar-compartilhar embaixo) - ver .claude/videosys/ARQUITETURA.md do vault de referência. bottom_margin=0 (valor antigo deste arquivo) colava o texto na borda real, dentro da zona de ícones - bug real encontrado em produção 2026-09-09 quando este config genérico foi usado sem querer no lugar de um config de marca",
+  "safe_zone": {"top": 0.14, "bottom": 0.35, "sides": 0.10},
   "canvas_w": 1080,
   "canvas_h": 1920,
   "font_path": "/System/Library/Fonts/HelveticaNeue.ttc",

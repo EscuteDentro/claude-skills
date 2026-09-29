@@ -24,6 +24,10 @@ real, copie esse exemplo e preencha com seus próprios valores num arquivo **for
 - **Corpo**: o resto, fonte menor, no máximo N linhas por card (default: 1), flui naturalmente
   acompanhando pausas de fala.
 
+## Zona segura garantida (`safe_zone`)
+
+`"safe_zone": {"top": 0.14, "bottom": 0.35, "sides": 0.10}` (frações do canvas; default ligado) faz a legenda ficar legível em qualquer posicionamento de Reels/Stories (Instagram e Facebook): topo 14% (perfil), base 35% (pior caso, Reels: legenda do post e ícones), laterais 10% (telas ultra-altas cortam ~10% de cada lado). `build_captions.py` limita `max_width` à largura da zona (traço incluído), mede a tinta real de cada card (alpha), empurra o card pra dentro quando a âncora o jogaria pra fora e grava `x`/`y` finais no `cards.json`; card que não cabe de jeito nenhum aborta com erro, nunca sai fora. `composite_captions.py` usa esse `x`/`y`. Sem `safe_zone` no config: comportamento antigo.
+
 ## Ancoragem vertical (`anchor`)
 
 Cada camada (`hook`/`body`) escolhe um modo:

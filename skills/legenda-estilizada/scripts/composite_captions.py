@@ -147,8 +147,8 @@ def main() -> None:
     for i, c in enumerate(cards, start=1):
         inputs += ["-i", str(cards_dir / c["file"])]
         layer_cfg = cfg["hook"] if c["style"] == "hook" else cfg["body"]
-        x = (canvas_w - c["w"]) // 2
-        y = layer_y(layer_cfg, c["h"], cfg["canvas_h"])
+        x = c.get("x", (canvas_w - c["w"]) // 2)   # x/y gravados pelo safe_zone do build_captions
+        y = c.get("y", layer_y(layer_cfg, c["h"], cfg["canvas_h"]))
         out_label = f"v{i}"
         filter_parts.append(
             f"[{prev_label}][{i}:v]overlay={x}:{y}:enable='between(t,{c['start']:.3f},{c['end']:.3f})'[{out_label}]"

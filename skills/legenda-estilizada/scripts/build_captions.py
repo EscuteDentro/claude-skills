@@ -623,6 +623,40 @@ def render_card(text, out_path, font, stroke_w, max_w, canvas_w, fill, outline,
     return img.width, img.height, len(lines)
 
 
+
+def apply_safe_zone(cards: list[dict], cfg: dict, out_dir: Path) -> None:
+    """Optional `safe_zone` {top, bottom, sides} (fractions of the canvas): every
+    card's INK (alpha > 0, stroke included) must land inside it on every
+    placement. Records the final "x"/"y" per card, nudging a card up/down into
+    the zone when its anchor would push it out; fails loud when a card cannot
+    fit at all (taller or wider than the zone). Without `safe_zone`: no-op."""
+    sz = cfg.get("safe_zone")
+    if not sz:
+        return
+    W, H = cfg["canvas_w"], cfg["canvas_h"]
+    top, bot = round(H * sz.get("top", 0)), round(H * (1 - sz.get("bottom", 0)))
+    left, right = round(W * sz.get("sides", 0)), round(W * (1 - sz.get("sides", 0)))
+    for c in cards:
+        lay = cfg["hook"] if c["style"] == "hook" else cfg["body"]
+        if lay.get("anchor", "center") == "bottom":
+            y = H - lay.get("bottom_margin", 0) - c["h"]
+        else:
+            y = lay["center_y"] - c["h"] // 2
+        x = (W - c["w"]) // 2
+        bbox = Image.open(out_dir / c["file"]).getchannel("A").getbbox()
+        if bbox is None:
+            c["x"], c["y"] = x, y
+            continue
+        ix0, iy0, ix1, iy1 = bbox
+        if (iy1 - iy0) > (bot - top) or x + ix0 < left or x + ix1 > right:
+            sys.exit(f"ERRO zona segura: card {c['file']} ({c.get('text', '')!r}) não cabe na zona "
+                     f"(tinta {ix1 - ix0}x{iy1 - iy0}px, zona x {left}-{right}, y {top}-{bot}); reduzir max_width/font_size")
+        if y + iy1 > bot:
+            y = bot - iy1
+        if y + iy0 < top:
+            y = top - iy0
+        c["x"], c["y"] = x, y
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("edl")
@@ -659,6 +693,10 @@ def main() -> None:
         cfg = scale_config_to_video(cfg, video_w, video_h)
     else:
         print(f"  aviso: EDL tem {len(edl_sources)} sources diferentes, pulando checagem de resolução (não dá pra saber qual escala usar)")
+    if cfg.get("safe_zone"):  # wrap text inside the side margins, stroke included
+        zone_w = round(cfg["canvas_w"] * (1 - 2 * cfg["safe_zone"].get("sides", 0)))
+        for k in ("hook", "body"):
+            cfg[k]["max_width"] = min(cfg[k]["max_width"], zone_w - 2 * cfg[k]["stroke_width"])
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -847,6 +885,7 @@ def main() -> None:
         for c in cards:
             if c["style"] == "body" and c["start"] < first:
                 c["start"] = first
+    apply_safe_zone(cards, cfg, out_dir)
     (out_dir / "cards.json").write_text(json.dumps({"cards": cards, "total_duration": total_dur, "config": cfg},
                                                      indent=2, ensure_ascii=False))
     print(f"gerados {len(cards)} cards (1 hook + {len(groups)} body), duracao total {total_dur:.2f}s")
