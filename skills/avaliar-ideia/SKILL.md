@@ -101,7 +101,7 @@ Fora da resposta por padrão (entregar só se pedido): paths de arquivo, leque c
 
 ## 5. Registro se aprovada
 
-Se o veredito for **Adotar** ou **Adaptar**, oferecer (não fazer sem confirmar) salvar uma entrada num arquivo de backlog do seu projeto, formato:
+Se o veredito for **Adotar** ou **Adaptar**, oferecer (não fazer sem confirmar) salvar uma entrada num arquivo de backlog do seu projeto, dentro da seção da área certa (backlog agrupado por área, pendentes antes das feitas; área nova só se nenhuma servir), formato:
 
 ```markdown
 - [ ] **{{nome da ideia}}** — {{veredito}}, encaixa em {{ponto do processo}}
