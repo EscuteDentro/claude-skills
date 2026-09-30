@@ -716,26 +716,42 @@ Por quê: a taxa de carregamento da Meta só registra visita com pixel disparado
 - **Não rodar espelho de servidor em cima do seu próprio CAPI.** A "Conversions API — Supported by Meta" (ativação em um clique) duplica cada evento do navegador como evento de servidor: a razão servidor:navegador vai a ~2,5:1 sem recuperar conversão nenhuma, e a leitura dos números fica confusa. Se você já tem CAPI próprio, desligue o espelho **no site**, com `fbq('skipOpenbridge', 'SEU_PIXEL_ID')` antes do `fbq('init')` — comando nativo do fbevents, reversível apagando a linha. Evite o botão de excluir o conjunto no Gerenciador de Negócios: o diálogo diz *"will prevent it from receiving data through Conversions API"*, texto que também comporta bloquear toda a ingestão por CAPI. Validar no navegador: com o comando, zero requisições ao endpoint do espelho, e `facebook.com/tr` e o seu `/api/capi` seguem disparando.
 - **Contrato de tracking verificado por máquina** (`api/selfcheck.js`): a função busca o próprio HTML servido pelo CDN e confere marcas obrigatórias (init do pixel, PageView, helper do CAPI, contador, proxy do fbevents, modal, consentimento) e proibidas (o que foi removido e não pode voltar). Keyword monitor do UptimeRobot na resposta `"ok":true` manda e-mail quando algo sai do lugar. Motivo: marca removida por engano só apareceria dias depois no Events Manager.
 - **Guardião de deploy** (script local no launchd, 1h): compara o deploy no ar com o último commit, checa o contrato e a saúde dos eventos e, após duas falhas seguidas, reverte o commit e dá push. Travas obrigatórias: só commit recente (24h), nunca o mesmo duas vezes, nunca reverter uma reversão.
+- **Experimento no tracking com volta automática**: mudança no comportamento do pixel (ex: carregar ao abrir a página em vez de após interação) fica atrás de uma chave única no `<head>` (`window.TRACK_MODE`), enviada pelo contador em cada evento (`v=`). Isso separa as versões mesmo com as duas no ar durante a troca de cache.
+	- Ordem dos commits: medição primeiro (fica mesmo se o teste voltar), ferramentas depois, experimento por último e sozinho. Reverter é `git revert` de um commit só, texto da política junto. Tag de checkpoint antes do experimento
+	- Medição independente da Meta no contador: `px` (fbevents carregou), `tr` (requisição a `facebook.com/tr` vista por `PerformanceObserver` de recursos), `err` (erro de script do próprio domínio), `lcp` (faixa do LCP, enviada ao esconder a página; aba oculta não gera LCP)
+	- Vigia local (launchd, 1h) reverte após 2h seguidas de quebra técnica: contrato, CAPI, tracking ativo < 80% ou pixel enviado < 40% das chegadas, erro de script ≥ 20%, LCP > 4s em ≥ 25% das visitas, chegadas < 70% dos cliques. Confere o deploy depois do push. Taxa de carregamento pior não reverte: amostra pequena é ruído, decisão humana
+	- Política de privacidade muda no mesmo commit do comportamento: o texto precisa descrever quando a medição começa
 - **Confirmar que o deploy saiu.** O gatilho Git→Vercel falha em silêncio: o commit entra no repositório e nenhum deploy é criado, com o CDN servindo a versão antiga por horas. Depois de todo push, conferir que o último deploy corresponde ao commit; um commit vazio reativa o gatilho. `?query` na URL não fura o cache do CDN — conferir `age` e `x-vercel-cache` no `curl -sI`.
 - **Monitor keyword na API v3 do UptimeRobot** exige `httpMethodType=GET` (o padrão é HEAD, que não devolve corpo, e o alerta dispararia sempre) e `timeout` no corpo da criação. Monitor recém-criado demora alguns segundos para entrar na listagem: esperar antes de atribuir contatos de alerta, senão ele nasce sem avisar ninguém.
 
 Snippet (início do `<head>`):
 ```html
-<script>/* Contador anônimo de chegadas (api/m.js): sem cookie, sem storage, sem ID. Mede a base independente da Meta. */
+<script>/* Modo do tracking: 'gate' = pixel só após interação (consentimento); 'load' = pixel ao abrir a página. Lido pelo bloco de consentimento e enviado ao contador. */
+window.TRACK_MODE='load';
+/* Contador anônimo de chegadas (api/m.js): sem cookie, sem storage, sem ID. Mede a base independente da Meta. */
 (function(){try{
 if(navigator.webdriver||!navigator.sendBeacon||!window.URLSearchParams)return;
 var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];
 if(n&&n.type&&n.type!=='navigate')return;
 var q=new URLSearchParams(location.search),paid=q.get('utm_medium')==='paid';
 var s=paid?(q.get('utm_source')||'na'):'org',p=paid?(q.get('utm_term')||'na'):'';
+var fb=q.get('fbclid')?1:0,rf=/(^|\.)(facebook|instagram|threads)\.com$/.test((function(){try{return new URL(document.referrer).hostname}catch(e){return ''}})())?1:0;
 var sent={},eng=0,t0=0,on=0;
-function b(e,x){if(sent[e])return;sent[e]=1;navigator.sendBeacon('/api/m','e='+e+'&s='+encodeURIComponent(s.slice(0,40))+'&p='+encodeURIComponent(p.slice(0,40))+'&g='+eng+(x?'&x='+x:''));}
+function b(e,x){if(sent[e])return;sent[e]=1;navigator.sendBeacon('/api/m','e='+e+'&s='+encodeURIComponent(s.slice(0,40))+'&p='+encodeURIComponent(p.slice(0,40))+'&g='+eng+'&f='+fb+'&r='+rf+'&v='+window.TRACK_MODE+(x?'&x='+x:''));}
 window._mConsent=function(){if(on)b('consent');};
+/* px = fbevents carregou; tr = requisição a facebook.com/tr saiu do navegador (evento do pixel de fato enviado) */
+var pend={};window._mEv=function(e){if(e!=='px'&&e!=='tr')return;if(on)b(e);else pend[e]=1;};/* antes do start (página oculta): guarda e envia no start */
+var lcp=0;function lcpOut(){if(lcp)b('lcp',lcp<1500?'lt1500':lcp<2500?'1500to2500':lcp<4000?'2500to4000':'gt4000');}
 function start(){if(on)return;on=1;t0=Date.now();b('arrive');
 if(document.readyState==='complete')b('loaded');else addEventListener('load',function(){b('loaded');});
 ['scroll','click','touchstart','keydown'].forEach(function(ev){addEventListener(ev,function(){if(!eng){eng=1;b('engaged');}},{passive:true,capture:true});});
 if(window._trackingLoaded)b('consent');
-addEventListener('pagehide',function(){var d=(Date.now()-t0)/1000;b('exit',d<3?'lt3':d<10?'3to10':d<30?'10to30':'gt30');});}
+for(var k in pend)b(k);
+try{new PerformanceObserver(function(l){l.getEntries().forEach(function(en){if(/facebook\.com\/tr/.test(en.name))b('tr');});}).observe({type:'resource',buffered:true});}catch(e){}
+try{new PerformanceObserver(function(l){var es=l.getEntries();if(es.length)lcp=es[es.length-1].startTime;}).observe({type:'largest-contentful-paint',buffered:true});}catch(e){}
+addEventListener('error',function(ev){if(ev.filename&&ev.filename.indexOf(location.origin)===0)b('err');},true);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')lcpOut();});
+addEventListener('pagehide',function(){lcpOut();var d=(Date.now()-t0)/1000;b('exit',d<3?'lt3':d<10?'3to10':d<30?'10to30':'gt30');});}
 if(document.prerendering)document.addEventListener('prerenderingchange',start,{once:true});
 else if(document.visibilityState==='hidden'){document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')start();});
 ['focus','pointerdown','touchstart','scroll','keydown'].forEach(function(ev){addEventListener(ev,function(e){start();if(e.type!=='focus'&&!eng){eng=1;b('engaged');}},{passive:true,capture:true,once:true});});}/* webview que reporta hidden por engano: interação prova que é visível */
@@ -752,22 +768,38 @@ const crypto = require('crypto');
 // LGPD: dado agregado sem identificador não é dado pessoal. NUNCA logar body nem headers aqui.
 //
 // POST (sendBeacon text/plain): e=<evento>&s=<fonte>&p=<posicionamento>&x=<faixa>&g=<0|1>
-//   e: arrive | loaded | engaged | consent | exit     (consent = tracking carregado nesta visita)
+//   e: arrive | loaded | engaged | consent | exit | px | tr | err | lcp
+//      consent = tracking carregado; px = fbevents carregou; tr = requisição a facebook.com/tr saiu;
+//      err = erro de script do próprio site; lcp = faixa do LCP (x=lt1500|1500to2500|2500to4000|gt4000)
+//   v: modo do tracking (gate | load) — separa as versões mesmo com as duas no ar durante a troca do cache
 //   s: utm_source quando utm_medium=paid (ig, fb, an, msg...) ou "org"
 //   p: utm_term ({{placement}} dos anúncios) — só tráfego pago
 //   x: faixa de permanência no exit (lt3 | 3to10 | 10to30 | gt30); g: já tinha interagido (1) ou não (0)
+//   f: URL tinha fbclid (clique de anúncio); r: referrer é domínio da Meta
 // GET ?k=<METRICS_REPORT_KEY>&days=N → relatório agregado
 //
-// Sem UPSTASH_REDIS_REST_URL/TOKEN (ou KV_REST_API_URL/TOKEN) → no-op silencioso (deploy seguro antes do Upstash).
+// Sem as env vars do Redis (qualquer prefixo da integração Upstash/KV) → no-op silencioso.
 
-const EVENTS = new Set(['arrive', 'loaded', 'engaged', 'consent', 'exit']);
+const EVENTS = new Set(['arrive', 'loaded', 'engaged', 'consent', 'exit', 'px', 'tr', 'err', 'lcp']);
+const LCPS   = new Set(['lt1500', '1500to2500', '2500to4000', 'gt4000']);
+const MODES  = new Set(['gate', 'load']);
 const EXITS  = new Set(['lt3', '3to10', '10to30', 'gt30']);
 const TTL    = 180 * 24 * 3600;
 
+// Aceita os nomes padrão e qualquer prefixo da integração Upstash/KV da Vercel
+// (ex: STORAGE_KV_REST_API_URL) — o nome varia conforme o "Custom Prefix" escolhido na instalação.
+function pick(re, skip) {
+  var keys = Object.keys(process.env).filter(function(k) { return re.test(k) && !skip.test(k); });
+  keys.sort(function(a, b) { return a.length - b.length; });
+  return keys.length ? process.env[keys[0]] : null;
+}
 function redisCfg() {
-  var url   = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  var token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-  return url && token ? { url: url.replace(/\/$/, ''), token: token } : null;
+  var url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL ||
+    pick(/(REST_API_URL|REDIS_REST_URL)$/, /READ_ONLY/);
+  var token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN ||
+    pick(/(REST_API_TOKEN|REDIS_REST_TOKEN)$/, /READ_ONLY/);
+  if (!url || !token || !/^https:\/\//.test(url)) return null;
+  return { url: url.replace(/\/$/, ''), token: token };
 }
 
 // Dia no fuso de Brasília (mesmo fuso da conta de anúncios)
@@ -808,6 +840,14 @@ module.exports = async function handler(req, res) {
       return res.status(404).end();
     }
     if (!cfg) return res.status(200).json({ ok: false, error: 'storage não configurado' });
+    if (req.query.selfcheck) { // diagnóstico: escreve, lê e apaga uma chave própria
+      try {
+        var out = await redis(cfg, [['HINCRBY', 'm:selfcheck', 'ping', 1], ['HGETALL', 'm:selfcheck'], ['DEL', 'm:selfcheck']]);
+        return res.status(200).json({ ok: true, host: cfg.url.replace(/^https:\/\//, '').slice(0, 28), redis: out });
+      } catch (e2) {
+        return res.status(200).json({ ok: false, host: cfg.url.replace(/^https:\/\//, '').slice(0, 28), error: String(e2 && e2.message) });
+      }
+    }
     var days = Math.min(Math.max(parseInt(req.query.days, 10) || 14, 1), 90);
     var keys = []; for (var i = 0; i < days; i++) keys.push(dayKey(i));
     try {
@@ -827,9 +867,17 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   if (!cfg) return res.status(204).end();
 
-  var raw = typeof req.body === 'string' ? req.body : '';
-  if (!raw || raw.length > 300) return res.status(204).end();
-  var q = new URLSearchParams(raw);
+  // sendBeacon manda text/plain (string); curl/form manda objeto já parseado pela Vercel — aceitar os dois
+  var b = req.body, q;
+  if (typeof b === 'string') {
+    if (!b || b.length > 300) return res.status(204).end();
+    q = new URLSearchParams(b);
+  } else if (b && typeof b === 'object' && !Array.isArray(b)) {
+    if (JSON.stringify(b).length > 400) return res.status(204).end();
+    q = new URLSearchParams(Object.keys(b).reduce(function(a, k) { a[k] = String(b[k]); return a; }, {}));
+  } else {
+    return res.status(204).end();
+  }
   var e = q.get('e');
   if (!EVENTS.has(e)) return res.status(204).end();
 
@@ -838,10 +886,25 @@ module.exports = async function handler(req, res) {
   var key = 'm:' + dayKey(0);
   var fields = [s + ':' + e];
   if (s !== 'org') fields.push(s + ':' + token(q.get('p')) + ':' + e);
+  // chegada com fbclid = clique de anúncio de verdade (não revisita com UTM no histórico);
+  // referrer da Meta confirma que veio do app. Numerador mais estrito para o teste de chegada.
+  if (e === 'arrive') {
+    if (q.get('f') === '1') fields.push(s + ':arrive_fbclid');
+    if (q.get('r') === '1') fields.push(s + ':arrive_ref');
+  }
   if (e === 'exit') {
     var x = EXITS.has(q.get('x')) ? q.get('x') : 'x';
     var g = q.get('g') === '1' ? 'eng' : 'noeng';
     fields = [s + ':exit:' + g + ':' + x];
+  }
+  // por modo do tracking: v:<gate|load>:<pago|org>:<evento>[:faixa]
+  var v = MODES.has(q.get('v')) ? q.get('v') : 'x', vk = 'v:' + v + ':' + (s === 'org' ? 'org' : 'pago') + ':';
+  if (e === 'lcp') {
+    var l = LCPS.has(q.get('x')) ? q.get('x') : 'x';
+    fields = [s + ':lcp:' + l];
+    if (s !== 'teste' && s !== 'selftest') fields.push(vk + 'lcp:' + l);
+  } else if (e !== 'exit' && s !== 'teste' && s !== 'selftest') {  // validações ficam fora do recorte por modo
+    fields.push(vk + e);
   }
 
   var cmds = fields.map(function(f) { return ['HINCRBY', key, f, 1]; });
