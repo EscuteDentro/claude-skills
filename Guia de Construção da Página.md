@@ -100,7 +100,7 @@ Arquitetura dupla: **Pixel browser + CAPI server-side** em paralelo. Deduplicaç
 
 Todos os eventos dentro ou protegidos por `loadTracking()` — função que só dispara após consentimento LGPD.
 
-**Modo do tracking (`window.TRACK_MODE` no `<head>`):** `gate` = `loadTracking()` só após interação (consentimento); `load` = roda ao abrir a página, sem barra, e a política precisa dizer que o consentimento é ao acessar. Trocar o modo é um commit isolado, reversível com `git revert`.
+**Modo do tracking (`window.TRACK_MODE` no `<head>`):** `gate` = `loadTracking()` só após interação (consentimento); `load` = roda sem esperar interação, no evento `load` da página (rede de segurança 4s; disparo imediato fez o pixel disputar rede com o elemento do LCP e piorou o LCP em ~25% em 4G lento), sem barra, e a política precisa dizer que o consentimento é ao acessar. Trocar o modo é um commit isolado, reversível com `git revert`.
 
 | Evento | Tipo | Gatilho | Parâmetros | Pixel | CAPI | Clarity tag | Fonte |
 |---|---|---|---|---|---|---|---|
