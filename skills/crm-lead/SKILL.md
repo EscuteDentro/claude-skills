@@ -98,7 +98,7 @@ Cria/atualiza um contato no Google Contatos pra cada lead elegível (nunca pra q
 2. Se ativou a ferramenta 2: `python3 plan_duplicado.py` → mostrar pro usuário → só com confirmação, `python3 execute_duplicado.py`.
 3. Se ativou a ferramenta 3: listar quem precisa de contato (`Status CRM` vazio + `COMPROU` ≠ Sim), gerando o link com `gerar_link_whatsapp.py` (a função `gerar_link()` exige o valor de `Consentiu WA` como argumento e recusa gerar link se não for `"Sim"` — trava embutida no código, não só regra de documentação); quem não consentiu, só o nome + aviso de usar e-mail.
 4. Se ativou a ferramenta 6: `python3 plan_contacts_update.py` → mostrar plano completo (renomear/criar) → só com confirmação, `python3 execute_contacts_update.py`.
-5. Fechar com um resumo: quantas duplicatas achadas/marcadas, quantos leads sem contato (com link), quantos contatos renomeados/criados. Sem inventar número — só o que os scripts realmente reportaram.
+5. Fechar com um resumo: quantas duplicatas achadas/marcadas, quantos leads sem contato (com link), quantos contatos renomeados/criados. Sem inventar número — só o que os scripts realmente reportaram. Ponto de atenção só depois de cruzado com a Sheet: pra cada nome que um script sinalizou, ler `Status CRM` e, se houver, a `Observação` da FUP; caso já registrado como resolvido (contatado por outro canal, telefone corrigido, número estrangeiro que funciona) fica fora do resumo. Linha `sem variante aplicável` do `add_phone_variant.py` é caso esperado, nunca pendência.
 
 ## Regras absolutas — nunca violar, mesmo se pedido
 

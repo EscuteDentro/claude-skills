@@ -26,6 +26,12 @@ BANCO_OBJECOES_TAB = "Banco de Objeções"
 # esse arquivo em lugar nenhum -- fica fora de qualquer repositório git.
 SERVICE_ACCOUNT_KEY_PATH = "{caminho/fora/do/repo/service-account.json}"
 
+# Opcional: token OAuth do Google Contatos (o mesmo OAUTH_TOKEN_PATH do
+# crm-lead). Com ele, o diff casa a conversa com a linha da FUP pelo telefone
+# (o nome exibido no WhatsApp é o nome do contato Google), em vez de pelo
+# Nome, que muda. Sem ele (None), o casamento é só por Nome.
+OAUTH_TOKEN_PATH = None  # ex: "~/caminho/fora/do/repo/oauth-token.json"
+
 # Termo de busca usado no WhatsApp Web pra achar os contatos deste fluxo.
 # Precisa bater com o padrão de nome que você usa pra salvar lead no
 # WhatsApp/Contatos -- se você usa o CONTATO_MARCADOR do crm-lead

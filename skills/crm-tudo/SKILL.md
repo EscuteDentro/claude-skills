@@ -22,7 +22,7 @@ Não inverter nem pular, mesmo que pareça que "não tem lead novo". Motivo real
 
 1. **Acionar a skill `crm-lead`** e completar o fluxo dela inteiro (as ferramentas modulares que você configurou — ver o SKILL.md dela pra lista completa).
 2. **Acionar a skill `crm-fup`** e completar o fluxo dela inteiro, do passo 1 (captura da lista) até o passo 6 (resumo).
-3. **Fechar com resumo único**, combinando os dois: duplicatas resolvidas, leads sem contato (com link), contatos salvos/renomeados, distribuição de Status na FUP, linhas novas em Dores e Desejos e em Objeções, células sincronizadas de volta pra aba de leads. Sem inventar número — só o que os scripts de cada skill realmente reportaram.
+3. **Fechar com resumo único**, combinando os dois: duplicatas resolvidas, leads sem contato (com link), contatos salvos/renomeados, distribuição de Status na FUP, linhas novas em Dores e Desejos e em Objeções, células sincronizadas de volta pra aba de leads. Sem inventar número — só o que os scripts de cada skill realmente reportaram. Ponto de atenção só depois de cruzado com `Status CRM` (aba de leads) e `Observação` (FUP) do contato: caso que a Sheet já registra como resolvido fica fora do resumo.
 
 ## Regras herdadas (não duplicar aqui, só reforçar)
 

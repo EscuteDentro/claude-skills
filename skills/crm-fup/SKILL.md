@@ -41,6 +41,8 @@ Mesmo desenho do `crm-lead`: nunca contata quem não deu consentimento, nunca en
 
 Abrir WhatsApp Web, buscar `config.MARCADOR_BUSCA_WHATSAPP` na busca, rolar até o fim, e ler o texto da página. Parsear manualmente (o texto de busca do WhatsApp é irregular demais pra regex confiável — nomes com badge de avatar, tags de arquivada/não lida intercaladas) em uma lista de `{nome, data, trecho}` por contato, resolvendo datas relativas ("Ontem", "quarta-feira") pra data absoluta usando a data de hoje. Salvar como JSON (ex: `captura_YYYY-MM-DD.json` — já no `.gitignore` desta pasta, nunca commitar captura real).
 
+**Trecho sempre literal, copiado da lista.** O diff da próxima rodada compara contra ele: trecho resumido, parafraseado ou com reticências postas à mão vira falso "mudou" em toda rodada seguinte. Prévia vazia (mídia, mensagem apagada) fica `""`. Aviso do aplicativo (conta comercial, mensagens temporárias) entra como veio: o diff reconhece e ignora.
+
 Ignorar contatos que claramente não são leads reais (ex: nome de comércio que só coincide ter o marcador de busca numa palavra do nome — checar contexto antes de tratar como lead).
 
 ### 2. Diff contra o estado gravado
@@ -51,12 +53,20 @@ cd scripts && python3 fup_diff.py captura_YYYY-MM-DD.json
 
 Gera `diff_resultado.json` com quem é novo e quem mudou (data OU trecho diferente do gravado — mensagem nova no mesmo dia já muda o trecho, então entra no diff mesmo sem mudar a data). Reporte os números pro usuário antes de continuar.
 
+**Chave do casamento: par `(canal, id)`, nunca o Nome** (`scripts/identidade.py`). O id não muda; o nome muda (rename, sufixo de mês, sobrenome).
+- Canal `zap`: id é o telefone na forma canônica (só dígitos; número BR sem o 9 extra). A lista do WhatsApp só mostra nome, então a ponte nome → telefone vem do Google Contatos (`config.OAUTH_TOKEN_PATH`, opcional). Sem a ponte, ou pra contato fora do Google Contatos, o casamento cai pro Nome.
+- **Canal novo (Instagram, TikTok...) muda a chave**: criar a coluna de id do canal na aba FUP, registrar em `ID_HEADER_POR_CANAL`, e gravar `canal` + `id` (ex: `@usuario`) em cada item da captura. Sem isso o lead do canal novo casa só por Nome e volta o falso "novo".
+- Saída extra do diff, tratar antes de abrir conversa:
+	- `nomes_divergentes`: mesma pessoa com Nome diferente na FUP. Alinhar com `python3 fup_update_rows.py --alinhar-nomes diff_resultado.json` (só escreve Nome)
+	- `ATENÇÃO: N pessoa(s) com 2 linhas na FUP`: fundir na linha com dado real e apagar a outra antes de seguir
+	- Aviso de sistema como última linha: ignorado, não abrir
+
 ### 3. Processar em lote (abrir só quem mudou ou é novo)
 
 Pra cada contato do lote:
 
 1. **Checar se está "Não lida" antes de abrir** (indicador visual na lista).
-2. Abrir a conversa, ler o texto da página. Se for contato novo (nunca visto), rolar até o início da conversa pra achar a data da 1ª mensagem real — não confiar só na mensagem mais recente, ela pode não representar o motivo real de contato (relação longa pode ter deriva pra assunto totalmente diferente com o tempo, a raiz da conversa é onde a dor/desejo real costuma estar).
+2. Abrir a conversa, ler o texto da página. **A primeira leitura traz só as últimas mensagens**: rolar pra cima até aparecer o aviso de criptografia (topo real) ou o aviso de histórico só no celular antes de afirmar quem escreveu primeiro, a data da 1ª mensagem, ou que o contato "escreveu sozinho". Sem chegar ao topo, registrar como não verificado. Se for contato novo (nunca visto), rolar até o início da conversa pra achar a data da 1ª mensagem real — não confiar só na mensagem mais recente, ela pode não representar o motivo real de contato (relação longa pode ter deriva pra assunto totalmente diferente com o tempo, a raiz da conversa é onde a dor/desejo real costuma estar).
 3. Classificar o novo Status:
    - **Ghost 1**: nunca respondeu, só 1 dia de tentativa sua.
    - **Ghost 2**: nunca respondeu, 2+ dias distintos de tentativa.
@@ -79,8 +89,10 @@ Mostrar pro usuário: linhas novas/atualizadas propostas pra FUP, linhas novas p
 
 ```python
 from fup_update_rows import apply_updates
-apply_updates([...])
+apply_updates([...], "captura_YYYY-MM-DD.json")
 ```
+
+Passar sempre a captura da rodada: `apply_updates` grava o trecho literal da lista por cima do que vier digitado no update. Linha existente é casada pelo telefone canônico (com e sem o 9 é a mesma linha).
 
 ```python
 from dores_desejos_add_rows import add_rows
@@ -99,13 +111,15 @@ python3 plan_sync_leads.py achados.json
 python3 execute_sync_leads.py achados.json
 ```
 
-Só preenche `Status CRM` pra quem está vazio (nunca sobrescreve valor humano), só quando o telefone bate com exatamente 1 linha na aba de leads (telefone duplicado = pula e avisa, resolver duplicata é trabalho do `crm-lead`).
+Só preenche `Status CRM` pra quem está vazio (nunca sobrescreve valor humano, nunca escreve em linha já marcada como compra). Telefone com mais de uma linha na aba de leads (grupo de duplicata): grupo inteiro vazio ganha a âncora na linha `Duplicado = 1` e `Ver linha N` nas demais; grupo com alguma linha já preenchida é pulado (âncora existe, ligar o resto é do `crm-lead`).
 
 **`achados.json` sempre com TODOS os contatos abertos/atualizados nesta rodada, nunca uma lista escolhida a dedo.** Montar o sync só com quem teve achado "interessante" (D&D/Objeção) e esquecer quem só teve conversa comum é o erro mais fácil de cometer aqui — gerar a lista programaticamente a partir de quem foi de fato processado no passo 3 (novos + mudados do diff), não filtrar antes de montar o payload.
 
 ### 6. Fechar com resumo
 
 Quantos novos, quantos mudaram, distribuição de Status, quantas linhas novas em Dores e Desejos, quantas células sincronizadas de volta pra aba de leads. Confirmar que toda conversa aberta nesta rodada teve o "Não lida" original restaurado. Sem inventar número — só o que os scripts realmente reportaram.
+
+**Ponto de atenção só entra no resumo depois de cruzado com a Sheet.** Pra cada nome que um script ou a captura sinalizou (aviso, pulado, conta comercial, formato de telefone), ler `Status CRM` (aba de leads) e `Observação` (FUP) daquele contato. Caso já registrado como resolvido: fora do resumo. Pendência é só o que a Sheet ainda não explica.
 
 ## Banco de Copies — síntese pra uso direto em copy (opcional)
 

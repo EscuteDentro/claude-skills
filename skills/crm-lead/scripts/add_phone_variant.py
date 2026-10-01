@@ -29,7 +29,7 @@ def alt_format(raw):
 
 def main():
     contacts = list_lead_contacts()
-    updated, ja_tinha, formato_inesperado = 0, 0, 0
+    updated, ja_tinha, sem_variante = 0, 0, 0
     service = get_service()
 
     for c in contacts:
@@ -39,8 +39,10 @@ def main():
         original = c["phones"][0]
         alt = alt_format(original)
         if not alt:
-            print(f"PULADO (formato inesperado): {c['name']} | {original!r}")
-            formato_inesperado += 1
+            # Número não-BR, ou BR já sem o 9: não existe segunda forma a
+            # acrescentar. Caso esperado, nunca pendência -- não levar ao resumo.
+            print(f"sem variante aplicável (não-BR ou já sem o 9, esperado): {c['name']} | {original!r}")
+            sem_variante += 1
             continue
         body = {
             "etag": c["etag"],
@@ -54,7 +56,7 @@ def main():
         print(f"OK: {c['name']} -> {original!r} / {alt!r}")
         updated += 1
 
-    print(f"\nTotal: {updated} atualizados, {ja_tinha} já tinham as 2 variantes, {formato_inesperado} pulados por formato inesperado")
+    print(f"\nTotal: {updated} atualizados, {ja_tinha} já tinham as 2 variantes, {sem_variante} sem variante aplicável (esperado, nada a fazer)")
 
 
 if __name__ == "__main__":
