@@ -58,9 +58,11 @@ python scripts/composite_captions.py <out_dir> <video_base.mp4> <video_final.mp4
 hook grande. Útil quando o hook já foi resolvido fora do script (ex: uma cena separada,
 repetida de outro ponto do vídeo, que serve de abertura e não deve competir com legenda normal).
 
-`--fps` (default 24, mesmo valor hardcoded em `render.py` do skill `video-use`) declara o
-framerate do render final — necessário pro cálculo de deriva do item 10 das Regras de design
-abaixo. Só mude se o pipeline de vídeo usado não for o `video-use`/`render.py` padrão.
+`--fps` (default 24) declara o framerate do render final — necessário pro cálculo de deriva
+do item 10 das Regras de design abaixo. Tem de ser o mesmo valor com que o vídeo foi
+renderizado: se o `render.py` do `video-use` rodou com `--fps source` ou `--fps 30`, passar aqui
+a taxa real do arquivo (`ffprobe` no vídeo final), senão a legenda deriva a cada corte.
+O `render.py` upstream do `video-use` preserva a taxa da fonte por padrão desde 2026-08.
 
 `--config` faz merge parcial (deep) sobre `config_default.json` — só precisa declarar o que
 quer mudar. Ver todos os campos configuráveis em `scripts/config_default.json`: fonte
@@ -136,7 +138,7 @@ backspace (`\x08`), não o word-boundary de regex — sempre escrever `\\b` no a
     cada corte: num vídeo com dezenas de segmentos (comum em cortes que removem várias pausas),
     a deriva cresce a ponto de ficar perceptível, cada vez pior conforme o vídeo avança — bug
     real chegou a ~0.67s de deriva no card final de um corte com 32 segmentos. Controlado via
-    `--fps` (default 24, igual ao hardcoded em `render.py`).
+    `--fps` (default 24; tem de bater com a taxa real do render).
 11. **CTA de comentário ("comenta aqui embaixo: 'palavra'") troca aspas por CAIXA ALTA na
     keyword**, nunca deixa a keyword entre aspas. A ASR transcreve a keyword como fala
     reportada (entre aspas), mas nesse contexto específico de CTA isso lê mal e compete
