@@ -705,7 +705,10 @@ module.exports = async function handler(req, res) {
 Por quê: a taxa de carregamento da Meta só registra visita com pixel disparado. Com consentimento, ela mede chegada × consentimento e não basta pra avaliar a página. Proporção bruta servidor:navegador também engana (ver abaixo). As três peças abaixo separam "ferramenta quebrada" de "base quebrada".
 
 - **Contador anônimo de chegadas** (`api/m.js` + snippet inline logo no início do `<head>`): contagens diárias agregadas em Redis (Upstash gratuito via Vercel Marketplace, que injeta `UPSTASH_REDIS_REST_URL/TOKEN` ou `KV_REST_API_URL/TOKEN`). Eventos: chegou, carregou (`load`), interagiu, tracking ativo (chamar `window._mConsent()` dentro de `loadTracking()`), faixa de permanência na saída. Tráfego pago separado por `utm_source`/`utm_term` quando `utm_medium=paid` (url_tags dos anúncios: `utm_source={{site_source_name}}&utm_medium=paid&utm_term={{placement}}`).
-	- Privacidade: sem cookie, storage, ID, IP ou UA gravados; dado agregado sem identificador não é dado pessoal. Nunca logar body/headers.
+	- Recortes que explicam a taxa de carregamento: sistema do aparelho (`o=ios|and|out`, só a família), 1ª chegada do clique (`n=1`: fbclid da URL diferente do guardado em `localStorage.SEU_STORAGE_FBCLID`, gravado dentro de `loadTracking()`; nada sai do aparelho), configuração do pixel carregada (`cfg`), tempo até o envio e até a saída (`lt3|3to6|6to10|gt10`)
+	- Saída: registrar também na primeira `visibilitychange` para `hidden`. No navegador do app, fechar a página nem sempre dispara `pagehide`
+	- Leitor de chegada soma só a chave principal (`<fonte>:arrive`): as chaves por posicionamento e por sistema são recortes da mesma chegada, e somá-las dobra o número
+	- Privacidade: sem cookie, ID, IP ou UA gravados; o contador só lê o fbclid já guardado no navegador e envia 0 ou 1. Dado agregado sem identificador não é dado pessoal. Nunca logar body/headers.
 	- Corner cases: reload e voltar não contam (`navigation.type !== 'navigate'`); página prerender/`hidden` só conta ao ficar visível ou na primeira interação (webview pode reportar `hidden` por engano); fonte fora do padrão é descartada; sem env de storage o endpoint vira no-op (deploy seguro antes do storage).
 	- Relatório: `GET /api/m?k=METRICS_REPORT_KEY&days=N` (env própria, mín. 24 caracteres). Comparar chegadas pagas com cliques de saída do Ads Manager por dia e plataforma.
 - **Monitor de saúde** (`api/tracking-health.js`): Dataset Quality API (`GET /dataset_quality?dataset_id=`, funciona com o mesmo token do CAPI) → EMQ, cobertura de servidor (meta da Meta: 75%) e dedup por `event_id`, incluindo InitiateCheckout (vigia a CAPI do checkout). Cache de CDN 1h. UptimeRobot Keyword monitor `"ok":true`. Cobertura só reprova após `ENFORCE_FROM`, pra janela da Meta renovar depois de correções. EMQ baixo nunca reprova: oscila com volume pequeno e não pede ação, fica em `warnings`.
@@ -714,17 +717,29 @@ Por quê: a taxa de carregamento da Meta só registra visita com pixel disparado
 - **Proporção servidor:navegador é diagnóstico, não meta.** Servidor > navegador é o esperado com CAPI próprio + CAPI da Meta (se ativa) + visitantes com bloqueador. Nunca desligar fonte correta nem criar canal duplicado (ex: relay de `/tr`) pra aproximar o número. Saúde = cobertura ≥75%, dedup por `event_id` ≥90% nos dois lados, nenhum evento indevido.
 - **Compra de teste nunca no checkout de produção com pixel ativo**: vira Purchase real e contamina a otimização de campanha.
 - **Origem da venda no checkout** (página de vendas externa → checkout da plataforma): o UTM da LP não chega ao checkout sozinho; a plataforma só registra a origem que vier no próprio link do checkout. No redirect, repassar `utm_source/medium/campaign/content/term` e, na Hotmart, também `sck` (`origem|meio|campanha`, é o que aparece em cada venda). Limpar cada valor antes: sem acento, só letras, números, ponto e hífen, até 30 caracteres (Hotmart limita a 30, reserva `_`, e caractere especial pode impedir o checkout de abrir; nome de campanha de anúncio costuma ter espaço e colchete). Bloco em `try/catch`: nunca pode impedir o redirect. Validar com teste local da função que monta o link, nunca abrindo o checkout de produção (dispara InitiateCheckout real).
-- **Configuração do pixel pelo seu domínio.** `fbq('set', 'cdn', location.origin + '/fbcdn/')` antes do `fbq('init')` e, no `vercel.json`, `"rewrites": [{"source": "/fbcdn/:path*", "destination": "https://connect.facebook.net/:path*"}]`. Comando nativo do fbevents. Sem isso, quem tem `connect.facebook.net` bloqueado (DNS bloqueador, lista de rastreador) carrega o pixel e nunca envia evento, porque a configuração não chega. O CDN da Vercel guarda a resposta (~20 min), o que ainda encurta o caminho até o primeiro envio.
+- **Configuração do pixel pelo seu domínio.** `fbq('set', 'cdn', location.origin + '/fbcdn/')` antes do `fbq('init')` e, no `vercel.json`, `"rewrites": [{"source": "/fbcdn/:path*", "destination": "https://connect.facebook.net/:path*"}]`. Comando nativo do fbevents. Sem isso, quem tem `connect.facebook.net` bloqueado (DNS bloqueador, lista de rastreador) carrega o pixel e nunca envia evento, porque a configuração não chega. O CDN da Vercel guarda a resposta (~20 min), o que ainda encurta o caminho até o primeiro envio. Efeito medido numa página real: nenhum ganho geral na taxa de carregamento; fica como proteção contra bloqueio. O envio (`facebook.com/tr`) continua direto do navegador: nunca repassar `/tr` pelo seu servidor (perde o IP real do visitante).
 - **Não rodar espelho de servidor em cima do seu próprio CAPI.** A "Conversions API — Supported by Meta" (ativação em um clique) duplica cada evento do navegador como evento de servidor: a razão servidor:navegador vai a ~2,5:1 sem recuperar conversão nenhuma, e a leitura dos números fica confusa. Se você já tem CAPI próprio, desligue o espelho **no site**, com `fbq('skipOpenbridge', 'SEU_PIXEL_ID')` antes do `fbq('init')` — comando nativo do fbevents, reversível apagando a linha. Evite o botão de excluir o conjunto no Gerenciador de Negócios: o diálogo diz *"will prevent it from receiving data through Conversions API"*, texto que também comporta bloquear toda a ingestão por CAPI. Validar no navegador: com o comando, zero requisições ao endpoint do espelho, e `facebook.com/tr` e o seu `/api/capi` seguem disparando.
 - **Contrato de tracking verificado por máquina** (`api/selfcheck.js`): a função busca o próprio HTML servido pelo CDN e confere marcas obrigatórias (init do pixel, PageView, helper do CAPI, contador, proxy do fbevents, modal, consentimento) e proibidas (o que foi removido e não pode voltar). Keyword monitor do UptimeRobot na resposta `"ok":true` manda e-mail quando algo sai do lugar. Motivo: marca removida por engano só apareceria dias depois no Events Manager.
 - **Guardião de deploy** (script local no launchd, 1h): compara o deploy no ar com o último commit, checa o contrato e a saúde dos eventos e, após duas falhas seguidas, reverte o commit e dá push. Travas obrigatórias: só commit recente (24h), nunca o mesmo duas vezes, nunca reverter uma reversão.
 - **Experimento no tracking com volta automática**: mudança no comportamento do pixel (ex: carregar ao abrir a página em vez de após interação) fica atrás de uma chave única no `<head>` (`window.TRACK_MODE`), enviada pelo contador em cada evento (`v=`). Isso separa as versões mesmo com as duas no ar durante a troca de cache.
 	- Ordem dos commits: medição primeiro (fica mesmo se o teste voltar), ferramentas depois, experimento por último e sozinho. Reverter é `git revert` de um commit só, texto da política junto. Tag de checkpoint antes do experimento
-	- Medição independente da Meta no contador: `px` (fbevents carregou), `tr` (requisição a `facebook.com/tr` vista por `PerformanceObserver` de recursos), `err` (erro de script do próprio domínio), `lcp` (faixa do LCP, enviada ao esconder a página; aba oculta não gera LCP)
+	- Medição independente da Meta no contador: `px` (fbevents carregou), `cfg` (configuração do pixel baixada), `tr` (requisição a `facebook.com/tr` vista por `PerformanceObserver` de recursos), `err` (erro de script do próprio domínio), `lcp` (faixa do LCP, enviada ao esconder a página; aba oculta não gera LCP)
+	- **`tr` só é confiável no Android.** No iPhone o Resource Timing quase nunca reporta a requisição a `facebook.com/tr` (medido: 3 de 28 visitas com pixel, com a Meta contando 80% de carregamento no mesmo tráfego). Nunca concluir "o evento não chega à Meta" pelo `tr` sem separar por sistema; conferir com a Meta por `impression_device`
+	- Chrome headless carrega o pixel e não envia `/tr`: laboratório valida carregamento e configuração (`fbq.instance.configsLoaded`), envio só em aparelho real
 	- No modo sem interação, disparar o pixel no evento `load` (com rede de segurança de alguns segundos), não na hora: pixel + analytics (~340 KB) disputam rede com o elemento do LCP. Medir A/B em laboratório (Chrome headless, 4G lento, CPU 4x, eventos reais bloqueados) antes de publicar
 	- A volta automática é feita por substituições exatas de texto (modo e política), e não por `git revert`: outro commit na mesma linha física do HTML faz o revert conflitar
-	- Vigia local (launchd, 1h) reverte após 2h seguidas de quebra técnica: contrato, CAPI, tracking ativo < 80% ou pixel enviado < 40% das chegadas, erro de script ≥ 20%, LCP > 4s em ≥ 25% das visitas, chegadas < 70% dos cliques. Confere o deploy depois do push. Taxa de carregamento pior não reverte: amostra pequena é ruído, decisão humana
+	- Vigia local (launchd, 1h) reverte após 2h seguidas de quebra técnica: contrato, CAPI, tracking ativo < 80% das chegadas, pixel carregado < 60% das chegadas ou pixel enviado < 15% dos carregados, erro de script ≥ 20%, LCP > 4s em ≥ 25% das visitas, chegadas < 70% dos cliques. Confere o deploy depois do push. Taxa de carregamento pior não reverte: amostra pequena é ruído, decisão humana
+		- Limite de envio medido sobre as chegadas reverte por engano: a saída precoce deixa o envio em 45–65% das chegadas sem nada quebrado
 	- Política de privacidade muda no mesmo commit do comportamento: o texto precisa descrever quando a medição começa
+- **Taxa de carregamento (visualizações da página ÷ cliques de saída): o que move e onde está o teto.**
+	- Pixel ao abrir a página (evento `load`) em vez de após interação é a maior alavanca de tracking: +16 pontos medidos numa página real (52% → 68% em 107 cliques, IC95 59–76%; 71% em 188 cliques)
+		- Exige política dizendo que a medição começa ao acessar. A decisão jurídica é do dono da página: a ANPD não reconhece "continuar navegando" como consentimento
+	- Teto do tracking: ~4 em cada 10 visitas pagas saem em menos de 3 s sem interagir (medido em 2 dias), antes de configuração + envio do pixel. Acima de ~70%, a alavanca é a intenção do clique (criativo, público, posicionamento)
+	- Enviar antes do `load` pode recuperar parte dessa perda (não testado) e custa ~25% no LCP em 4G lento: decidir com A/B de laboratório
+	- Leitura na Meta: por posicionamento sem Audience Network, por `impression_device`, só anúncios com destino no site (CTA "ver perfil" soma clique sem saída do app)
+	- Mix de criativo mudando durante o teste move a taxa sozinho: manter a campanha como está e registrar a participação de cada anúncio na leitura
+- **Fim de teste por amostra, nunca por data.** Calcular antes quantos cliques de saída detectam a diferença esperada (67% contra base de 52% pede ~84), com parada antecipada só a 99% de confiança. Ler com intervalo de Wilson, em dias fechados (o dia corrente ainda assenta na Meta) e sem o dia da troca. Teto de gasto de campanha na Meta conta o acumulado desde o início: dimensionar por cliques × custo por clique + um dia de folga, somado ao já gasto.
+- **Alerta só com ação.** Métrica que oscila (taxa de carregamento, EMQ) fica em `warnings` e é lida no acompanhamento; e-mail e notificação só para falha com ação clara (deploy fora de sincronia, contrato quebrado, fonte de evento parada). Pausa automática de campanha baseada em compra atribuída pela Meta é proibida: a atribuição chega com horas de atraso e venda real passa despercebida.
 - **Confirmar que o deploy saiu.** O gatilho Git→Vercel falha em silêncio: o commit entra no repositório e nenhum deploy é criado, com o CDN servindo a versão antiga por horas. Depois de todo push, conferir que o último deploy corresponde ao commit; um commit vazio reativa o gatilho. `?query` na URL não fura o cache do CDN — conferir `age` e `x-vercel-cache` no `curl -sI`.
 - **Monitor keyword na API v3 do UptimeRobot** exige `httpMethodType=GET` (o padrão é HEAD, que não devolve corpo, e o alerta dispararia sempre) e `timeout` no corpo da criação. Monitor recém-criado demora alguns segundos para entrar na listagem: esperar antes de atribuir contatos de alerta, senão ele nasce sem avisar ninguém.
 
@@ -732,30 +747,34 @@ Snippet (início do `<head>`):
 ```html
 <script>/* Modo do tracking: 'gate' = pixel só após interação (consentimento); 'load' = pixel ao abrir a página. Lido pelo bloco de consentimento e enviado ao contador. */
 window.TRACK_MODE='load';
-/* Contador anônimo de chegadas (api/m.js): sem cookie, sem storage, sem ID. Mede a base independente da Meta. */
+/* Contador anônimo de chegadas (api/m.js): sem cookie, sem ID enviado. Só lê o fbclid já guardado no navegador pra saber se é 1ª chegada do clique. Mede a base independente da Meta. */
 (function(){try{
 if(navigator.webdriver||!navigator.sendBeacon||!window.URLSearchParams)return;
 var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];
 if(n&&n.type&&n.type!=='navigate')return;
 var q=new URLSearchParams(location.search),paid=q.get('utm_medium')==='paid';
 var s=paid?(q.get('utm_source')||'na'):'org',p=paid?(q.get('utm_term')||'na'):'';
-var fb=q.get('fbclid')?1:0,rf=/(^|\.)(facebook|instagram|threads)\.com$/.test((function(){try{return new URL(document.referrer).hostname}catch(e){return ''}})())?1:0;
+var fbv=q.get('fbclid'),fb=fbv?1:0,ua=navigator.userAgent,os=/iPhone|iPad|iPod/.test(ua)?'ios':/Android/.test(ua)?'and':'out',nv=0;
+try{nv=fbv&&localStorage.getItem('SEU_STORAGE_FBCLID')!==fbv?1:0}catch(e){}/* 1ª chegada deste clique neste aparelho: compara com o fbclid já guardado; nada sai do aparelho */
+var rf=/(^|\.)(facebook|instagram|threads)\.com$/.test((function(){try{return new URL(document.referrer).hostname}catch(e){return ''}})())?1:0;
 var sent={},eng=0,t0=0,on=0;
-function b(e,x){if(sent[e])return;sent[e]=1;navigator.sendBeacon('/api/m','e='+e+'&s='+encodeURIComponent(s.slice(0,40))+'&p='+encodeURIComponent(p.slice(0,40))+'&g='+eng+'&f='+fb+'&r='+rf+'&v='+window.TRACK_MODE+(x?'&x='+x:''));}
+function b(e,x){if(sent[e])return;sent[e]=1;navigator.sendBeacon('/api/m','e='+e+'&s='+encodeURIComponent(s.slice(0,40))+'&p='+encodeURIComponent(p.slice(0,40))+'&g='+eng+'&f='+fb+'&r='+rf+'&v='+window.TRACK_MODE+'&o='+os+(e==='arrive'?'&n='+nv:'')+(x?'&x='+x:''));}
 window._mConsent=function(){if(on)b('consent');};
 /* px = fbevents carregou; tr = requisição a facebook.com/tr saiu do navegador (evento do pixel de fato enviado) */
 var pend={};window._mEv=function(e){if(e!=='px'&&e!=='tr')return;if(on)b(e);else pend[e]=1;};/* antes do start (página oculta): guarda e envia no start */
 var lcp=0;function lcpOut(){if(lcp)b('lcp',lcp<1500?'lt1500':lcp<2500?'1500to2500':lcp<4000?'2500to4000':'gt4000');}
+function dt(){var d=(Date.now()-t0)/1000;return d<3?'lt3':d<6?'3to6':d<10?'6to10':'gt10';}
 function start(){if(on)return;on=1;t0=Date.now();b('arrive');
 if(document.readyState==='complete')b('loaded');else addEventListener('load',function(){b('loaded');});
 ['scroll','click','touchstart','keydown'].forEach(function(ev){addEventListener(ev,function(){if(!eng){eng=1;b('engaged');}},{passive:true,capture:true});});
 if(window._trackingLoaded)b('consent');
 for(var k in pend)b(k);
-try{new PerformanceObserver(function(l){l.getEntries().forEach(function(en){if(/facebook\.com\/tr/.test(en.name))b('tr');});}).observe({type:'resource',buffered:true});}catch(e){}
+/* cfg = configuração do pixel carregou (connect.facebook.net ou /fbcdn/); tr com faixa de tempo desde a chegada */
+try{new PerformanceObserver(function(l){l.getEntries().forEach(function(en){if(/facebook\.com\/tr/.test(en.name))b('tr',dt());else if(/signals\/config\//.test(en.name)&&en.responseEnd>0&&(en.transferSize>0||en.decodedBodySize>0||en.responseStatus===200))b('cfg');});}).observe({type:'resource',buffered:true});}catch(e){}
 try{new PerformanceObserver(function(l){var es=l.getEntries();if(es.length)lcp=es[es.length-1].startTime;}).observe({type:'largest-contentful-paint',buffered:true});}catch(e){}
 addEventListener('error',function(ev){if(ev.filename&&ev.filename.indexOf(location.origin)===0)b('err');},true);
-document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')lcpOut();});
-addEventListener('pagehide',function(){lcpOut();var d=(Date.now()-t0)/1000;b('exit',d<3?'lt3':d<10?'3to10':d<30?'10to30':'gt30');});}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){lcpOut();b('exit',dt());}});/* no app, fechar o navegador nem sempre dispara pagehide: a primeira ocultação vale como saída */
+addEventListener('pagehide',function(){lcpOut();b('exit',dt());});}
 if(document.prerendering)document.addEventListener('prerenderingchange',start,{once:true});
 else if(document.visibilityState==='hidden'){document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')start();});
 ['focus','pointerdown','touchstart','scroll','keydown'].forEach(function(ev){addEventListener(ev,function(e){start();if(e.type!=='focus'&&!eng){eng=1;b('engaged');}},{passive:true,capture:true,once:true});});}/* webview que reporta hidden por engano: interação prova que é visível */
@@ -780,14 +799,21 @@ const crypto = require('crypto');
 //   p: utm_term ({{placement}} dos anúncios) — só tráfego pago
 //   x: faixa de permanência no exit (lt3 | 3to10 | 10to30 | gt30); g: já tinha interagido (1) ou não (0)
 //   f: URL tinha fbclid (clique de anúncio); r: referrer é domínio da Meta
+//   o: sistema do aparelho (ios | and | out), só a família, sem versão nem UA
+//   n (só arrive): 1ª chegada deste clique neste aparelho (fbclid diferente do já guardado no navegador)
+//   cfg: configuração do pixel carregou; x em tr e exit: segundos desde a chegada (lt3 | 3to6 | 6to10 | gt10)
+//   Chaves extras por modo: v:<modo>:<pago|org>:os:<o>:<evento>, :arrive_first, :tr_t:<x>, :exit:<eng|noeng>:<x>
 // GET ?k=<METRICS_REPORT_KEY>&days=N → relatório agregado
 //
 // Sem as env vars do Redis (qualquer prefixo da integração Upstash/KV) → no-op silencioso.
 
-const EVENTS = new Set(['arrive', 'loaded', 'engaged', 'consent', 'exit', 'px', 'tr', 'err', 'lcp']);
+const EVENTS = new Set(['arrive', 'loaded', 'engaged', 'consent', 'exit', 'px', 'cfg', 'tr', 'err', 'lcp']);
+const OSES   = new Set(['ios', 'and', 'out']);
+const TEMPOS = new Set(['lt3', '3to6', '6to10', 'gt10']);
+const POR_OS = new Set(['arrive', 'loaded', 'engaged', 'px', 'cfg', 'tr']);
 const LCPS   = new Set(['lt1500', '1500to2500', '2500to4000', 'gt4000']);
 const MODES  = new Set(['gate', 'load']);
-const EXITS  = new Set(['lt3', '3to10', '10to30', 'gt30']);
+const EXITS  = new Set(['lt3', '3to6', '6to10', 'gt10', '3to10', '10to30', 'gt30']);  // faixas antigas mantidas pro histórico
 const TTL    = 180 * 24 * 3600;
 
 // Aceita os nomes padrão e qualquer prefixo da integração Upstash/KV da Vercel
@@ -896,6 +922,9 @@ module.exports = async function handler(req, res) {
     if (q.get('f') === '1') fields.push(s + ':arrive_fbclid');
     if (q.get('r') === '1') fields.push(s + ':arrive_ref');
   }
+  var o = OSES.has(q.get('o')) ? q.get('o') : 'x';
+  if (POR_OS.has(e)) fields.push(s + ':os:' + o + ':' + e);
+  if (e === 'arrive' && q.get('n') === '1') { fields.push(s + ':arrive_first', s + ':os:' + o + ':arrive_first'); }
   if (e === 'exit') {
     var x = EXITS.has(q.get('x')) ? q.get('x') : 'x';
     var g = q.get('g') === '1' ? 'eng' : 'noeng';
@@ -907,8 +936,14 @@ module.exports = async function handler(req, res) {
     var l = LCPS.has(q.get('x')) ? q.get('x') : 'x';
     fields = [s + ':lcp:' + l];
     if (s !== 'teste' && s !== 'selftest') fields.push(vk + 'lcp:' + l);
-  } else if (e !== 'exit' && s !== 'teste' && s !== 'selftest') {  // validações ficam fora do recorte por modo
-    fields.push(vk + e);
+  } else if (s !== 'teste' && s !== 'selftest') {  // validações ficam fora do recorte por modo
+    if (e === 'exit') fields.push(vk + 'exit:' + g + ':' + x);
+    else {
+      fields.push(vk + e);
+      if (POR_OS.has(e)) fields.push(vk + 'os:' + o + ':' + e);
+      if (e === 'arrive' && q.get('n') === '1') fields.push(vk + 'arrive_first', vk + 'os:' + o + ':arrive_first');
+      if (e === 'tr' && TEMPOS.has(q.get('x'))) fields.push(vk + 'tr_t:' + q.get('x'));
+    }
   }
 
   var cmds = fields.map(function(f) { return ['HINCRBY', key, f, 1]; });

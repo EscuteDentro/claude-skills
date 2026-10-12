@@ -74,3 +74,13 @@ InitiateCheckout · Purchase
 - Preload VSL thumbnail via `<link rel="preload" as="image" imagesrcset="...">` (sem picture/AVIF simultâneo — double download)
 - Prefetch da URL Hotmart no `<head>` para acelerar redirect no submit
 - Headers de segurança HTTP via `vercel.json` (bloco global `/(.*)`): `X-Content-Type-Options: nosniff` · `X-Frame-Options: SAMEORIGIN` · `X-XSS-Protection: 0` · `Referrer-Policy: strict-origin-when-cross-origin` — aplicados em produção desde 2026-07-03
+
+## Tracking — taxa de carregamento (decisão fechada)
+
+- Pixel dispara ao abrir a página (evento `load`, rede de segurança de 4s), sem esperar interação: 52% → 68% de taxa de carregamento em 107 cliques de saída (IC95 59–76%)
+- Disparo imediato descartado: piora o LCP em ~25% em 4G lento
+- Configuração do pixel servida pelo próprio domínio (`fbq('set', 'cdn')` + rewrite): sem ganho geral medido, mantida como proteção contra bloqueio
+- Envio visto pelo Resource Timing só vale no Android; no iPhone a requisição quase nunca é reportada
+- Teste encerrado por número de cliques calculado antes, nunca por data
+- Métrica oscilando não gera alerta; alerta só para falha com ação clara
+
