@@ -733,7 +733,7 @@ Por quê: a taxa de carregamento da Meta só registra visita com pixel disparado
 	- Política de privacidade muda no mesmo commit do comportamento: o texto precisa descrever quando a medição começa
 - **Taxa de carregamento (visualizações da página ÷ cliques de saída): o que move e onde está o teto.**
 	- Pixel ao abrir a página (evento `load`) em vez de após interação é a maior alavanca de tracking: +16 pontos medidos numa página real (52% → 68% em 107 cliques, IC95 59–76%; 71% em 188 cliques)
-		- Exige política dizendo que a medição começa ao acessar. A decisão jurídica é do dono da página: a ANPD não reconhece "continuar navegando" como consentimento
+		- Exige política dizendo que a medição começa ao acessar
 	- Teto do tracking: ~4 em cada 10 visitas pagas saem em menos de 3 s sem interagir (medido em 2 dias), antes de configuração + envio do pixel. Acima de ~70%, a alavanca é a intenção do clique (criativo, público, posicionamento)
 	- Enviar antes do `load` pode recuperar parte dessa perda (não testado) e custa ~25% no LCP em 4G lento: decidir com A/B de laboratório
 	- Leitura na Meta: por posicionamento sem Audience Network, por `impression_device`, só anúncios com destino no site (CTA "ver perfil" soma clique sem saída do app)

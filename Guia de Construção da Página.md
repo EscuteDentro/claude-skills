@@ -102,7 +102,7 @@ Todos os eventos dentro ou protegidos por `loadTracking()` — função que só 
 
 **Modo do tracking (`window.TRACK_MODE` no `<head>`):** `gate` = `loadTracking()` só após interação (consentimento); `load` = roda sem esperar interação, no evento `load` da página (rede de segurança 4s; disparo imediato fez o pixel disputar rede com o elemento do LCP e piorou o LCP em ~25% em 4G lento), sem barra, e a política precisa dizer que o consentimento é ao acessar. Trocar o modo é um commit isolado, reversível com `git revert`.
 
-**Taxa de carregamento (visualizações da página ÷ cliques de saída):** o modo `load` é a maior alavanca de tracking, +16 pontos medidos numa página real (52% → 68% em 107 cliques, IC95 59–76%). O teto vem da saída precoce: ~4 em cada 10 visitas pagas saem em menos de 3 s sem interagir, antes de o pixel enviar; acima de ~70% a alavanca é a intenção do clique (criativo, público, posicionamento). A decisão jurídica do modo é do dono da página: a ANPD não reconhece "continuar navegando" como consentimento. Medição, teste e leitura: seção 9n da skill `subir-pagina-top`.
+**Taxa de carregamento (visualizações da página ÷ cliques de saída):** o modo `load` é a maior alavanca de tracking, +16 pontos medidos numa página real (52% → 68% em 107 cliques, IC95 59–76%). O teto vem da saída precoce: ~4 em cada 10 visitas pagas saem em menos de 3 s sem interagir, antes de o pixel enviar; acima de ~70% a alavanca é a intenção do clique (criativo, público, posicionamento). Medição, teste e leitura: seção 9n da skill `subir-pagina-top`.
 
 | Evento | Tipo | Gatilho | Parâmetros | Pixel | CAPI | Clarity tag | Fonte |
 |---|---|---|---|---|---|---|---|
