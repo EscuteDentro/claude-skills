@@ -218,6 +218,7 @@ Performance mobile é princípio central — impacto direto em conversão de tr�
 | **AVIF com fallback WebP** | imagens grandes com `<picture>` source AVIF + img WebP. Exceção: VSL thumbnail (LCP) |
 | **Sem redirects desnecessários** | `curl -I https://SEU-DOMINIO.com/` — sem `Location:` no apex |
 | **Payload total** | `du -sh assets/` — meta < 1.6MB total |
+| **Legível por agente de IA** | Preço, prova e oferta no HTML bruto (`curl -s URL \| sed 's/<script.*<\/script>//'` ainda mostra o texto); depoimento em imagem tem a transcrição integral no `llms.txt`; `dateModified` no JSON-LD atualizado no deploy |
 | **Prefetch checkout** | `grep 'rel="prefetch"' index.html` — URL do checkout presente |
 | **Lighthouse mobile** | DevTools → Lighthouse → Mobile, aba anônima, URL de produção. Score ≥ 90, perseguir 95+ |
 
