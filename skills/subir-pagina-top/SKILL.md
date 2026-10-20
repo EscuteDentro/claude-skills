@@ -208,6 +208,7 @@ Performance mobile é princípio central — impacto direto em conversão de tr�
 | **CSS reset imagens** | `img { display: block; max-width: 100%; height: auto; }` no reset global |
 | **width + height em todas as imgs** | `grep -c '<img' index.html` vs `grep -c 'width=' index.html` — iguais |
 | **loading=lazy em tudo abaixo do fold** | `grep -n '<img' index.html \| grep -v 'loading='` — só hero e LCP thumbnail |
+| **Nada abaixo da dobra antes do load** | `loading="lazy"` não basta: em rede lenta o Chrome baixa imagem lazy até ~2.500 px abaixo da tela, inclusive `<source srcset>` de `<picture>`, e tudo que começa antes do evento load atrasa o que depende dele (pixel disparado no load, LPV). Imagem abaixo da dobra a menos de ~2.500 px do fim da 1ª tela: `data-src`/`data-srcset` trocados no load, com width/height. Conferir em rede lenta (celular e computador) a lista do que baixa antes do load: só capa, logo do topo e fonte. Refazer a cada seção de cima encurtada, removida ou reordenada |
 | **font-display: optional** | `grep 'font-display' index.html` — nunca `swap` |
 | **preconnect para 3rd parties** | heatmap, pixel de ads, domínio do checkout |
 | **vercel.json com cache headers** | `max-age=31536000, immutable` para `/assets/(.*)` |
