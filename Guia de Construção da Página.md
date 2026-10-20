@@ -62,7 +62,7 @@ Cada domínio tem seção própria no `design-system.json`. Consultar pelo nome 
 | **— Design Visual —** | | |
 | Princípios visuais | `principios` | 12 princípios (legibilidade, mobile-first, CTA, contraste, tipografia, sistema) |
 | Paleta de cores | `paleta` + `nota_contraste` | Tokens de cor + notas de contraste WCAG |
-| Tipografia | `tipografia` | Escala mobile base 17px; desktop: H1 ×1.75 · H2 ×1.5 · H3 ×1.22 · body +1px; fórmula em `escala_desktop_formula` |
+| Tipografia | `tipografia` | Escala por função (tamanho pelo papel do texto, calibrado no celular real); desktop amplia cada papel: H1 ×2 · H2 ×1.5 · H3 ×1.22 · body +1px (`escala_desktop_formula`) |
 | Ícones | `icones` | Cor `brand_vivid`, 48px wrapper / 44px SVG, filled SVG sem stroke; exclusivo para ícones |
 | Border-radius | `border_radius` | Escala xs(6px) → full(9999px); nenhum elemento com radius 0 |
 | Espaçamento | `espacamento` | Base 8px; escala xs → 3xl; mobile: xl=48px, 2xl=64px, 3xl=80px |
@@ -236,7 +236,7 @@ Toda alteração na LP — de copy, CSS, HTML, schema ou arquivos auxiliares —
 
 | Critério           | O que verificar                                                                                                                              |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Tipografia**     | Fonte (Montserrat), tamanho (base 17px mobile → desktop via multiplicadores DS), peso, cor por contexto; mudanças desktop só em `@media (min-width: 900px)` |
+| **Tipografia**     | Fonte (Montserrat), tamanho (escala por função no mobile → desktop via multiplicadores DS), peso, cor por contexto; mudanças desktop só em `@media (min-width: 900px)` |
 | **Cores**          | Usa tokens do DS (`--brand`, `--brand-vivid`, `--star`, `--ink` etc.) — nunca hex avulso                                                     |
 | **Contraste**      | Texto corpo ≥4.5:1 WCAG AA; texto grande ≥3:1                                                                                                |
 | **Copy**           | Sem travessão (—) em copy persuasiva, sem ponto de exclamação em copy persuasiva (permitido em momentos de conquista — submit, pós-compra), sem "guru", sem "jornada de 40 dias"; texto de alunos exato do site/copy file |
@@ -255,18 +255,22 @@ Toda alteração na LP — de copy, CSS, HTML, schema ou arquivos auxiliares —
 
 ## Escala tipográfica mobile → desktop
 
-**Fórmula generalizada** — aplicar em qualquer LP nova ao adicionar suporte desktop:
+**Escala por função**: cada tamanho vem do papel do texto (título de seção > subtítulo de bloco > texto > rótulo), calibrado lendo no celular real; nunca derivado de razão fixa. Os multiplicadores abaixo são o ponto de partida do desktop numa LP nova:
 
 | Token | Mobile | Desktop | Multiplicador |
 |---|---|---|---|
-| `.t-hero` (H1) | 24px | 42px | ×1.75 |
+| `.t-hero` (H1) | 21px | 42px | ×2 |
 | `.t-h2` | 20px | 30px | ×1.50 |
 | `.t-h3` | 18px | 22px | ×1.22 |
 | body / parágrafos | 16px | 17px | +1px |
 
 **Razões desktop resultantes** — H2/body: 1.76× · H3/body: 1.29× (harmonia visual validada em 900px+)
 
-**Princípio**: desktop amplifica, não redesenha. A hierarquia mobile é preservada com multiplicadores consistentes. Nunca escalar headings sem manter a proporção entre si.
+**Princípio**: desktop amplifica, não redesenha. A hierarquia entre papéis do mobile é preservada no desktop.
+
+**Alinhamento no celular**: texto de mais de 2 linhas alinhado à esquerda; centralizar só título e frase curta.
+
+**Topo no celular**: o vídeo de vendas não desce. Ganho de tamanho no texto do topo é pago com espaço (respiro mínimo acima do H1, H1 menor); texto miúdo ganha leitura por peso (500) e cor antes de tamanho
 
 **Implementação**: bloco único `@media (min-width: 900px)` — estilos base (mobile) intocados. Nenhuma regra mobile dentro do bloco desktop. Ver `escala_desktop_formula` no `design-system.json`.
 

@@ -186,8 +186,8 @@ Criar `{pasta-base}` agora se não existir. Sem perguntas — avançar.
 
 | Verificação | Como checar |
 |---|---|
-| **Mobile 390px** | DevTools → 390px; sem overflow horizontal; sem texto cortado; CTAs tocáveis |
-| **Desktop 900px+** | Abrir em 1440px; tipografia segue escala DS (×1.75 · ×1.5 · ×1.22 · +1px) |
+| **Mobile 390px** | DevTools → 390px; sem overflow horizontal; sem texto cortado; CTAs tocáveis; texto de 3+ linhas alinhado à esquerda; título de seção maior que os subtítulos dela |
+| **Desktop 900px+** | Abrir em 1440px; tipografia segue a escala por função do DS (tamanho pelo papel do texto; desktop parte de H1 ×2 · H2 ×1.5 · H3 ×1.22 · body +1px) |
 | **Layouts multi-coluna** | Só dentro de `@media (min-width: 900px)` — CSS base (mobile) intocado |
 | **Wrapper semântico** | Cada coluna tem seu wrapper HTML; nunca `grid-row`/`grid-column` em filhos |
 | **Touch targets** | Todo elemento clicável com área ≥ 44×44px (WCAG 2.5.5) |

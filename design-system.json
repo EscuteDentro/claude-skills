@@ -15,7 +15,8 @@
     "Intersecao antigo-moderno — tipografia sans-serif (Montserrat, identica ao site original) com componentes contemporaneos.",
     "Sistema, nao colecao — todo elemento deriva dos mesmos tokens. Nada fora da grade.",
     "Sem quinas agressivas — border-radius minimo de 6px em qualquer superficie. Zero angulos retos expostos.",
-    "Escala proporcional — todos os tamanhos de fonte derivam de razao 1.25 a partir da base 17px.",
+    "Escala por funcao — cada tamanho vem do papel do texto (tabela escala), calibrado lendo no celular real; hierarquia: titulo de secao > subtitulo de bloco > texto > rotulo. Nunca derivar tamanho por razao fixa.",
+    "Alinhamento — texto de mais de 2 linhas alinhado a esquerda no celular; centralizar so titulo e frase curta.",
     "Elementos estilisticos contextuais — detalhes decorativos permitidos em secoes especificas desde que usem tokens do sistema.",
     "Visual antes de texto — toda secao deve ser navegavel por icones, imagens e padroes visuais. Texto corrido com mais de 3 linhas recebe uma quebra visual: icone, separador ou diagrama. Informacao que pode virar esquema, tabela ou bloco com icone nao vira paragrafo. CTA principal: minimo 17px mobile, 18px desktop, legivel a 60cm sem oculos; largura igual a do elemento visual acima dele.",
     "Legibilidade por maquinas (SEO + AEO) — a LP deve ser igualmente legivel por humanos, buscadores e modelos de linguagem. Cada secao usa <section> com id descritivo e aria-label. Hierarquia de headings estrita: um unico h1 no hero, h2 para cada secao principal, h3 para sub-elementos. FAQ mapeia queries reais de busca pt-BR e cada resposta comeca com a resposta direta na primeira frase. Afirmacoes cientificas referenciam fonte verificavel. Imagens informativas tem alt text com keyword front-loaded, max 125 chars. Todo schema JSON-LD fica em bloco <script type='application/ld+json'> separado. Schemas ativos: FAQPage, Course, Person, Organization, VideoObject. Schema condicional: AggregateRating (requer avaliacao visivel na pagina). Queries prioritarias pt-BR: levantar junto com o usuario as buscas reais do nicho do produto (nunca reusar lista de outro produto)."
@@ -78,10 +79,8 @@
     "fonte_body": "Montserrat",
     "google_fonts_link": "NAO USAR — substituido por self-hosting. Google Fonts = request externo bloqueante.",
     "fonte_self_hosted": "assets/montserrat.woff2 (25KB, subsetado com pyftsubset). @font-face com font-weight:400 700, font-display:optional, unicode-range declarado. Subsetado em jun/2026: U+0020-007E,U+00A9,U+00C0-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2013-2014,U+2000-206F,U+20AC,U+2122,U+FEFF,U+FFFD. Original (35KB) mantido como montserrat-original.woff2.",
-    "escala_razao": 1.25,
-    "escala_base_px": 17,
     "escala": {
-      "hero":  { "desktop": "42px", "mobile": "24px", "fonte": "Montserrat", "peso": 700, "line_height": 1.2 },
+      "hero":  { "desktop": "42px", "mobile": "21px", "fonte": "Montserrat", "peso": 700, "line_height": 1.2 },
       "h2":    { "desktop": "30px", "mobile": "20px", "fonte": "Montserrat", "peso": 700, "line_height": 1.2 },
       "h3":    { "desktop": "22px", "mobile": "18px", "fonte": "Montserrat", "peso": 600, "line_height": 1.25 },
       "h4":    { "desktop": "22px", "mobile": "19px", "fonte": "Montserrat", "peso": 600, "line_height": 1.3 },
@@ -397,10 +396,10 @@
     "max_width_conteudo": "960px de conteudo. .page-wrap e full-width (fundos edge-to-edge). Centralizacao feita em .sec via padding: 24px max(20px, calc(50vw - 480px)) 40px — conteudo fica em 960px em viewports acima de 1000px.",
     "tipografia_desktop": "Hero: 42px. H2: 30px. H3: 22px. Body: 17px. CTA: 18px. Valores da secao escala — FONTE DE VERDADE.",
     "escala_desktop_formula": {
-      "regra": "H1 x1.75 (24->42) · H2 x1.5 (20->30) · H3 x1.22 (18->22) · body +1px (16->17)",
+      "regra": "Ponto de partida do desktop numa LP nova: H1 x2 (21->42) · H2 x1.5 (20->30) · H3 x1.22 (18->22) · body +1px (16->17); tamanho final por funcao, lido no aparelho",
       "razao_h2_body_desktop": "1.76x — harmonia visual validada em 900px+",
       "razao_h3_body_desktop": "1.29x — harmonia visual validada em 900px+",
-      "principio": "Desktop amplifica, nao redesenha. A hierarquia mobile e preservada com multiplicadores consistentes. Nunca escalar headings sem manter a proporcao entre si.",
+      "principio": "Desktop amplifica, nao redesenha. A hierarquia entre papeis do mobile (titulo de secao > subtitulo de bloco > texto > rotulo) e preservada no desktop.",
       "aplicacao_css": "@media (min-width: 900px) — bloco unico consolidado, mobile base intocado"
     },
     "botao_desktop": "Botoes mantidos em width: 100% dentro do .page-wrap. Font-size sobe de 17px para 18px em 900px+.",

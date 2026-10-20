@@ -21,7 +21,7 @@ Data: 2026-05-11
 - ~~H1/H2: Cormorant Garamond (serifa, ancora no ancestral)~~ — SUBSTITUÍDO
 - ~~H3+, body, UI: Inter (maxima legibilidade)~~ — SUBSTITUÍDO
 - **Atual:** Montserrat em todos os níveis (H1–H6, body, UI) — decisão mantém coerência com o site original
-- Escala modular x1.25, base 17px (mantido)
+- ~~Escala modular x1.25, base 17px~~: SUBSTITUÍDO por escala por função (tamanho pelo papel do texto, calibrado no celular real)
 
 ## Bloco de preço — tipografia
 
