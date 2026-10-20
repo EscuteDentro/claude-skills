@@ -7,6 +7,7 @@
   "_dominios": "Este DS cobre: (1) principios visuais e de design; (2) performance; (3) responsividade; (4) tracking e analytics; (5) testes A/B; (6) LGPD e consentimento. Cada dominio tem sua secao propria alem dos principios visuais.",
 
   "principios": [
+    "Ordem de decisao: legibilidade > arquitetura da informacao > layout e estetica. Ajuste estetico que piora leitura nao entra",
     "Legibilidade acima de tudo — toda decisao de tipo, cor e contraste parte de: isso e facil de ler no celular?",
     "Mobile primeiro — sistema desenhado para 390px. Desktop e variante responsiva: media queries ampliam tipografia, grid e espacamento automaticamente; adaptacoes estruturais maiores (mudancas de layout, novos elementos) sao tratadas como excecoes planejadas, nao como padrao.",
     "Botao e botao — CTA tem identidade inequivoca. Nenhum outro elemento usa o mesmo radius + fundo solido.",
@@ -78,11 +79,14 @@
     "fonte_heading": "Montserrat",
     "fonte_body": "Montserrat",
     "google_fonts_link": "NAO USAR — substituido por self-hosting. Google Fonts = request externo bloqueante.",
-    "fonte_self_hosted": "assets/montserrat.woff2 (25KB, subsetado com pyftsubset). @font-face com font-weight:400 700, font-display:optional, unicode-range declarado. Subsetado em jun/2026: U+0020-007E,U+00A9,U+00C0-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2013-2014,U+2000-206F,U+20AC,U+2122,U+FEFF,U+FFFD. Original (35KB) mantido como montserrat-original.woff2.",
+    "fonte_self_hosted": "assets/montserrat.woff2 (25KB, subsetado com pyftsubset). @font-face com font-weight:400 700, font-display:swap com reservas ajustadas as medidas da fonte ('Fonte Fallback' sobre Arial, 'Fonte Fallback Roboto' sobre Roboto do Android), quando o LCP e imagem; navegador sem size-adjust fica em optional via @supports not (font-size-adjust: from-font); LCP em texto: optional. unicode-range declarado. Subsetado em jun/2026: U+0020-007E,U+00A9,U+00C0-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2013-2014,U+2000-206F,U+20AC,U+2122,U+FEFF,U+FFFD. Original (35KB) mantido como montserrat-original.woff2.",
     "escala": {
       "hero":  { "desktop": "42px", "mobile": "21px", "fonte": "Montserrat", "peso": 700, "line_height": 1.2 },
       "h2":    { "desktop": "30px", "mobile": "20px", "fonte": "Montserrat", "peso": 700, "line_height": 1.2 },
       "h3":    { "desktop": "22px", "mobile": "18px", "fonte": "Montserrat", "peso": 600, "line_height": 1.25 },
+      "titulo_secao_destaque": { "desktop": "30px", "mobile": "24px", "nota": "titulo de secao com subtitulos internos grandes; sempre maior que eles" },
+      "subtitulo_bloco": { "desktop": "28px", "mobile": "19px", "peso": 800, "nota": "titulo de bloco dentro de secao; sobre imagem acinzentada, em azul (--brand-royal)" },
+      "texto_topo": { "desktop": "17px", "mobile": "16px", "peso": 500, "nota": "subtitulo do hero; lista do topo 14px/500, frase de abertura da lista 15px/600" },
       "h4":    { "desktop": "22px", "mobile": "19px", "fonte": "Montserrat", "peso": 600, "line_height": 1.3 },
       "lead":  { "desktop": "20px", "mobile": "18px", "fonte": "Montserrat", "peso": 400, "line_height": 1.65 },
       "body":  { "desktop": "17px", "mobile": "16px", "fonte": "Montserrat", "peso": 400, "line_height": 1.8 },
@@ -162,7 +166,7 @@
       "quando_nao_usar": "Cards de altura uniforme (ícone + título + desc fixo) → usar CSS grid convencional.",
       "tradeoff": "Ordem visual no desktop não é estritamente sequencial — cada card vai para a coluna mais curta, não para a próxima posição da esquerda.",
       "script_reutilizavel": "function masonry(selector, cols, gap) — aceita qualquer seletor, número de colunas e gap. Instanciar uma vez por grid.",
-      "instancias_edm": "dep-grid: masonry('.dep-grid', 3, 8) | ciencia-grid: masonry('.ciencia-grid', 2, 24)"
+      "instancias_exemplo": "dep-grid: masonry('.dep-grid', 3, 8) | ciencia-grid: masonry('.ciencia-grid', 2, 24)"
     },
     "watermark_decorativo": {
       "descricao": "SVG de fundo em seções de conteúdo — marca-d'água atrás do texto.",
@@ -187,7 +191,7 @@
       "quando_usar": "Quando o arquivo de logo tem margem/padding interno no topo que empurra os elementos visuais para baixo do frame visível.",
       "css_wrapper": "overflow: hidden; height: [altura desejada]px — define quanto da imagem aparece",
       "css_img": "height: [maior que wrapper]px; margin-top: -[whitespace a esconder]px",
-      "valores_edm": "wrapper height: 62px; img height: 72px; margin-top: -10px — janela visível: pixels 10–72 do arquivo (62px de conteúdo, pulando 10px de whitespace)"
+      "valores_exemplo": "wrapper height: 62px; img height: 72px; margin-top: -10px — janela visível: pixels 10–72 do arquivo (62px de conteúdo, pulando 10px de whitespace)"
     },
     "br_desktop": {
       "descricao": "Quebra de linha condicional — visível só em desktop, oculta no mobile. Controla quebras em textos longos sem criar HTML duplicado.",
@@ -222,17 +226,12 @@
 
   "hero": {
     "fundo": "#E8FAFF",
-    "logo_arquivo": "logo-oficial-transparente-sem-margem.webp (.png fallback)",
-    "logo_altura_css": "92px",
-    "logo_margin_top": "-6px",
-    "logo_nota": "Versao recortada sem margens — star tip fica a ~3px do topo. Arquivo em ~/seuprojeto/paginas/assets/",
-    "h1_cor": "#2B5580 (brand)",
-    "subtitulo_a_cor": "#2B5580 (brand)",
-    "subtitulo_b_cor": "#2B5580 (brand)",
-    "subtitulo_b_alinhamento": "center",
-    "lista_cor": "#3D5A6E (ink-2)",
-    "lista_numeros_cor": "#3D5A6E (ink-2)",
-    "h1_margin_top": "10px (compensa deslocamento da logo)",
+    "logo": "sem logo no hero desde 2026-09-19 (o respiro do topo vem do padding)",
+    "padding_top": "4px no celular (com a margem do H1, 14px ate o titulo: a capa do video sobe) / 56px no computador",
+    "h1": "#2B5580 (brand), centralizado; margem 10px em cima, 10px embaixo no celular e 12px no computador",
+    "subtitulo_a": "16px / 500 / #2B5580 (brand); alinhado a esquerda no celular (4 linhas), centralizado no computador",
+    "subtitulo_b": "15px / 600 / #2B5580 (brand), alinhado a esquerda",
+    "lista": "14px / 500 / #2B5580 (brand), numeros 700; tamanho limitado para a capa do video nao descer",
     "subtitulo_a_desktop": "22px / line-height 1.3 — passo h3 da escala DS; 30px seria h2, excessivo para subtítulo de suporte; line-height comprimida mantém as 2 linhas coladas"
   },
 
@@ -334,10 +333,11 @@
 
   "numbered_list": {
     "descricao": "Lista numerada usada no Hero — numeros em destaque + texto corrido",
-    "font_size": "13px",
+    "font_size": "14px (mobile; desktop 18px)",
+    "peso_cor_mobile": "500, var(--brand) (texto e numero); 400 cinza fica fraco no celular sobre fundo claro",
     "line_height": 1.5,
-    "cor_texto": "#3D5A6E (ink-2)",
-    "cor_numero": "#3D5A6E (ink-2)",
+    "cor_texto": "#2B5580 (--brand)",
+    "cor_numero": "#2B5580 (--brand)",
     "num_font_weight": 700,
     "gap_num_texto": "8px",
     "gap_entre_itens": "2px",
@@ -391,7 +391,7 @@
     "breakpoints": {
       "sm":  "500px — .testi-card: flex-direction row (thumb 55% + texto flex:1)",
       "md":  "700px — .feat-grid: 2 colunas",
-      "lg":  "900px — .sec padding 60px 32px; .t-hero 42px; .t-h2 30px; .t-h3 22px; body text 17px; .btn-cta/.btn-wa 18px; .feat-grid 3 col; .dep-grid 4 col; .preco-main 54px"
+      "lg":  "900px — .sec padding 60px 32px; .t-hero 42px (margem abaixo 12px; no celular 10px); .t-h2 30px; .t-h3 22px; body text 17px; .btn-cta/.btn-wa 18px; .feat-grid 3 col; .dep-grid 4 col; .preco-main 54px"
     },
     "max_width_conteudo": "960px de conteudo. .page-wrap e full-width (fundos edge-to-edge). Centralizacao feita em .sec via padding: 24px max(20px, calc(50vw - 480px)) 40px — conteudo fica em 960px em viewports acima de 1000px.",
     "tipografia_desktop": "Hero: 42px. H2: 30px. H3: 22px. Body: 17px. CTA: 18px. Valores da secao escala — FONTE DE VERDADE.",
@@ -452,7 +452,7 @@
     "video_play": "VSL hero: facade dispara VSLPlay custom event + troca por iframe. Testi-cards: facade sem evento de pixel (so troca por iframe).",
     "heatmap_session": "Microsoft Clarity — Project ID: {CLARITY_ID}. Carregado via loadTracking() sob consentimento (banner LGPD). Nao esta no <head>.",
     "utm_params": "A pagina deve funcionar normalmente com ?utm_source=... na URL. O Hotmart preserva UTMs ate o checkout — nao interferir.",
-    "consent_lgpd": "Meta Pixel e Clarity carregados via loadTracking() no final do body. Disparam somente apos consentimento. Consentimento salvo em localStorage key 'edm_consent' = 'granted'. Gatilhos: (1) scroll na LP, exceto enquanto _policyFocused=true; (2) clique FORA do #cookie-banner — cliques dentro do banner que nao sejam #cookie-banner-btn sao suprimidos; (3) botao Continuar (fecha banner + consent via bubbling). Mecanismo _policyFocused: ativado sincronamente ao clicar no link de politica (antes do scrollIntoView, sem setTimeout). _policyViewed=true quando secao entra na viewport — distingue 'a caminho' de 'saindo'. Scroll suprimido em toda a fase: transito ate a secao, dentro dela e no evento que a tira da viewport. Consent retoma na proxima interacao apos saida completa. STATUS: CONFORME.",
+    "consent_lgpd": "Meta Pixel e Clarity carregados via loadTracking() no final do body. Disparam somente apos consentimento. Consentimento salvo em localStorage key 'app_consent' = 'granted'. Gatilhos: (1) scroll na LP, exceto enquanto _policyFocused=true; (2) clique FORA do #cookie-banner — cliques dentro do banner que nao sejam #cookie-banner-btn sao suprimidos; (3) botao Continuar (fecha banner + consent via bubbling). Mecanismo _policyFocused: ativado sincronamente ao clicar no link de politica (antes do scrollIntoView, sem setTimeout). _policyViewed=true quando secao entra na viewport — distingue 'a caminho' de 'saindo'. Scroll suprimido em toda a fase: transito ate a secao, dentro dela e no evento que a tira da viewport. Consent retoma na proxima interacao apos saida completa. STATUS: CONFORME.",
     "gtm": "Google Tag Manager como caminho de escalabilidade: centraliza disparos (Pixel, Clarity, GA4) sem reeditar HTML. Nao implementado — avaliar antes do lancamento se multiplas ferramentas forem adicionadas."
   },
 
@@ -476,7 +476,7 @@
     "ferramentas_que_precisam_de_consentimento": ["Meta Pixel (publicidade comportamental)", "Microsoft Clarity (gravacao de sessao e heatmap)"],
     "ferramentas_sem_consentimento": ["Google Fonts (funcional — sem coleta identificavel)"],
     "status_atual": "CONFORME — Pixel e Clarity carregados sob consentimento via loadTracking(). Banner implementado (junho 2026).",
-    "implementacao": "Barra fixa no rodape com botao Continuar e link 'Politica de Privacidade'. Link de politica: abre accordion <details id='politica-privacidade'> no footer via JS (nao navega para nova pagina), banner permanece visivel. Mecanismo de consent: qualquer scroll ou click na LP dispara loadTracking() silenciosamente — banner fica. Excecoes: (a) link de politica nunca dispara consent; (b) enquanto _policyFocused=true, QUALQUER interacao (scroll ou clique) dentro de #politica-privacidade e suprimida — o usuario foi mandado para la, nao esta agindo por conta propria; ao sair da secao (scroll que tira elemento do viewport ou clique fora dela), consent retoma normalmente. Botao Continuar: fecha banner + consent via event bubbling. Consentimento persistido em localStorage('edm_consent'='granted').",
+    "implementacao": "Barra fixa no rodape com botao Continuar e link 'Politica de Privacidade'. Link de politica: abre accordion <details id='politica-privacidade'> no footer via JS (nao navega para nova pagina), banner permanece visivel. Mecanismo de consent: qualquer scroll ou click na LP dispara loadTracking() silenciosamente — banner fica. Excecoes: (a) link de politica nunca dispara consent; (b) enquanto _policyFocused=true, QUALQUER interacao (scroll ou clique) dentro de #politica-privacidade e suprimida — o usuario foi mandado para la, nao esta agindo por conta propria; ao sair da secao (scroll que tira elemento do viewport ou clique fora dela), consent retoma normalmente. Botao Continuar: fecha banner + consent via event bubbling. Consentimento persistido em localStorage('app_consent'='granted').",
     "base_legal": "LGPD — Lei 13.709/2018. Consentimento deve ser livre, informado e inequivoco (Art. 8).",
     "pagina_necessaria": "Politica de Privacidade com: CNPJ, dados coletados, finalidade, retencao, direitos do titular e contato."
   },

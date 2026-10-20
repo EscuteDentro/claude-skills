@@ -67,7 +67,7 @@ Cada domínio tem seção própria no `design-system.json`. Consultar pelo nome 
 | Border-radius | `border_radius` | Escala xs(6px) → full(9999px); nenhum elemento com radius 0 |
 | Espaçamento | `espacamento` | Base 8px; escala xs → 3xl; mobile: xl=48px, 2xl=64px, 3xl=80px |
 | Sombras | `sombras` | Tokens `card`, `elevated`, `btn_cta` |
-| Hero | `hero` | Fundo `#E8FAFF`, logo, margens H1/subtítulo/lista na seção hero |
+| Hero | `hero` | Fundo, respiro mínimo acima do H1 no celular (a capa do vídeo sobe), margens, peso e alinhamento de H1/subtítulo/lista |
 | Componentes | `padroes_de_bloco`, `botao`, `cards`, `tabelas`, `listas` | Regras CSS e variantes de cada componente |
 | Alternância de seções | `alternancia_secoes_8D` | Fundo/texto por bloco da estrutura 8D (16 blocos) |
 | Divisores de seção | `divisores_de_secao` | 3 tipos permitidos; proibido: qualquer divisor que pareça botão |
@@ -151,7 +151,7 @@ Todos os eventos dentro ou protegidos por `loadTracking()` — função que só 
 
 **Microsoft Clarity** (ID: `{CLARITY_ID}`): gravação de sessão e mapas de calor. Tags customizadas via `clarity('set', 'key', 'value')` — ver coluna "Clarity tag" acima. Acessar em clarity.microsoft.com → Recordings e Heatmaps.
 
-**Consent gate**: `localStorage.getItem('edm_consent') === 'granted'` — em visitas recorrentes, `loadTracking()` dispara automaticamente no carregamento.
+**Consent gate**: `localStorage.getItem('app_consent') === 'granted'` — em visitas recorrentes, `loadTracking()` dispara automaticamente no carregamento.
 
 **UTM — estrutura padrão para Meta Ads (configurar em cada anúncio):**
 
@@ -241,11 +241,11 @@ Toda alteração na LP — de copy, CSS, HTML, schema ou arquivos auxiliares —
 | **Contraste**      | Texto corpo ≥4.5:1 WCAG AA; texto grande ≥3:1                                                                                                |
 | **Copy**           | Sem travessão (—) em copy persuasiva, sem ponto de exclamação em copy persuasiva (permitido em momentos de conquista — submit, pós-compra), sem "guru", sem "jornada de 40 dias"; texto de alunos exato do site/copy file |
 | **SEO+AEO**        | H1 único; H2 com keyword; FAQ: lead AEO + título ≤65 chars; alt text descritivo; schema sincronizado                                         |
-| **Performance**    | Self-hosting de todo asset (sem exceções); fontes self-hosted com `font-display: optional`; ícones como SVG inline (nunca icon font); `fetchpriority="high"` + `srcset` no LCP; `width`/`height` + `img { height: auto }` em todas as imagens; Lighthouse mobile ≥ 90. Ver `## Performance` neste Guia. |
+| **Performance**    | Self-hosting de todo asset (sem exceções); fontes self-hosted com `font-display` decidido pelo elemento LCP (regra 2 de Performance); ícones como SVG inline (nunca icon font); `fetchpriority="high"` + `srcset` no LCP; `width`/`height` + `img { height: auto }` em todas as imagens; nada abaixo da dobra baixado antes do `load` (regra 5); Lighthouse mobile ≥ 90. Ver `## Performance` neste Guia. |
 | **LGPD**           | Tracking só dentro de `loadTracking()` — nunca no `<head>` diretamente                                                                       |
 | **Tracking**       | Novos elementos clicáveis relevantes precisam de `data-track` ou evento Pixel                                                                |
-| **Responsividade** | Testar 390px mobile; touch targets ≥44px; nada que quebre em landscape; desktop em bloco único `@media (min-width: 900px)` — mobile base intocado |
-| **llms.txt**       | Mudança de copy ou FAQ que afeta o resumo do site → atualizar `llms.txt` junto                                                               |
+| **Responsividade** | Testar 360, 390 e 412px no celular; touch targets ≥44px; nada que quebre em landscape; texto de 3+ linhas alinhado à esquerda; capa do vídeo não desce por ganho de tamanho no topo; desktop em bloco único `@media (min-width: 900px)`, mobile base intocado |
+| **llms.txt**       | Mudança de copy, FAQ ou depoimento (transcrição integral do print ou do vídeo) → atualizar `llms.txt` junto; `dateModified` do schema também |
 | **Tokens de componente** | Ícone usa `var(--brand-vivid)`, 48px wrapper / 44px SVG; border-radius e sombra via tokens do DS — nunca valores avulsos |
 | **Schema sync** | Ao alterar FAQ, campo `text` do JSON-LD FAQPage muda junto; ao alterar VSL, `VideoObject` muda junto |
 | **IDs de seção** | Novos `<section>` precisam de `id="secao-*"` — usados pelos scroll markers de tracking e por links internos de FAQ |
@@ -271,6 +271,12 @@ Toda alteração na LP — de copy, CSS, HTML, schema ou arquivos auxiliares —
 **Alinhamento no celular**: texto de mais de 2 linhas alinhado à esquerda; centralizar só título e frase curta.
 
 **Topo no celular**: o vídeo de vendas não desce. Ganho de tamanho no texto do topo é pago com espaço (respiro mínimo acima do H1, H1 menor); texto miúdo ganha leitura por peso (500) e cor antes de tamanho
+
+**Celular: contraste moderado entre título e texto do topo.** H1 em torno de 21px com subtítulo 15–16px e lista 14px (razão ~1,5); H1 de 24px contra lista de 13px fica gritante num Android. Título de seção sempre maior que os subtítulos internos dela. Rótulo em caixa alta com tamanho que mantém o mais longo numa linha a 360px
+
+**Celular: texto em bloco usa a largura toda.** Sem margem interna extra dentro da seção (listas e blocos alinhados à margem da seção) e sem `text-wrap: balance` em parágrafo (encurta as linhas); `pretty` evita a palavra solta. Subtítulo sobre imagem acinzentada leva cor da marca para não se perder
+
+**Capa do vídeo no celular**: arquivo próprio (ex.: 780px) com o título da capa maior que o da versão de computador, porque a imagem aparece com ~340px de largura; o `srcset` escolhe por largura. Nome de arquivo novo a cada versão (cache imutável de `/assets/`), trocado no `srcset` do `<img>` e no `imagesrcset` do preload
 
 **Implementação**: bloco único `@media (min-width: 900px)` — estilos base (mobile) intocados. Nenhuma regra mobile dentro do bloco desktop. Ver `escala_desktop_formula` no `design-system.json`.
 
@@ -458,6 +464,8 @@ Usar em subtítulos de hero e headings que precisam de quebra manual apenas em v
 
 ## Status LGPD
 
+**Modo sem interação (opcional, decidido por teste):** pixel e analytics carregam no evento `load`, sem barra, com a política dizendo "Ao acessar o site você consente com o uso dessas ferramentas". Em teste real elevou a taxa de carregamento (LPV ÷ cliques de saída) de forma significativa; o mecanismo por interação abaixo fica no código e volta por substituição de texto se o experimento for revertido. Detalhes, chave `TRACK_MODE` e vigia de reversão no skill `subir-pagina-top`. Decidir com o usuário e com orientação jurídica própria
+
 **CONFORME** — Pixel e Clarity carregados via `loadTracking()` somente após consentimento. Cookie banner implementado com mecanismo completo de consent.
 
 **Mecanismo de consentimento (junho 2026):**
@@ -468,7 +476,7 @@ Usar em subtítulos de hero e headings que precisam de quebra manual apenas em v
 - Enquanto `_policyFocused = true`: scroll suprimido em toda a fase — a caminho da seção, dentro dela e no evento que a tira da viewport; clique dentro de `#politica-privacidade` também suprimido
 - `_policyViewed = true` marcado quando a seção entra na viewport — distingue "ainda chegando" de "saindo"
 - Quando a seção sai da viewport após ter sido vista: flags limpas; consent retoma na **próxima** interação (não no mesmo evento de scroll)
-- Consentimento persistido em `localStorage('edm_consent'='granted')` — tracking não carrega novamente em visitas seguintes
+- Consentimento persistido em `localStorage('app_consent'='granted')` — tracking não carrega novamente em visitas seguintes
 
 **DPA Hotmart:** não aplicável — Hotmart BR não tem fluxo de DPA para produtores. Hotmart atua como operadora de dados no checkout pelos próprios termos. Política de privacidade já menciona a Hotmart. Nenhuma ação necessária.
 
@@ -497,14 +505,23 @@ Nunca usar Font Awesome ou qualquer icon font para < 10 ícones. Substituir por 
 - Fonte de SVGs FA6 free: `raw.githubusercontent.com/FortAwesome/Font-Awesome/6.5.1/svgs/solid/[nome].svg`
 - CSS: `.icone svg { width: Xpx; height: Xpx; fill: var(--brand-vivid); }`
 
-**2. Self-hospedar fontes com `font-display: optional`**
+**2. Self-hospedar fontes; `font-display` decidido pelo elemento LCP**
 
 Google Fonts CDN adiciona DNS+TLS externos que bloqueiam render. Solução:
-- Baixar WOFF2 do subset latin (U+0000–00FF) — cobre pt-BR. Um arquivo para weight range 400–700 se for fonte variável.
-- `@font-face` com **`font-display: optional`**, nunca `swap`. `optional` abandona a fonte se não carregou no primeiro ciclo de render (usa fallback do sistema); `swap` re-pinta ao carregar a fonte e dispara novo ciclo LCP.
+- Baixar WOFF2 do subset latin (U+0000–00FF), que cobre pt-BR; um arquivo para o intervalo de pesos se a fonte for variável
 - `<link rel="preload" as="font" href="assets/fonte.woff2" type="font/woff2" crossorigin>` no `<head>`
-- Subsetting avançado: `pyftsubset fonte.ttf --unicodes="U+0000-00FF" --flavor=woff2` reduz de ~35KB para ~18–22KB (+2–3pts extras)
-- **Trade-off:** `optional` pode exibir fonte do sistema na primeira visita se a fonte não carregou dentro do ciclo inicial de render. Em visitas seguintes está em cache e aparece. Mitigação: definir fallback visualmente próximo — `font-family: 'Montserrat', 'Arial', sans-serif` — para que o fallback seja aceitável.
+- **`font-display`:** descobrir antes qual é o elemento LCP (PerformanceObserver `largest-contentful-paint`, celular e computador)
+	- LCP é imagem (capa do vídeo): `swap` + fonte reserva com as medidas da fonte (`size-adjust`, `ascent-override`, `descent-override`, `line-gap-override`, uma face para pesos normais e outra para negrito). O texto aparece na hora na reserva e troca sem pular
+		- Duas reservas na pilha, cada uma com as próprias medidas: Arial (`local('Arial')`, computador e iPhone) e Roboto (`local('Roboto')`, Android, que não tem Arial). Só Arial deixa o Android, maior parte do tráfego de anúncio, na Roboto sem ajuste: a página chega a pular mais de 100 px na troca
+		- Navegador sem `size-adjust` (Safari < 17, Chromium < 127) não ajusta a reserva: bloco `@supports not (font-size-adjust: from-font)` com a mesma `@font-face` em `optional`, declarada depois da `swap` (a última vence). `from-font` chegou no Safari junto com `size-adjust`; `font-size-adjust` simples já existia no 16.4 e não serve de detector
+		- Safari aplica só `size-adjust` (ignora `ascent-override`/`descent-override`): sem efeito na altura com `line-height` numérico em todo texto
+	- LCP é texto: `optional`, que evita novo LCP na troca, ao custo de a 1ª visita quase sempre ficar na fonte do sistema
+	- `optional` com preload não basta em rede móvel: a fonte chega depois dos ~100 ms de espera e a página inteira fica na fonte do sistema na 1ª visita, que é a de quase todo visitante de anúncio
+	- Medidas da reserva: calcular com fontTools sobre o texto da própria página (largura média por peso da fonte contra Arial, Arial Bold e Roboto 400/700); recalcular quando o texto da página mudar muito
+	- Conferir o pulo: medir em várias larguras (280 a 1920 px) e nos cenários computador/iPhone, Android (sem Arial) e navegador antigo a posição da capa do vídeo e a altura da página com a fonte bloqueada e carregada. Esperado: capa sem deslocamento (até ~20 px em 1–2 larguras)
+	- Conferir que a fonte aparece na 1ª visita em 4G: largura do texto do título com cache vazio igual à largura com a fonte já carregada
+- Peso intermediário (500) para texto miúdo só existe se a fonte for variável ou o arquivo do peso for servido; senão o navegador cai no 400
+- Subsetting avançado: `pyftsubset fonte.ttf --unicodes="U+0000-00FF" --flavor=woff2` reduz de ~35KB para ~18–22KB
 - Impacto observado: FCP 2.4s → 1.2s
 
 **3. Self-hospedar elemento LCP com `fetchpriority="high"` e preload com srcset**
@@ -534,7 +551,11 @@ Em cada `<img>`: `width="X" height="Y"` com dimensões reais (obtidas com `sips 
 Duas regras complementares para o carregamento de imagens:
 - Toda `<img>` abaixo do fold: `loading="lazy"` — o browser não baixa durante o load inicial, libera banda para o LCP
 - `<img>` acima do fold (logo, hero, LCP element): `fetchpriority="high"` — sobe na fila de prioridade. **Nunca combinar `loading="lazy"` com `fetchpriority="high"`**
-- Auditoria: `grep -n '<img' index.html | grep -v 'loading='` — apenas logo do header e thumbnail LCP devem aparecer
+- Auditoria: `grep -n '<img' index.html | grep -v 'loading='`: só a thumbnail LCP deve aparecer
+- **`loading="lazy"` não garante que a imagem fica fora do load.** Em conexão lenta o Chrome baixa imagem lazy até ~2.500 px abaixo da tela (inclusive o `<source srcset>` de um `<picture>`); tudo que começa antes do evento `load` atrasa o que depende dele, como o pixel disparado no `load` e a LPV da Meta
+	- Imagem abaixo da dobra a menos de ~2.500 px do fim da 1ª tela: `data-src` no `<img>` e `data-srcset` nos `<source>`, trocados no `load` por script; `width`/`height` mantêm o layout
+	- Muda com a página: seção encurtada, removida ou reordenada em cima traz imagens de baixo para a faixa de risco. Conferir a cada mudança nas seções de cima e antes de todo deploy com teste em rede lenta (celular e computador): nenhuma imagem abaixo da dobra baixada antes do `load`
+	- Caso real: seções de cima mais curtas trouxeram prints de depoimento para ~1.350 px da dobra; o `load` atrasou ~0,8 s no celular e ~5 s no computador em rede lenta
 
 **6. Converter todas as imagens para WebP e comprimir agressivamente**
 
@@ -747,6 +768,8 @@ Resultado observado: 35KB → 25KB (−28%, com layout features/kerning preserva
 |---|---|---|
 | LCP > 4s + elemento é imagem | Thumbnail externo ou sem preload | Self-hospedar + `fetchpriority="high"` + preload com `imagesrcset` (regra 3) |
 | LCP > 3s + elemento é texto (H1) | `font-display: swap` re-pintando | `font-display: optional` (regra 2) |
+| Página na fonte do sistema na 1ª visita | `font-display: optional`: a fonte chega depois da espera em rede móvel | Se o LCP é imagem: `swap` + reserva com as medidas da fonte (regra 2) |
+| Página pula quando a fonte chega, só no Android | Reserva só sobre Arial: Android não tem Arial e cai na Roboto sem ajuste | Segunda reserva sobre `local('Roboto')` com as próprias medidas (regra 2) |
 | FCP > 2s | Fonte via CDN externo | Self-hospedar + preload (regra 2) |
 | CLS > 0 | `<img>` sem `width/height` ou sem `height: auto` | Reset CSS + atributos dimensionais (regra 4) |
 | TBT alto | Scripts pesados no thread principal | `defer` / mover para `</body>` / lazy-load tracking (regra 7) |
@@ -754,6 +777,7 @@ Resultado observado: 35KB → 25KB (−28%, com layout features/kerning preserva
 | Score cai em mobile vs desktop | Imagens sem versão mobile no srcset | srcset com variante mobile (regra 6) |
 | Colunas não colapsam no mobile | Masonry JS inline style sobrescreve CSS | `!important` no `@media (max-width: BP-1px)` (regra 11) |
 | Imagens abaixo do fold pesando no load | `loading` ausente | `loading="lazy"` em tudo abaixo do fold (regra 5) |
+| `load` lento mesmo com `loading="lazy"` | Imagem lazy a menos de ~2.500 px da dobra baixada antes do load em rede lenta | `data-src`/`data-srcset` trocados no load; conferir com teste em rede lenta (regra 5) |
 
 ### Meta e benchmarks
 
@@ -812,6 +836,9 @@ Referência real (LP de infoproduto aplicando este Guia): **97 Performance / 96 
 - **Organization**: incluir `name`, `url`, `logo`, `contactPoint` e `sameAs` com todas as redes sociais — permite que o Google consolide a mesma entidade em múltiplas plataformas
 - **`sameAs`** (Organization e Person): array com as URLs completas de todas as redes sociais do produto (Instagram, YouTube, TikTok etc.) — ao adicionar nova rede social, atualizar em ambos os schemas
 - **AggregateRating**: só implementar com avaliações verificáveis e visíveis na página (Hotmart ou Google Reviews) — Google pode penalizar markup sem evidência na página
+- **`dateModified`** (no `Course`/`WebPage`, com `datePublished`) atualizado a cada deploy de conteúdo: agentes de IA preferem citar página recente; dado que muda (preço, nº de alunos, avaliação) leva "em {mês/ano}" no texto
+- **Conteúdo-chave no HTML bruto**: preço, prova, oferta e depoimento nunca só injetados por script; agente que não executa JS não enxerga
+- **Vídeo longo (aula/VSL)**: `hasPart` com um `Clip` por parte (nome, `startOffset`, `endOffset`, link com `&t=`) no `VideoObject`; vídeo reeditado, refazer as partes
 
 ### 3. Hierarquia de headings
 
@@ -845,6 +872,11 @@ Referência real (LP de infoproduto aplicando este Guia): **97 Performance / 96 
 - **WebP em tudo**: converter PNGs e JPGs com `cwebp -q 70`. Alvo: <100KB por imagem de conteúdo, <200KB para fotos grandes.
 - **Alt text descritivo**: descreve o conteúdo + inclui keyword onde natural; formato sugerido: `[Pessoa/contexto] — [resultado/ação com keyword]`; máx 125 chars
 - **Nunca `alt=""`** em imagem informativa — reservar só para imagens puramente decorativas (`aria-hidden="true"` nesses casos)
+- **Print de depoimento**: alt resume (≤125 chars), então o texto integral precisa existir legível por máquina em outro lugar (transcrição no `llms.txt` ou bloco de texto na página). Teste: selecionar o texto com o mouse; se não seleciona, agente de IA também não lê
+	- Só as palavras do aluno: sem as respostas do produtor, sem marcas de grifo, sem nome (o print já borra)
+- **Depoimento em vídeo**: o que o aluno fala só chega a agente de IA em texto. Transcrição integral em dois lugares: `llms.txt` (seção "Depoimentos em vídeo") e `transcript` de um `VideoObject` por vídeo num JSON-LD no fim do `<body>` (no fim: os bytes a mais não atrasam a primeira pintura; ~17 KB custaram ~30 ms no load em rede lenta). Só pontuação e erro óbvio de reconhecimento corrigidos, trecho incerto omitido, nunca reescrito; nome e papel como no card
+- **Alegação de risco em depoimento transcrito**: frase do aluno sobre substância, remédio, doença grave, suicídio ou prevenção/cura sai do texto e do alt, marcada com `(…)`; o resto da fala fica literal. Na imagem ela era do aluno; em texto, agente de IA a repete como promessa do site. Na dúvida, cortar
+- **Vídeo longo (aula/VSL)**: nunca a transcrição inteira na página nem no `llms.txt` (frase de risco do vídeo vira afirmação do site na resposta da IA): resumo por parte com minutagem no `llms.txt` e `Clip` no `VideoObject`
 
 ### 6. Semântica HTML
 
@@ -885,6 +917,26 @@ Documentados para evitar reavaliação desnecessária em sessões futuras.
 
 ---
 
+## Versão nova da página: medir, comparar, restaurar
+
+- **Subida**: ramo próprio, tag de checkpoint da versão anterior antes de subir (`lp-v1`, permanente); deploy antigo também volta por `vercel promote` enquanto existir (a Vercel apaga deploy de produção com mais de 30 dias fora dos 10 mais recentes)
+- **Restauro por seção**: script que, dada a tag e o `id` da seção, imprime o HTML, o CSS (inclusive dentro de `@media`) e os assets dela, com o comando para recuperar asset apagado e aviso do JS que a seção usa. Seção nova sempre com `id="secao-<nome>"`
+- **Funil da página no contador próprio** (anônimo, agregado, sem cookie nem ID), nunca no pixel: a Meta não precisa desses sinais e eles sujariam o aprendizado
+	- `play` (capa do vídeo clicada); `vw:<marco>` (posição alcançada no vídeo: minutos-chave e 25/50/75/100%); `sec:<id>` (1º aparecimento de cada seção com o topo nos 75% de cima da tela, uma vez por visita, IntersectionObserver); `cta:<nome>` (botão de compra, do `data-track`); envio do pré-checkout
+	- Marco validado no servidor por lista fechada; evento com marco usa a chave `evento:marco` para não repetir; antes do início da visita, fila
+	- Teste local com a página servida como produção, envios derrubados e player do YouTube falso: todos os eventos, nenhum duplicado, nenhum erro de JS
+- **Comparar versões**: painel local que junta contador, pixel e anúncios, YouTube Analytics e Clarity, só com métricas que a página muda (carregamento, engajamento, vídeo, conversão)
+	- Por taxa (play/chegada, seção/chegada, clique/alcance do preço), nunca por total; teste de proporção a 90% com aviso de amostra pequena; só tráfego pago na comparação
+	- **Marcos**: arquivo com toda mudança relevante na página, no tracking ou em campanha (data, o quê, tipo), registrado no mesmo commit da mudança; tipo `versao` divide os períodos comparados
+	- Retenção do vídeo por período com as partes do vídeo marcadas (transcrição com minutagem guardada uma vez, nunca refeita)
+- **Clarity sem perder dado com o computador desligado**: a API de exportação só entrega as últimas 24/48/72 h em janela móvel, com limite diário de chamadas
+	- Agendador local checa a cada 15 min e chama em horários fixos (ex.: 3 por dia), pedindo a janela que cobre o tempo desde a última chamada; cada resposta vira blocos de 24 h por diferença entre janelas
+	- Análise pelo menor conjunto de blocos que cobre todo o tempo (sobreposição medida, sem efeito em taxas); desligado até ~64 h não perde nada, acima disso o buraco aparece com o link do painel do Clarity daquele trecho (o painel guarda agregados por 13 meses)
+	- Bruto guardado sem alteração (recalcular a partir dele); token recusado vira notificação; modo de teste sem API (diretório, hora e resposta simulados)
+	- Rolagem ponto a ponto e toques não vêm pela API: ler no painel do Clarity por versão (URL com `date=Custom&start=<ms>&end=<ms>&Medium=paid`; `heatmaps?...&heatmapType=1` para rolagem), logo depois da troca, porque gravações somem em ~30 dias
+
+---
+
 ## Validação e Testes
 
 Rodar antes do deploy e periodicamente pós-publicação.
@@ -899,7 +951,10 @@ Rodar antes do deploy e periodicamente pós-publicação.
 | Microsoft Clarity | clarity.microsoft.com | Sessões sendo gravadas; mapa de calor do CTA visível |
 | Análise de performance | Claude Code | O Claude consegue analisar: heatmap do Clarity (atenção por scroll), leads da planilha Apps Script (UTMs, criativos, funil) e Meta Ads (CPL, criativo, placement). |
 | Hierarquia de headings | Extensão headingsMap (Chrome/Firefox) | Hierarquia H1 → H2 → H3 sem saltos; único H1 |
-| LGPD / Consent | DevTools → Application → LocalStorage | `edm_consent: granted` só aparece após interação com o banner |
+| LGPD / Consent | DevTools → Application → LocalStorage | `app_consent: granted` só aparece após interação com o banner |
+| Pulo da fonte | Chrome headless, fonte bloqueada × carregada, cenários sem Arial (Android) e sem `size-adjust` | Capa do vídeo sem deslocamento em 280–1920 px (regra 2 de Performance) |
+| Nada antes do `load` | Chrome headless em rede lenta, celular e computador | Nenhuma imagem abaixo da dobra baixada antes do evento `load` (regra 5) |
+| Medição do funil | Página servida como produção, envios derrubados, player falso | Todos os eventos do funil, nenhum duplicado, nenhum erro de JS |
 
 ---
 
@@ -935,7 +990,7 @@ O que nunca fazer nesta LP, com razão documentada.
 | `loading="lazy"` sem `width`/`height` | Causa CLS (layout shift) — dimensões explícitas são obrigatórias |
 | Font Awesome (ou qualquer icon font) | Adiciona ~73KB JS + ~18KB CSS não usados + request render-blocking (~1.3s). Substituir por SVG inline. |
 | Google Fonts CDN (ou qualquer fonte via CDN externo) | Dois requests externos (fonts.googleapis.com + fonts.gstatic.com) que bloqueiam render. Self-hospedar subset WOFF2. |
-| `font-display: swap` | Re-pinta o LCP quando a fonte carrega, disparando novo ciclo de LCP. Usar `font-display: optional`. |
+| `font-display: swap` sem reserva ajustada, ou com LCP em texto | Sem reserva ajustada o texto pula na troca; com LCP em texto, re-pinta o LCP. Com LCP em imagem, usar `swap` + reserva ajustada (regra 2) |
 | Thumbnail do VSL apontando para CDN externo (YouTube, etc.) | DNS+TLS externo no caminho crítico do LCP. Baixar, converter para WebP e self-hospedar. |
 | `<img>` sem `height: auto` no CSS global quando tem atributo `height` | Atributo `height` vira pixel fixo e distorce a imagem em containers responsivos. Reset `img { height: auto }` é obrigatório. |
 | `<link rel="preload" as="image">` sem `imagesrcset` para imagem com srcset | Preload baixa sempre o arquivo maior, ignorando a seleção responsiva do `srcset`. Usar `imagesrcset` + `imagesizes` no preload. |

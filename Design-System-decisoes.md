@@ -22,6 +22,7 @@ Data: 2026-05-11
 - ~~H3+, body, UI: Inter (maxima legibilidade)~~ — SUBSTITUÍDO
 - **Atual:** Montserrat em todos os níveis (H1–H6, body, UI) — decisão mantém coerência com o site original
 - ~~Escala modular x1.25, base 17px~~: SUBSTITUÍDO por escala por função (tamanho pelo papel do texto, calibrado no celular real)
+- Fonte com `font-display: swap` e duas reservas ajustadas às medidas dela (Arial e Roboto do Android); navegador sem `size-adjust` em `optional`. Vale enquanto o LCP for imagem; LCP em texto volta a `optional`
 
 ## Bloco de preço — tipografia
 
@@ -84,3 +85,23 @@ InitiateCheckout · Purchase
 - Teste encerrado por número de cliques calculado antes, nunca por data
 - Métrica oscilando não gera alerta; alerta só para falha com ação clara
 
+## Leitura e layout (decisões fechadas, out/2026)
+
+- **Ordem de decisão**: legibilidade > arquitetura da informação > layout e estética
+- **Topo no celular**: a capa do vídeo de vendas não desce. Respiro mínimo acima do H1; H1 em torno de 21px; texto do topo ganha leitura por peso (500) e cor da marca antes de tamanho; lista do topo com tamanho limitado pela posição da capa
+- **Alinhamento**: texto de mais de 2 linhas à esquerda no celular; centralizar só título e frase curta
+- **Largura**: conteúdo de 960 px no computador em todas as seções; no celular, blocos sem margem interna extra e sem `text-wrap: balance` em parágrafo
+- **Hierarquia por peso, não por cor**: destaque dentro de título em peso diferente na mesma cor
+- **Uma única seção escura** para marcar o método; as demais alternam fundos claros
+- **Prova científica**: título do estudo domina; print em cinza esmaecido, como apoio
+
+## Funil e comparação de versões (decisão fechada, out/2026)
+
+- Vídeo, seções e cliques medidos no contador próprio (anônimo, agregado), nunca no pixel: a Meta não precisa desses sinais e eles sujariam o aprendizado
+- Versões comparadas por taxa, nunca por total, só com tráfego pago; toda mudança registrada como marco no mesmo commit
+
+## Página legível por IA (decisão fechada, out/2026)
+
+- Depoimento em print ou vídeo ganha transcrição integral em texto (`llms.txt`; vídeo também no `transcript` do `VideoObject`, no fim do `<body>`); alegação de risco sobre saúde sai do texto
+- Vídeo longo nunca transcrito inteiro: resumo por parte e `Clip` no schema
+- `datePublished`/`dateModified` no schema; preço, oferta e prova no HTML bruto
