@@ -218,7 +218,7 @@ Performance mobile é princípio central — impacto direto em conversão de tr�
 | **AVIF com fallback WebP** | imagens grandes com `<picture>` source AVIF + img WebP. Exceção: VSL thumbnail (LCP) |
 | **Sem redirects desnecessários** | `curl -I https://SEU-DOMINIO.com/` — sem `Location:` no apex |
 | **Payload total** | `du -sh assets/` — meta < 1.6MB total |
-| **Legível por agente de IA** | Preço, prova e oferta no HTML bruto (`curl -s URL \| sed 's/<script.*<\/script>//'` ainda mostra o texto); depoimento em imagem tem a transcrição integral no `llms.txt`; depoimento em vídeo tem a transcrição no `llms.txt` e no `transcript` de um `VideoObject` (JSON-LD no fim do `<body>`); vídeo longo entra só como resumo por parte com minutagem (`llms.txt`) e `Clip` no `hasPart`, nunca a transcrição inteira; `dateModified` no JSON-LD atualizado no deploy |
+| **Legível por agente de IA** | Preço, prova e oferta no HTML bruto (`curl -s URL \| sed 's/<script.*<\/script>//'` ainda mostra o texto); depoimento em imagem tem a transcrição integral no `llms.txt` (alegação de saúde arriscada, como substância, remédio, suicídio ou cura, sai do texto e do alt com `(…)`); depoimento em vídeo tem a transcrição no `llms.txt` e no `transcript` de um `VideoObject` (JSON-LD no fim do `<body>`); vídeo longo entra só como resumo por parte com minutagem (`llms.txt`) e `Clip` no `hasPart`, nunca a transcrição inteira; `dateModified` no JSON-LD atualizado no deploy |
 | **Prefetch checkout** | `grep 'rel="prefetch"' index.html` — URL do checkout presente |
 | **Lighthouse mobile** | DevTools → Lighthouse → Mobile, aba anônima, URL de produção. Score ≥ 90, perseguir 95+ |
 
