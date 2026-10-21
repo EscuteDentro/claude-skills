@@ -18,7 +18,7 @@ Conduz o processo completo de publicação de uma LP de conversão em 10 passos:
 8. Checklist de performance (Lighthouse mobile ≥ 90)
 9. **Infraestrutura de deploy e tracking** (tudo embutido):
    - `vercel.json` com headers de segurança HTTP e cache policy
-   - `deploy.py` — script de deploy via API da Vercel
+   - Deploy por push no `main` (Vercel Git) ou Vercel CLI; nunca API REST com bundle local
    - Meta Pixel snippet base
    - Eventos por tipo de página (vendas, captura, obrigado)
    - `api/capi.js` — CAPI server-side com SHA-256, normalização E.164, deduplicação
@@ -26,6 +26,7 @@ Conduz o processo completo de publicação de uma LP de conversão em 10 passos:
    - Microsoft Clarity custom tags (opcional)
    - VSLProgress via YouTube IFrame API
    - ScrollDepth70 listener
+   - Medição própria e saúde: `api/m.js` (contador anônimo e funil), `api/tracking-health.js`, `api/selfcheck.js`, `api/monitor-status.js`, `api/_lib/redis.js`
 10. Preview da paleta + orientações finais
 
 ## Por que o Pixel está embutido
@@ -35,11 +36,11 @@ Para uma LP de infoproduto, o Meta Pixel + CAPI não é opcional — sem trackin
 ## Configurar antes de usar
 
 No `api/capi.js` gerado pelo skill, substituir:
-- `{PIXEL_ID}` pelo ID do seu Meta Pixel
+- `SEU_PIXEL_ID` pelo ID do seu Meta Pixel
 - `https://SEU-DOMINIO.com` pela URL canônica da sua LP
 - Configurar a variável de ambiente `META_CAPI_KEY` no Vercel (Settings → Environment Variables → tipo Sensitive)
 
-No HTML da página, substituir `{PIXEL_ID}` pelo mesmo ID.
+No HTML da página, substituir `SEU_PIXEL_ID` pelo mesmo ID.
 
 ## Como instalar no Claude Code
 

@@ -126,7 +126,7 @@ Todos os eventos dentro ou protegidos por `loadTracking()` — função que só 
 **Clarity tags adicionais:** `traffic_source: utm_source` (capturado em `loadTracking()`).
 
 **CAPI — arquitetura:**
-- Endpoint: `api/capi.js` (Vercel serverless, incluso no deploy via `deploy_v2.py`)
+- Endpoint: `api/capi.js` (função serverless da Vercel, publicada junto com a página por push no `main` ou Vercel CLI)
 - Token: `META_CAPI_KEY` (env var encrypted no Vercel — nunca em código)
 - Pixel ID: `{PIXEL_ID}` (hardcoded no `api/capi.js`)
 - PII no Lead: email + phone (E.164, DDI 55 prefixado) + nome — hasheados SHA-256 `toLowerCase().trim()`
@@ -666,9 +666,9 @@ No `<head>`, antes de qualquer script externo:
 ```
 `preconnect` = DNS + TCP + TLS antecipados (usar para 3rd parties do critical path). `dns-prefetch` = só DNS (usar para domínios que carregam após interação do usuário).
 
-**10. HTML minificado no deploy**
+**10. HTML minificado**
 
-`html-minifier-terser` remove whitespace, comentários e atributos redundantes — reduz HTML de ~140KB para ~126KB sem risco. Integrar no script de deploy, não no HTML-fonte.
+`html-minifier-terser` remove whitespace, comentários e atributos redundantes: reduz HTML de ~140KB para ~126KB sem risco. A Vercel não minifica sozinha: rodar antes do commit (ou num passo de build) e conferir a página depois.
 ```bash
 npx html-minifier-terser \
   --collapse-whitespace \
