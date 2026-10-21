@@ -1,6 +1,6 @@
 # Skill: /subir-pagina-top
 
-Publica uma landing page de infoproduto (Hotmart, Kiwify, etc.) no Vercel com Meta Pixel + CAPI server-side embutidos — tracking é parte obrigatória do deploy, não etapa opcional.
+Publica uma landing page de infoproduto (Hotmart, Kiwify, etc.) no Vercel com Meta Pixel + CAPI server-side embutidos: tracking é parte obrigatória do deploy, não etapa opcional.
 
 **Status:** funcional e pronto para uso.
 
@@ -21,7 +21,7 @@ Conduz o processo completo de publicação de uma LP de conversão em 10 passos:
    - Deploy por push no `main` (Vercel Git) ou Vercel CLI; nunca API REST com bundle local
    - Meta Pixel snippet base
    - Eventos por tipo de página (vendas, captura, obrigado)
-   - `api/capi.js` — CAPI server-side com SHA-256, normalização E.164, deduplicação
+   - `api/capi.js`: CAPI server-side com SHA-256, normalização E.164, deduplicação
    - Helpers JS (`_cId`, `_ck`, `_capi`, `_app_eid`, `_app_pii`)
    - Microsoft Clarity custom tags (opcional)
    - VSLProgress via YouTube IFrame API
@@ -31,7 +31,7 @@ Conduz o processo completo de publicação de uma LP de conversão em 10 passos:
 
 ## Por que o Pixel está embutido
 
-Para uma LP de infoproduto, o Meta Pixel + CAPI não é opcional — sem tracking, o Meta Ads Manager não consegue otimizar campanhas e o Event Match Quality (EMQ) fica baixo. O skill trata o tracking como parte do checklist de "página publicável", não como etapa separada.
+Para uma LP de infoproduto, o Meta Pixel + CAPI não é opcional: sem tracking, o Meta Ads Manager não consegue otimizar campanhas e o Event Match Quality (EMQ) fica baixo. O skill trata o tracking como parte do checklist de "página publicável", não como etapa separada.
 
 ## Configurar antes de usar
 

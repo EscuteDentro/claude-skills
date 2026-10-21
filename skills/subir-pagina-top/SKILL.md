@@ -11,9 +11,10 @@ allowed-tools: Read, Write, Edit, Bash
 
 > **Instalação:** copiar esta pasta para `.claude/skills/subir-pagina-top/` no projeto e criar o command apontando para o SKILL.md. Ver [README.md](./README.md) para instruções completas e pré-requisitos.
 
+
 ---
 
-# /subir-pagina-top — LP de Infoproduto do Zero ao Ar
+# /subir-pagina-top: LP de Infoproduto do Zero ao Ar
 
 Cria os arquivos de fundação e conduz o deploy completo de uma LP de conversão:
 
@@ -148,7 +149,7 @@ Criar `{pasta-base}` agora se não existir. Sem perguntas; avançar.
 - Schemas JSON-LD, Validação e Testes
 - Anti-padrões estruturais: incluir apenas os universais de LP (afirmações não verificáveis, promessas impossíveis, jargão técnico excessivo, copy que confunde clareza com criatividade). Remover qualquer anti-padrão específico de nicho
 - Performance: regras agnósticas de produto, ordenadas por impacto (base: tabela do passo 8)
-- LGPD: status inicial `⬜ PENDENTE — banner a implementar` (ou, no modo `load`, política de privacidade descrevendo quando a medição começa; ver 9c)
+- LGPD: status inicial `⬜ PENDENTE: banner a implementar` (ou, no modo `load`, política de privacidade descrevendo quando a medição começa; ver 9c)
 
 **Salvar em:** `{pasta-base}/Guia de Construção da Página.md`
 
@@ -184,7 +185,7 @@ Criar `{pasta-base}` agora se não existir. Sem perguntas; avançar.
 
 **Salvar em:** `{pasta-base}/design-system.json`
 
-### 7. Checklist de responsividade — executar após construir a LP (não agora)
+### 7. Checklist de responsividade: executar após construir a LP (não agora)
 
 Após implementar ou revisar qualquer seção da LP, verificar:
 
@@ -201,7 +202,7 @@ Após implementar ou revisar qualquer seção da LP, verificar:
 
 Padrões de implementação detalhados: seção "Padrões de composição desktop" no Guia (multi-coluna, masonry, watermark, br-desktop, logo clip).
 
-### 8. Checklist de performance — executar antes do primeiro deploy (não agora)
+### 8. Checklist de performance: executar antes do primeiro deploy (não agora)
 
 Performance mobile é princípio central: impacto direto em conversão de tráfego pago. Meta: Lighthouse mobile ≥ 90. Verificar:
 
@@ -314,7 +315,7 @@ O `POST` de teste acima envia um `PageView` de verdade em produção. Para testa
 
 **Confirmar que o deploy saiu.** O gatilho Git→Vercel falha em silêncio: o commit entra no repositório e nenhum deploy é criado, com o CDN servindo a versão antiga por horas. Depois de todo push, conferir pelo conteúdo: o hash do HTML servido (`curl -s https://SEU-DOMINIO.com/ | shasum -a 256`) igual ao do arquivo commitado (`git show HEAD:src/index.html | shasum -a 256`), e `/api/selfcheck` (9n) ok. Um commit vazio reativa o gatilho. `?query` na URL não fura o cache do CDN: conferir `age` e `x-vercel-cache` no `curl -sI`.
 
-#### 9c. Meta Pixel — snippet base (obrigatório)
+#### 9c. Meta Pixel: snippet base (obrigatório)
 
 Inserir no `<head>` depois do bloco de sandbox e do contador de 9n, antes de qualquer outro script de tracking. Substituir `SEU_PIXEL_ID` pelo Pixel ID coletado no passo 3. Não duplicar se já existir (procurar por `fbq('init'`). Em produção o snippet vive dentro de `loadTracking()` (modo `load`: no evento `load`; modo `gate`: depois do consentimento), não solto no `<head>`; a forma solta abaixo é a versão mínima:
 
@@ -341,7 +342,7 @@ src="https://www.facebook.com/tr?id=SEU_PIXEL_ID&ev=PageView&noscript=1"/></nosc
 
 **Configuração do pixel pelo seu domínio.** `fbq('set', 'cdn', location.origin + '/fbcdn/')` antes do `fbq('init')` e o `rewrites` de `/fbcdn/` no `vercel.json` (9a). Comando nativo do fbevents. Sem isso, quem tem `connect.facebook.net` bloqueado (DNS bloqueador, lista de rastreador) carrega o pixel e nunca envia evento, porque a configuração não chega. O CDN da Vercel guarda a resposta (~20 min), o que ainda encurta o caminho até o primeiro envio. Medido numa página real: nenhum ganho geral na taxa de carregamento; fica como proteção contra bloqueio. O envio (`facebook.com/tr`) continua direto do navegador: nunca repassar `/tr` pelo seu servidor (perde o IP real do visitante).
 
-**Não rodar espelho de servidor em cima do seu próprio CAPI.** A "Conversions API — Supported by Meta" (ativação em um clique) duplica cada evento do navegador como evento de servidor: a razão servidor:navegador vai a ~2,5:1 sem recuperar conversão nenhuma, e a leitura dos números fica confusa. Se você já tem CAPI próprio, desligue o espelho **no site**, com `fbq('skipOpenbridge', 'SEU_PIXEL_ID')` antes do `fbq('init')` (comando nativo do fbevents, reversível apagando a linha). Evite o botão de excluir o conjunto no Gerenciador de Negócios: o diálogo diz *"will prevent it from receiving data through Conversions API"*, texto que também comporta bloquear toda a ingestão por CAPI. Validar no navegador: com o comando, zero requisições ao endpoint do espelho, e `facebook.com/tr` e o seu `/api/capi` seguem disparando.
+**Não rodar espelho de servidor em cima do seu próprio CAPI.** A "Conversions API: Supported by Meta" (ativação em um clique) duplica cada evento do navegador como evento de servidor: a razão servidor:navegador vai a ~2,5:1 sem recuperar conversão nenhuma, e a leitura dos números fica confusa. Se você já tem CAPI próprio, desligue o espelho **no site**, com `fbq('skipOpenbridge', 'SEU_PIXEL_ID')` antes do `fbq('init')` (comando nativo do fbevents, reversível apagando a linha). Evite o botão de excluir o conjunto no Gerenciador de Negócios: o diálogo diz *"will prevent it from receiving data through Conversions API"*, texto que também comporta bloquear toda a ingestão por CAPI. Validar no navegador: com o comando, zero requisições ao endpoint do espelho, e `facebook.com/tr` e o seu `/api/capi` seguem disparando.
 
 **Modo de carregamento do tracking (`window.TRACK_MODE`, definido no início do `<head>`, ver 9n).** O template deixa escolher; a decisão é do usuário e tem peso jurídico.
 - **`load` (recomendado pelo ganho de cobertura):** pixel e analytics carregam no evento `load` (com rede de segurança de ~4 s), sem barra de cookies. Maior alavanca de tracking medida (ver "Taxa de carregamento" em 9n). Exige política de privacidade dizendo que a medição começa ao acessar o site ("Ao acessar o site você consente com o uso dessas ferramentas"). A decisão jurídica é do dono da página: a ANPD não reconhece "continuar navegando" como consentimento, então o usuário precisa aceitar esse risco conscientemente. Avisar isso ao usuário antes de fixar `load`
@@ -381,7 +382,7 @@ fbq('track', 'CompleteRegistration');
 
 Nunca incluir evento que não faça sentido para o tipo de página.
 
-#### 9e. CAPI — Meta Conversions API (obrigatório para campanha de ads)
+#### 9e. CAPI: Meta Conversions API (obrigatório para campanha de ads)
 
 **Por que CAPI:** Pixel browser é bloqueado por adblockers e Safari ITP. CAPI envia os mesmos eventos server-side, garantindo cobertura completa e melhorando o EMQ (Event Match Quality) na Meta. É uma Vercel serverless function em paralelo ao pixel do navegador.
 
@@ -510,7 +511,7 @@ module.exports = async function handler(req, res) {
 
 Após criar: configurar `META_CAPI_KEY` como env var encrypted no projeto Vercel (Settings → Environment Variables → tipo Sensitive). **Nunca colocar o token no código ou em arquivos commitados.**
 
-#### 9e.1 — Proxy de pixel first-party (`api/pixel-js.js`) — RECOMENDADO
+#### 9e.1: Proxy de pixel first-party (`api/pixel-js.js`), RECOMENDADO
 
 Serve `fbevents.js` do mesmo domínio via `/api/pixel-js`, em vez de `connect.facebook.net`. Bypassa adblockers que bloqueiam o domínio da Meta mas não o do site. Cache de navegador 1h (`max-age`), CDN 24h (`s-maxage=86400`): aquece o nó do CDN uma vez ao dia em vez de a cada request. Adicionar `<link rel="prefetch" href="/api/pixel-js">` no `<head>` para pré-baixar o script antes do tracking carregar.
 
@@ -549,11 +550,11 @@ module.exports = async function handler(req, res) {
 
 No snippet HTML (9c), a URL do script é `/api/pixel-js` (`t.src='/api/pixel-js'` dentro do IIFE). Registrar o SW (9l) para cache-first offline do proxy.
 
-#### 9e.2 — Não criar relay de `facebook.com/tr`
+#### 9e.2: Não criar relay de `facebook.com/tr`
 
 Não usar `fbq('set', 'endpoint', ...)` apontando para uma função que repassa hits a `facebook.com/tr`. A função sai do IP de datacenter da Vercel e a Meta não documenta aceitar `X-Forwarded-For`: o IP real do visitante se perde em todos os eventos de navegador. Cobertura para usuários com adblocker vem do CAPI no mesmo domínio (`api/capi.js`, 9e) e, se ativado no Events Manager, do Conversions API Gateway. O pixel envia direto para `facebook.com/tr`.
 
-#### 9e.3 — ITP bypass para `_fbp` (`api/fbp-init.js`) — OPCIONAL
+#### 9e.3: ITP bypass para `_fbp` (`api/fbp-init.js`), OPCIONAL
 
 O `api/capi.js` do template já renova `_fbp` por `Set-Cookie` em todo evento: **omitir este endpoint** nesse caso. Criar só se o projeto não tiver CAPI consolidado. Safari ITP capa cookies definidos via JavaScript a 7 dias; `Set-Cookie` por header HTTP não sofre o cap (vida útil de 90 dias). Não chamar do frontend: renovação standalone.
 
@@ -670,7 +671,7 @@ Promise.race([leadCapi, new Promise(function(r){ setTimeout(r, 800); })]).then(g
 
 **Compra de teste nunca no checkout de produção com pixel ativo**: vira Purchase real e contamina a otimização de campanha.
 
-#### 9h. Microsoft Clarity (opcional — mapas de calor e gravações)
+#### 9h. Microsoft Clarity (opcional: mapas de calor e gravações)
 
 Instalar via `loadTracking()`. Custom tags para enriquecer gravações:
 
@@ -687,7 +688,7 @@ clarity('set', 'exit_intent', 'true');          // via mouseleave clientY < 5 (d
 
 **Analytics de sessão depois do pixel.** Injetar o script de gravação de sessão só quando a configuração do pixel chega (teto de 3 s), com a fila (`window.clarity`) criada antes para nenhuma tag se perder. O pixel + analytics (~340 KB) disputam rede com o elemento do LCP; o Clarity depois do pixel poupa o pixel. Custo: não grava quem sai antes. Avisar o contador (`window._mEv('cl')`, 9n) quando o script do Clarity carregar.
 
-#### 9i. VSLProgress — padrão YouTube IFrame API
+#### 9i. VSLProgress: padrão YouTube IFrame API
 
 Adicionar `enablejsapi=1` no src do iframe. Criar `new YT.Player('id-do-iframe')` com `onReady` callback. Poll via `setInterval(5000)` verificando `getCurrentTime() / getDuration()`. Usar fila `onYouTubeIframeAPIReady` se a API ainda não carregou.
 
@@ -714,7 +715,7 @@ Artefatos a gerar junto com a página (não existem prontos):
 - `modal-precheckout.html`: modal standalone com CSS/HTML/JS isolados (sem dependências externas)
 - `checkout-config.md`: copy do checkout, config do timer, imagem do produto, URL de oferta, parâmetros de pré-preenchimento testados, tracking IDs
 
-#### 9l. Service Worker (`src/sw.js`) — cache-first para pixel proxy
+#### 9l. Service Worker (`src/sw.js`): cache-first para pixel proxy
 
 Cache-first com background revalidation para `/api/pixel-js`. Serve do cache instantaneamente e atualiza em segundo plano; cache miss vai à rede. `skipWaiting` + `clients.claim()` ativam e tomam controle da aba atual sem esperar reload. Intercepta só esse path (`pathname` check); tudo mais passa direto. Fallback duplo: Cache API falha → rede; rede falha → script vazio. O iOS Safari limpa o cache após 7 dias de inatividade: degradação graciosa para o CDN. O arquivo vai em `src/sw.js` (sai na raiz do site, escopo `/`); não há lista de arquivos a editar.
 

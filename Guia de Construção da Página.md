@@ -1,23 +1,23 @@
-# Guia de Construção da Página — Template Universal
+# Guia de Construção da Página: Template Universal
 
-> Documento permanente. Template universal e agnóstico — nenhum valor abaixo pertence a um produto real.
-> Campos marcados com ⬜ são site-específicos — preencher junto com o usuário ao usar este Guia num produto novo, nunca herdar de outro produto.
-> O DS JSON é um componente deste guia — tokens visuais e decisões de design de componente.
+> Documento permanente. Template universal e agnóstico: nenhum valor abaixo pertence a um produto real.
+> Campos marcados com ⬜ são site-específicos: preencher junto com o usuário ao usar este Guia num produto novo, nunca herdar de outro produto.
+> O DS JSON é um componente deste guia: tokens visuais e decisões de design de componente.
 
 ---
 
 ## ⬜ Configuração do site
 
-Todos os valores específicos do site em um único lugar. Preencher com os dados reais do produto ao usar este Guia — nunca copiar de outro produto.
+Todos os valores específicos do site em um único lugar. Preencher com os dados reais do produto ao usar este Guia: nunca copiar de outro produto.
 
 | Campo | Valor |
 |---|---|
 | **Nome do produto** | ⬜ a preencher |
 | **URL canônica** | ⬜ `https://{seu-dominio}.com.br` |
-| **Idioma** | `pt-BR` (HTML `lang`) / `pt_BR` (og:locale) — ajustar se não for pt-BR |
+| **Idioma** | `pt-BR` (HTML `lang`) / `pt_BR` (og:locale), ajustar se não for pt-BR |
 | **CNPJ** | ⬜ a preencher (rodapé legal) |
 | **Email de contato** | ⬜ a preencher |
-| **Meta Pixel ID** | ⬜ a preencher — Meta Business Suite → Events Manager |
+| **Meta Pixel ID** | ⬜ a preencher: Meta Business Suite → Events Manager |
 | **Microsoft Clarity ID** | ⬜ a preencher (opcional) |
 | **Checkout URL** | ⬜ a preencher |
 | **Plataforma de vendas** | ⬜ a preencher (Hotmart, Kiwify, etc.) |
@@ -29,8 +29,8 @@ Todos os valores específicos do site em um único lugar. Preencher com os dados
 | **TikTok** | ⬜ `@{seu-usuario}` → `https://www.tiktok.com/@{seu-usuario}` |
 | **og:title** | ⬜ a preencher |
 | **og:description** | ⬜ a preencher |
-| **og:image** | `assets/og-image.png` — gerar via `og-image-preview.html`, canvas 1200×630, regenerar se o logo mudar |
-| **Favicon** | `assets/favicon.png` — gerar via `favicon-export.html`, 256×256 |
+| **og:image** | `assets/og-image.png`: gerar via `og-image-preview.html`, canvas 1200×630, regenerar se o logo mudar |
+| **Favicon** | `assets/favicon.png`: gerar via `favicon-export.html`, 256×256 |
 
 ---
 
@@ -46,8 +46,8 @@ Todos os valores específicos do site em um único lugar. Preencher com os dados
 | **Log de testes A/B** | ⬜ `{sua-pasta-de-trabalho}/testes-ab/` | Relatórios datados por teste |
 
 **Snapshots de portabilidade:** antes de publicar, criar dois arquivos de referência para facilitar migração futura de plataforma:
-- `modal-precheckout.html` — modal standalone com CSS/HTML/JS isolados, sem dependência da LP
-- `checkout-config.md` — copy do checkout (headline, preço, garantia), config do timer (duração, cor, texto), imagem do produto, URL, parâmetros de pré-preenchimento, tracking
+- `modal-precheckout.html`: modal standalone com CSS/HTML/JS isolados, sem dependência da LP
+- `checkout-config.md`: copy do checkout (headline, preço, garantia), config do timer (duração, cor, texto), imagem do produto, URL, parâmetros de pré-preenchimento, tracking
 
 **Regra de assets:** tudo que a página exibe fica em `assets/` e sobe junto no deploy. Nenhuma imagem depende de CDN externo de terceiros (Hotmart, plataforma de e-mail, drives, etc.). Se o terceiro mudar a URL ou tirar o arquivo do ar, a página quebra sem aviso. Exceções aceitáveis: thumbnails do YouTube (CDN do próprio YouTube, estáveis enquanto o vídeo existir), Google Fonts e Font Awesome (CDNs usados por milhões de sites, com SLA implícito).
 
@@ -59,7 +59,7 @@ Cada domínio tem seção própria no `design-system.json`. Consultar pelo nome 
 
 | Domínio | Chave no DS | O que cobre |
 |---|---|---|
-| **— Design Visual —** | | |
+| **Design Visual** | | |
 | Princípios visuais | `principios` | 12 princípios (legibilidade, mobile-first, CTA, contraste, tipografia, sistema) |
 | Paleta de cores | `paleta` + `nota_contraste` | Tokens de cor + notas de contraste WCAG |
 | Tipografia | `tipografia` | Escala por função (tamanho pelo papel do texto, calibrado no celular real); desktop amplia cada papel: H1 ×2 · H2 ×1.5 · H3 ×1.22 · body +1px (`escala_desktop_formula`) |
@@ -72,16 +72,16 @@ Cada domínio tem seção própria no `design-system.json`. Consultar pelo nome 
 | Alternância de seções | `alternancia_secoes_8D` | Fundo/texto por bloco da estrutura 8D (16 blocos) |
 | Divisores de seção | `divisores_de_secao` | 3 tipos permitidos; proibido: qualquer divisor que pareça botão |
 | Tom visual | `mood` + `observacoes` | "calma-energizada"; origem das cores (logo → brand e glacial) |
-| **— Produto · Comportamento —** | | |
+| **Produto · Comportamento** | | |
 | Performance | `performance` | Lazy loading, preload, WebP, Core Web Vitals, fetchpriority, defer |
 | Responsividade | `responsividade` | Mobile-first, breakpoints sm/md/lg, touch targets ≥44px, safe-area; escala desktop via multiplicadores (ver `escala_desktop_formula`) |
-| **— Operação —** | | |
+| **Operação** | | |
 | Tracking | `tracking` | Meta Pixel (eventos atualizados: Lead substitui InitiateCheckout), Clarity, scroll-markers, data-track, UTM, GTM |
 | Modal pré-checkout | `precheckout_modal` | Campos, DDI input-addon, validação, fluxo de dados, arquitetura JS |
 | A/B Testing | `ab_testing` | Estratégia, o que testar primeiro, significância estatística, log |
 | LGPD | `lgpd` | Consentimento, ferramentas, status atual, base legal |
 | Acessibilidade | `acessibilidade` | Foco visível, touch targets, aria em modais e SVGs, alt texts, reduced motion, contraste |
-| **— SEO + AEO —** | | |
+| **SEO + AEO** | | |
 | SEO + AEO | ver seção abaixo | Princípios detalhados na seção dedicada deste Guia |
 
 ---
@@ -90,15 +90,15 @@ Cada domínio tem seção própria no `design-system.json`. Consultar pelo nome 
 
 `FAQPage` · `Course` · `Person` · `Organization` · `VideoObject`
 
-Condicional: `AggregateRating` (requer avaliações verificáveis e visíveis na página — aguarda reviews no Hotmart ou Google Reviews)
+Condicional: `AggregateRating` (requer avaliações verificáveis e visíveis na página, aguarda reviews no Hotmart ou Google Reviews)
 
 ---
 
-## ⬜ Tracking — Mapa completo de eventos
+## ⬜ Tracking: Mapa completo de eventos
 
 Arquitetura dupla: **Pixel browser + CAPI server-side** em paralelo. Deduplicação por `event_id` (UUID via `crypto.randomUUID()` gerado antes de cada par `fbq()` + `_capi()`). Meta deduplica dentro de 48h.
 
-Todos os eventos dentro ou protegidos por `loadTracking()` — função que só dispara após consentimento LGPD.
+Todos os eventos dentro ou protegidos por `loadTracking()`: função que só dispara após consentimento LGPD.
 
 **Modo do tracking (`window.TRACK_MODE` no `<head>`):** `gate` = `loadTracking()` só após interação (consentimento); `load` = roda sem esperar interação, no evento `load` da página (rede de segurança 4s; disparo imediato fez o pixel disputar rede com o elemento do LCP e piorou o LCP em ~25% em 4G lento), sem barra, e a política precisa dizer que o consentimento é ao acessar. Trocar o modo é um commit isolado, reversível com `git revert`.
 
@@ -106,38 +106,38 @@ Todos os eventos dentro ou protegidos por `loadTracking()` — função que só 
 
 | Evento | Tipo | Gatilho | Parâmetros | Pixel | CAPI | Clarity tag | Fonte |
 |---|---|---|---|---|---|---|---|
-| `PageView` | Pixel padrão | Disparo de `loadTracking()` | — | ✓ | ✓ | — | Nossa LP |
-| `ViewContent` | Pixel padrão | 3s após consentimento | `value: {PREÇO}, currency: 'BRL'` | ✓ | ✓ | — | Nossa LP |
-| `VSLPlay` | Custom | Clique no facade do VSL | — | ✓ | ✓ | `vsl_played: 'true'` | Nossa LP |
-| `VSLProgress25` | Custom | 25% do vídeo assistido (poll 5s via YT IFrame API) | — | ✓ | ✓ | `vsl_progress: '25'` | Nossa LP |
-| `VSLProgress75` | Custom | 75% do vídeo assistido | — | ✓ | ✓ | `vsl_progress: '75'` | Nossa LP |
-| `ScrollDepth70` | Custom | Scroll até 70% da altura da página | — | ✓ | ✓ | `scroll_depth_70: 'true'` | Nossa LP |
-| `FAQOpen` | Custom | Toggle de qualquer `<details>` do FAQ | `question: [texto]` | ✓ | ✓ | — | Nossa LP |
+| `PageView` | Pixel padrão | Disparo de `loadTracking()` |  | ✓ | ✓ |  | Nossa LP |
+| `ViewContent` | Pixel padrão | 3s após consentimento | `value: {PREÇO}, currency: 'BRL'` | ✓ | ✓ |  | Nossa LP |
+| `VSLPlay` | Custom | Clique no facade do VSL |  | ✓ | ✓ | `vsl_played: 'true'` | Nossa LP |
+| `VSLProgress25` | Custom | 25% do vídeo assistido (poll 5s via YT IFrame API) |  | ✓ | ✓ | `vsl_progress: '25'` | Nossa LP |
+| `VSLProgress75` | Custom | 75% do vídeo assistido |  | ✓ | ✓ | `vsl_progress: '75'` | Nossa LP |
+| `ScrollDepth70` | Custom | Scroll até 70% da altura da página |  | ✓ | ✓ | `scroll_depth_70: 'true'` | Nossa LP |
+| `FAQOpen` | Custom | Toggle de qualquer `<details>` do FAQ | `question: [texto]` | ✓ | ✓ |  | Nossa LP |
 | `PrecheckoutOpen` | Custom | Clique em qualquer `.btn-cta` (abre modal) | `origin: cta-hero/cta-meio/cta-preco/cta-final` | ✓ | ✓ | `modal_opened: 'true'` | Nossa LP |
-| `PrecheckoutEmailDigitado` | Custom | Blur no campo email (`length > 3`) | `origin: [btn]` | ✓ | ✓ | — | Nossa LP |
-| `PrecheckoutAbandono` | Custom | Fechar modal sem submit (×, Escape, clique fora) | `origin`, `had_email` | ✓ | ✓ | — | Nossa LP |
+| `PrecheckoutEmailDigitado` | Custom | Blur no campo email (`length > 3`) | `origin: [btn]` | ✓ | ✓ |  | Nossa LP |
+| `PrecheckoutAbandono` | Custom | Fechar modal sem submit (×, Escape, clique fora) | `origin`, `had_email` | ✓ | ✓ |  | Nossa LP |
 | `Lead` | Pixel padrão | Submit do pré-checkout (campos válidos) | `content_name, value: {PREÇO}, currency: 'BRL'` | ✓ | ✓ + PII | `lead_captured: 'true'` | Nossa LP |
-| `InitiateCheckout` | Hotmart nativo | Carregar pg de pagamento na Hotmart | — | ✓ (HM) | ✓ (HM CAPI) | — | Hotmart |
-| `Purchase` | Hotmart nativo | Compra confirmada | — | ✓ (HM) | ✓ (HM CAPI) | — | Hotmart |
-| Exit intent | — | Mouse sai pelo topo (desktop, `clientY < 5`) | — | — | — | `exit_intent: 'true'` | Nossa LP |
+| `InitiateCheckout` | Hotmart nativo | Carregar pg de pagamento na Hotmart |  | ✓ (HM) | ✓ (HM CAPI) |  | Hotmart |
+| `Purchase` | Hotmart nativo | Compra confirmada |  | ✓ (HM) | ✓ (HM CAPI) |  | Hotmart |
+| Exit intent |  | Mouse sai pelo topo (desktop, `clientY < 5`) |  |  |  | `exit_intent: 'true'` | Nossa LP |
 
-**Nota InitiateCheckout (pendente especialista, 2026-07-08):** a coluna CAPI do IC mostra `✓ (HM CAPI)` mas não está confirmado em produção — observamos zero eventos CAPI para IC vindo da Hotmart. Purchase CAPI está confirmado. Aguardando especialista para definir se adicionamos IC na nossa LP (com inflação ~40-50% dos eventos) ou aceitamos 0% CAPI no IC.
+**Nota InitiateCheckout (pendente especialista, 2026-07-08):** a coluna CAPI do IC mostra `✓ (HM CAPI)` mas não está confirmado em produção, observamos zero eventos CAPI para IC vindo da Hotmart. Purchase CAPI está confirmado. Aguardando especialista para definir se adicionamos IC na nossa LP (com inflação ~40-50% dos eventos) ou aceitamos 0% CAPI no IC.
 
 **Clarity tags adicionais:** `traffic_source: utm_source` (capturado em `loadTracking()`).
 
-**CAPI — arquitetura:**
+**CAPI: arquitetura:**
 - Endpoint: `api/capi.js` (função serverless da Vercel, publicada junto com a página por push no `main` ou Vercel CLI)
-- Token: `META_CAPI_KEY` (env var encrypted no Vercel — nunca em código)
+- Token: `META_CAPI_KEY` (env var encrypted no Vercel, nunca em código)
 - Pixel ID: `{PIXEL_ID}` (hardcoded no `api/capi.js`)
-- PII no Lead: email + phone (E.164, DDI 55 prefixado) + nome — hasheados SHA-256 `toLowerCase().trim()`
-- `_fbc` reconstruído de `fbclid` na chegada, dentro de `loadTracking()` — 90 dias, `SameSite=Lax`
-- `country`: `sha256('br')` hardcoded — eleva EMQ em eventos sem PII (ajustar pro país real se não for BR)
-- `external_id`: UUID gerado pós-consent em `localStorage._app_eid`, sha256 antes do envio no CAPI — conecta sessões cross-visit. **Também enviado no `fbq('init')` como plain text** (`fbq('init', PIXEL_ID, { external_id: window._extId })`) — Meta normaliza internamente para SHA-256 e consegue cruzar com o valor do CAPI.
-- `event_source_url`: dinâmico — `_capi()` envia `page_url: window.location.href` e `api/capi.js` usa esse valor (fallback: URL canônica do site).
-- **`_fbc` fallback de URL**: se cookie `_fbc` ausente, reconstruir de `fbclid` na URL (`fb.1.{timestamp}.{fbclid}`). Só incluir no body se não-vazio — não enviar string vazia.
-- **IP do usuário**: `capi.js` usa `x-real-ip` antes de `x-forwarded-for` — captura IPv6 quando disponível.
-- **PII de retorno**: após Lead, salvar PII em `localStorage._app_pii` (`{em, ph, fn}`). `_capi()` lê automaticamente e inclui em todos os eventos futuros do visitante — eleva EMQ de PageView/ViewContent para quem já converteu.
-- **Dedup rate esperada**: CAPI captura eventos de usuários com adblocker que o browser pixel não alcança. Esses eventos CAPI-only não geram deduplicação — é o comportamento correto. Taxa de dedup de 60–80% reflete 20–40% de cobertura incremental via CAPI, não um problema. Para diagnosticar: verificar no Events Manager se usuários *sem adblocker* têm dedup próximo de 100%.
+- PII no Lead: email + phone (E.164, DDI 55 prefixado) + nome: hasheados SHA-256 `toLowerCase().trim()`
+- `_fbc` reconstruído de `fbclid` na chegada, dentro de `loadTracking()`: 90 dias, `SameSite=Lax`
+- `country`: `sha256('br')` hardcoded, eleva EMQ em eventos sem PII (ajustar pro país real se não for BR)
+- `external_id`: UUID gerado pós-consent em `localStorage._app_eid`, sha256 antes do envio no CAPI, conecta sessões cross-visit. **Também enviado no `fbq('init')` como plain text** (`fbq('init', PIXEL_ID, { external_id: window._extId })`): Meta normaliza internamente para SHA-256 e consegue cruzar com o valor do CAPI.
+- `event_source_url`: dinâmico, `_capi()` envia `page_url: window.location.href` e `api/capi.js` usa esse valor (fallback: URL canônica do site).
+- **`_fbc` fallback de URL**: se cookie `_fbc` ausente, reconstruir de `fbclid` na URL (`fb.1.{timestamp}.{fbclid}`). Só incluir no body se não-vazio: não enviar string vazia.
+- **IP do usuário**: `capi.js` usa `x-real-ip` antes de `x-forwarded-for`, captura IPv6 quando disponível.
+- **PII de retorno**: após Lead, salvar PII em `localStorage._app_pii` (`{em, ph, fn}`). `_capi()` lê automaticamente e inclui em todos os eventos futuros do visitante: eleva EMQ de PageView/ViewContent para quem já converteu.
+- **Dedup rate esperada**: CAPI captura eventos de usuários com adblocker que o browser pixel não alcança. Esses eventos CAPI-only não geram deduplicação: é o comportamento correto. Taxa de dedup de 60–80% reflete 20–40% de cobertura incremental via CAPI, não um problema. Para diagnosticar: verificar no Events Manager se usuários *sem adblocker* têm dedup próximo de 100%.
 - Pattern obrigatório para qualquer evento com CAPI:
   ```js
   var evId = window._cId();
@@ -147,13 +147,13 @@ Todos os eventos dentro ou protegidos por `loadTracking()` — função que só 
 
 **PRODUCT_VALUE:** lido dinamicamente de `document.querySelector('[data-price]').dataset.price`. Para atualizar preço: mudar `data-price` no elemento `.preco-alt` (e o texto visível). O fallback hardcoded na linha seguinte do JS também deve ser atualizado.
 
-**VSLProgress — padrão YouTube IFrame API:** iframe com `enablejsapi=1` → `new YT.Player('vsl-iframe', ...)` → poll `setInterval(5000)` → `p.getCurrentTime() / p.getDuration()`. Fallback via `onYouTubeIframeAPIReady` se API ainda não carregou.
+**VSLProgress: padrão YouTube IFrame API:** iframe com `enablejsapi=1` → `new YT.Player('vsl-iframe', ...)` → poll `setInterval(5000)` → `p.getCurrentTime() / p.getDuration()`. Fallback via `onYouTubeIframeAPIReady` se API ainda não carregou.
 
-**Microsoft Clarity** (ID: `{CLARITY_ID}`): gravação de sessão e mapas de calor. Tags customizadas via `clarity('set', 'key', 'value')` — ver coluna "Clarity tag" acima. Acessar em clarity.microsoft.com → Recordings e Heatmaps.
+**Microsoft Clarity** (ID: `{CLARITY_ID}`): gravação de sessão e mapas de calor. Tags customizadas via `clarity('set', 'key', 'value')`: ver coluna "Clarity tag" acima. Acessar em clarity.microsoft.com → Recordings e Heatmaps.
 
-**Consent gate**: `localStorage.getItem('app_consent') === 'granted'` — em visitas recorrentes, `loadTracking()` dispara automaticamente no carregamento.
+**Consent gate**: `localStorage.getItem('app_consent') === 'granted'`, em visitas recorrentes, `loadTracking()` dispara automaticamente no carregamento.
 
-**UTM — estrutura padrão para Meta Ads (configurar em cada anúncio):**
+**UTM: estrutura padrão para Meta Ads (configurar em cada anúncio):**
 
 | Parâmetro | Valor | Tipo |
 |---|---|---|
@@ -164,9 +164,9 @@ Todos os eventos dentro ou protegidos por `loadTracking()` — função que só 
 | `utm_term` | `{{placement}}` | dinâmico (parâmetro personalizado) |
 | `utm_adset` | `{{adset.name}}` | dinâmico (parâmetro personalizado) |
 
-Linktree (bio Instagram, TikTok, YouTube): `utm_source=linktree&utm_medium=social&utm_campaign=bio` — fixo, configurado nos links de destino dentro do Linktree.
+Linktree (bio Instagram, TikTok, YouTube): `utm_source=linktree&utm_medium=social&utm_campaign=bio`, fixo, configurado nos links de destino dentro do Linktree.
 
-Esses parâmetros são capturados por `captureUtms()` no modal e gravados na Sheet — colunas: UTM Source, UTM Medium, UTM Campaign, UTM Content, UTM Term, UTM Adset, Duplicado, Obs Duplicação. Ao criar campanha nova no Meta, replicar essa estrutura em "Parâmetros de URL" no adset ou anúncio.
+Esses parâmetros são capturados por `captureUtms()` no modal e gravados na Sheet: colunas: UTM Source, UTM Medium, UTM Campaign, UTM Content, UTM Term, UTM Adset, Duplicado, Obs Duplicação. Ao criar campanha nova no Meta, replicar essa estrutura em "Parâmetros de URL" no adset ou anúncio.
 
 ---
 
@@ -183,32 +183,32 @@ Intercepta todos os `.btn-cta`. Coleta nome + email + telefone antes de redireci
 | DDI | input-addon (ver abaixo) | Não pode estar vazio no submit |
 | Telefone | `input[type=tel]` | ≥ 7 dígitos internacionais |
 
-**Campo DDI — input addon:**
+**Campo DDI: input addon:**
 
 Badge estático (`<span class="pc-ddi-badge" id="pc-ddi-badge">`) + input numérico (`<input class="pc-ddi-input" id="pc-ddi">`), agrupados em `.pc-ddi-group`.
 
 - Badge mostra `🇧🇷 +` no carregamento (value="55"). Atualiza no blur: `flag + ' +'` se DDI reconhecido, `'+'` se desconhecido.
 - DDI_MAP: ~120 países. Vive dentro do mesmo IIFE do modal para acessar `showError`/`clearError`.
 - Validação blur: `showError('pc-ddi', 'DDI inválido')` se campo vazio.
-- Validação submit: `clearError` em todos + `if (!ddi) showError(...)` — DDI vazio bloqueia submit.
+- Validação submit: `clearError` em todos + `if (!ddi) showError(...)`, DDI vazio bloqueia submit.
 
 **Fluxo de dados:**
 
 1. Submit válido → gera `event_id` → dispara `Lead` no Pixel (com `event_id`) → POST para `/api/capi` com PII (email + phone + nome, hasheados no servidor) → POST para Apps Script → salva no Google Sheets
 2. `phoneClean = ddi + phone.replace(/\D/g,'')` (DDI prefixado)
-3. Redirect Hotmart: `?name=&email=` (sem `&phone=` — parâmetro não suportado pelo Hotmart)
+3. Redirect Hotmart: `?name=&email=` (sem `&phone=`, parâmetro não suportado pelo Hotmart)
 
-**Arquitetura JS:** todo o código do modal (DDI_MAP, listeners, validação, submit) vive num único `<script>` com IIFE, imediatamente após o HTML do modal. `showError`/`clearError` são funções internas do IIFE — não expor como globais.
+**Arquitetura JS:** todo o código do modal (DDI_MAP, listeners, validação, submit) vive num único `<script>` com IIFE, imediatamente após o HTML do modal. `showError`/`clearError` são funções internas do IIFE: não expor como globais.
 
 ---
 
 ## Follow-up de leads pré-checkout (opcional)
 
-O modal acima já salva o lead na Sheet — isso funciona sozinho, sem nada abaixo. O skill **`crm-lead`** (`skills/crm-lead/` neste repo) é uma extensão **opcional** que transforma essa Sheet numa mini-CRM: status de contato com cor automática, detecção de gente que se cadastrou 2x, link do WhatsApp pronto pra clicar, e-mail diário avisando de lead novo, e sincronização com Google Contatos.
+O modal acima já salva o lead na Sheet: isso funciona sozinho, sem nada abaixo. O skill **`crm-lead`** (`skills/crm-lead/` neste repo) é uma extensão **opcional** que transforma essa Sheet numa mini-CRM: status de contato com cor automática, detecção de gente que se cadastrou 2x, link do WhatsApp pronto pra clicar, e-mail diário avisando de lead novo, e sincronização com Google Contatos.
 
-**LGPD:** todo o desenho respeita consentimento explícito antes de qualquer contato, nunca envia mensagem sozinho (todo link é clique manual), e o dado fica só na Sheet/Contatos do próprio usuário. Peça ao Claude os detalhes da lógica de compliance a qualquer momento — ele explica antes de configurar.
+**LGPD:** todo o desenho respeita consentimento explícito antes de qualquer contato, nunca envia mensagem sozinho (todo link é clique manual), e o dado fica só na Sheet/Contatos do próprio usuário. Peça ao Claude os detalhes da lógica de compliance a qualquer momento: ele explica antes de configurar.
 
-**É modular.** Cada uma das 6 ferramentas é independente e tem seu próprio requisito de configuração — o usuário escolhe quais quer e avisa quais não quer. Lista completa, requisitos e regras de cada uma: ver `skills/crm-lead/SKILL.md`.
+**É modular.** Cada uma das 6 ferramentas é independente e tem seu próprio requisito de configuração: o usuário escolhe quais quer e avisa quais não quer. Lista completa, requisitos e regras de cada uma: ver `skills/crm-lead/SKILL.md`.
 
 | # | Ferramenta | Depende de |
 |---|---|---|
@@ -219,7 +219,7 @@ O modal acima já salva o lead na Sheet — isso funciona sozinho, sem nada abai
 | 5 | E-mail diário de leads novos | Sheets API (Apps Script) |
 | 6 | Salvar contatos no Google | People API + OAuth |
 
-**Pré-requisito de infra (Sheets API + Service Account, e People API + OAuth se for usar a ferramenta 6):** é setup de Google Cloud Console — sempre pedir aprovação explícita do usuário antes de criar/configurar, nunca assumir que ele quer.
+**Pré-requisito de infra (Sheets API + Service Account, e People API + OAuth se for usar a ferramenta 6):** é setup de Google Cloud Console, sempre pedir aprovação explícita do usuário antes de criar/configurar, nunca assumir que ele quer.
 
 ---
 
@@ -227,28 +227,28 @@ O modal acima já salva o lead na Sheet — isso funciona sozinho, sem nada abai
 
 - **Editar CSS**: `grep -n ".classe" index.html` → Read com offset
 - **Editar bloco HTML**: `grep -n "BLOCO 0X" index.html` → ler 30-40 linhas com offset
-- **Não ler o HTML completo** — é ~1900 linhas; consultar via grep/offset
+- **Não ler o HTML completo**: é ~1900 linhas; consultar via grep/offset
 - **PREVIEW ONLY block**: remover antes do deploy (últimas ~50 linhas do `<style>`)
 
 ### Checklist de avaliação antes de qualquer mudança
 
-Toda alteração na LP — de copy, CSS, HTML, schema ou arquivos auxiliares — deve ser avaliada conscientemente contra os seguintes critérios antes de implementar. Desvios são permitidos, mas devem ser explicitados.
+Toda alteração na LP, de copy, CSS, HTML, schema ou arquivos auxiliares, deve ser avaliada conscientemente contra os seguintes critérios antes de implementar. Desvios são permitidos, mas devem ser explicitados.
 
 | Critério           | O que verificar                                                                                                                              |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Tipografia**     | Fonte (Montserrat), tamanho (escala por função no mobile → desktop via multiplicadores DS), peso, cor por contexto; mudanças desktop só em `@media (min-width: 900px)` |
-| **Cores**          | Usa tokens do DS (`--brand`, `--brand-vivid`, `--star`, `--ink` etc.) — nunca hex avulso                                                     |
+| **Cores**          | Usa tokens do DS (`--brand`, `--brand-vivid`, `--star`, `--ink` etc.): nunca hex avulso                                                     |
 | **Contraste**      | Texto corpo ≥4.5:1 WCAG AA; texto grande ≥3:1                                                                                                |
-| **Copy**           | Sem travessão (—) em copy persuasiva, sem ponto de exclamação em copy persuasiva (permitido em momentos de conquista — submit, pós-compra), sem "guru", sem "jornada de 40 dias"; texto de alunos exato do site/copy file |
+| **Copy**           | Sem travessão (`—`) em copy persuasiva, sem ponto de exclamação em copy persuasiva (permitido em momentos de conquista: submit, pós-compra), sem "guru", sem "jornada de 40 dias"; texto de alunos exato do site/copy file |
 | **SEO+AEO**        | H1 único; H2 com keyword; FAQ: lead AEO + título ≤65 chars; alt text descritivo; schema sincronizado                                         |
 | **Performance**    | Self-hosting de todo asset (sem exceções); fontes self-hosted com `font-display` decidido pelo elemento LCP (regra 2 de Performance); ícones como SVG inline (nunca icon font); `fetchpriority="high"` + `srcset` no LCP; `width`/`height` + `img { height: auto }` em todas as imagens; nada abaixo da dobra baixado antes do `load` (regra 5); Lighthouse mobile ≥ 90. Ver `## Performance` neste Guia. |
-| **LGPD**           | Tracking só dentro de `loadTracking()` — nunca no `<head>` diretamente                                                                       |
+| **LGPD**           | Tracking só dentro de `loadTracking()`: nunca no `<head>` diretamente                                                                       |
 | **Tracking**       | Novos elementos clicáveis relevantes precisam de `data-track` ou evento Pixel                                                                |
 | **Responsividade** | Testar 360, 390 e 412px no celular; touch targets ≥44px; nada que quebre em landscape; texto de 3+ linhas alinhado à esquerda; capa do vídeo não desce por ganho de tamanho no topo; desktop em bloco único `@media (min-width: 900px)`, mobile base intocado |
 | **llms.txt**       | Mudança de copy, FAQ ou depoimento (transcrição integral do print ou do vídeo) → atualizar `llms.txt` junto; `dateModified` do schema também |
-| **Tokens de componente** | Ícone usa `var(--brand-vivid)`, 48px wrapper / 44px SVG; border-radius e sombra via tokens do DS — nunca valores avulsos |
+| **Tokens de componente** | Ícone usa `var(--brand-vivid)`, 48px wrapper / 44px SVG; border-radius e sombra via tokens do DS: nunca valores avulsos |
 | **Schema sync** | Ao alterar FAQ, campo `text` do JSON-LD FAQPage muda junto; ao alterar VSL, `VideoObject` muda junto |
-| **IDs de seção** | Novos `<section>` precisam de `id="secao-*"` — usados pelos scroll markers de tracking e por links internos de FAQ |
+| **IDs de seção** | Novos `<section>` precisam de `id="secao-*"`: usados pelos scroll markers de tracking e por links internos de FAQ |
 | **Acessibilidade** | `:focus-visible` visível em todos os interativos; `aria-modal` + `aria-labelledby` em modais; `aria-label` em SVGs e facades; `alt` correto em todas as imagens; `@media (prefers-reduced-motion)` desativa animações |
 
 ---
@@ -264,7 +264,7 @@ Toda alteração na LP — de copy, CSS, HTML, schema ou arquivos auxiliares —
 | `.t-h3` | 18px | 22px | ×1.22 |
 | body / parágrafos | 16px | 17px | +1px |
 
-**Razões desktop resultantes** — H2/body: 1.76× · H3/body: 1.29× (harmonia visual validada em 900px+)
+**Razões desktop resultantes**: H2/body: 1.76× · H3/body: 1.29× (harmonia visual validada em 900px+)
 
 **Princípio**: desktop amplifica, não redesenha. A hierarquia entre papéis do mobile é preservada no desktop.
 
@@ -278,7 +278,7 @@ Toda alteração na LP — de copy, CSS, HTML, schema ou arquivos auxiliares —
 
 **Capa do vídeo no celular**: arquivo próprio (ex.: 780px) com o título da capa maior que o da versão de computador, porque a imagem aparece com ~340px de largura; o `srcset` escolhe por largura. Nome de arquivo novo a cada versão (cache imutável de `/assets/`), trocado no `srcset` do `<img>` e no `imagesrcset` do preload
 
-**Implementação**: bloco único `@media (min-width: 900px)` — estilos base (mobile) intocados. Nenhuma regra mobile dentro do bloco desktop. Ver `escala_desktop_formula` no `design-system.json`.
+**Implementação**: bloco único `@media (min-width: 900px)`, estilos base (mobile) intocados. Nenhuma regra mobile dentro do bloco desktop. Ver `escala_desktop_formula` no `design-system.json`.
 
 ---
 
@@ -290,7 +290,7 @@ Decisões de layout desktop validadas em sessões anteriores. Aplicar em página
 
 Usar **JS masonry** (`position:absolute`) quando os cards tiverem alturas variadas e for necessário preencher gaps organicamente. CSS grid cria linhas de altura igual (gera espaço vazio); CSS columns encaixa top-to-bottom mas não é L→R; JS masonry coloca cada card na coluna mais curta (shortest-column-first).
 
-**CSS base (mobile — intocado):**
+**CSS base (mobile: intocado):**
 ```css
 .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 ```
@@ -303,7 +303,7 @@ Usar **JS masonry** (`position:absolute`) quando os cards tiverem alturas variad
 .ciencia-bloco { box-shadow: var(--shadow-lift); border: 1px solid var(--border); }
 ```
 
-**Script (antes de `</body>`) — reutilizável para qualquer grid:**
+**Script (antes de `</body>`): reutilizável para qualquer grid:**
 ```javascript
 (function(){
   var BP = 900;
@@ -348,18 +348,18 @@ Usar **JS masonry** (`position:absolute`) quando os cards tiverem alturas variad
 })();
 ```
 
-**Atenção — lazy images**: `loading="lazy"` faz imagens terem height 0 no DOMContentLoaded. O listener por imagem (`if (!img.complete) img.addEventListener('load', run)`) é obrigatório.
+**Atenção: lazy images**: `loading="lazy"` faz imagens terem height 0 no DOMContentLoaded. O listener por imagem (`if (!img.complete) img.addEventListener('load', run)`) é obrigatório.
 
-**Trade-off**: ordem visual no desktop não é estritamente sequencial — cada card vai para a coluna mais curta, não para a próxima posição da esquerda. Aceitável em grids narrativos; verificar com o cliente se a ordem importa.
+**Trade-off**: ordem visual no desktop não é estritamente sequencial, cada card vai para a coluna mais curta, não para a próxima posição da esquerda. Aceitável em grids narrativos; verificar com o cliente se a ordem importa.
 
 **Usar**: grids com conteúdo de alturas variadas (dep-visuais, pesquisas científicas)
 **Não usar**: cards uniformes (ícone + título + desc fixo) → CSS grid convencional
 
 ### Layouts multi-coluna (1 → N colunas no desktop)
 
-Para seções que vão de coluna única (mobile) para 2 ou mais colunas (desktop): **wrapper semântico + flex/grid no breakpoint**. Nunca `grid-row`/`grid-column` explícitos em filhos — frágil, quebra com qualquer mudança de conteúdo ou ordem.
+Para seções que vão de coluna única (mobile) para 2 ou mais colunas (desktop): **wrapper semântico + flex/grid no breakpoint**. Nunca `grid-row`/`grid-column` explícitos em filhos: frágil, quebra com qualquer mudança de conteúdo ou ordem.
 
-**HTML — adicionar wrapper por coluna:**
+**HTML: adicionar wrapper por coluna:**
 ```html
 <section class="sec minha-sec">
   <div class="minha-inner">    <!-- wrapper: conteúdo principal / coluna 1 -->
@@ -371,7 +371,7 @@ Para seções que vão de coluna única (mobile) para 2 ou mais colunas (desktop
 </section>
 ```
 
-**CSS — dentro do bloco `@media (min-width: 900px)`:**
+**CSS: dentro do bloco `@media (min-width: 900px)`:**
 ```css
 /* 2 colunas assimétricas (foto + texto, item + detalhe) */
 .minha-sec   { display: flex; gap: 40px; align-items: center; }
@@ -393,7 +393,7 @@ Para seções que vão de coluna única (mobile) para 2 ou mais colunas (desktop
 - 3 col simétricas: para quem é (`repeat(3, 1fr)`, gap 20px, padding ampliado com `50vw - 580px`)
 - 3–4 col alturas variáveis: dep-visuais e ciência → JS masonry (ver seção acima)
 
-**Regra de ouro:** o wrapper fica no HTML permanentemente. O `display: flex/grid` fica **só** dentro do `@media (min-width: 900px)`. O CSS base (mobile) não precisa de `display: block` explícito — já é o padrão. Mobile nunca é afetado.
+**Regra de ouro:** o wrapper fica no HTML permanentemente. O `display: flex/grid` fica **só** dentro do `@media (min-width: 900px)`. O CSS base (mobile) não precisa de `display: block` explícito: já é o padrão. Mobile nunca é afetado.
 
 ### Watermark SVG com posicionamento viewport-relativo
 
@@ -405,11 +405,11 @@ A seção pai precisa de `position: relative; overflow: hidden; isolation: isola
 
 ### Seção com conteúdo mais largo
 
-Para seções que se beneficiam de mais espaço horizontal (ex: grid de 3 cards com ícones grandes), ampliar o padding: `max(16px, calc(50vw - Xpx))` onde X > 480. A cada +100px em X, o conteúdo cresce +200px em viewports largos. Usar com moderação — quebra a grade uniforme de 960px.
+Para seções que se beneficiam de mais espaço horizontal (ex: grid de 3 cards com ícones grandes), ampliar o padding: `max(16px, calc(50vw - Xpx))` onde X > 480. A cada +100px em X, o conteúdo cresce +200px em viewports largos. Usar com moderação: quebra a grade uniforme de 960px.
 
 ### Footer com logo à esquerda e texto centralizado
 
-No desktop, quando a logo fica alinhada à esquerda (`justify-content: flex-start`), o texto que deve parecer centralizado precisa de `flex: 1; text-align: center` — isso o centraliza no espaço restante, não no viewport inteiro. Fundo claro (`var(--brand-ice)`) com logo a `opacity: 1.0`.
+No desktop, quando a logo fica alinhada à esquerda (`justify-content: flex-start`), o texto que deve parecer centralizado precisa de `flex: 1; text-align: center`: isso o centraliza no espaço restante, não no viewport inteiro. Fundo claro (`var(--brand-ice)`) com logo a `opacity: 1.0`.
 
 ### Logo com clipping de whitespace interno (mobile)
 
@@ -422,7 +422,7 @@ Quando o arquivo de logo tem margem/padding interno no topo, o elemento visual f
 
 A janela visível passa a ser pixels 10–72 do arquivo (62px de conteúdo útil). Ajustar os valores conforme o whitespace real do arquivo de logo.
 
-### Bloco de preço — estrutura HTML
+### Bloco de preço: estrutura HTML
 
 O "12x de" é um `<span class="preco-parcela">` dentro do `<p class="preco-main">`, não um elemento separado. Isso garante que o número de parcelas e o valor ficam na mesma linha tipográfica com tamanhos diferentes.
 
@@ -433,11 +433,11 @@ O "12x de" é um `<span class="preco-parcela">` dentro do `<p class="preco-main"
 <p class="preco-seguro">Pagamento <strong>100% seguro</strong> com acesso imediato</p>
 ```
 
-Não separar `preco-parcela` em elemento próprio — quebra o alinhamento de linha.
+Não separar `preco-parcela` em elemento próprio: quebra o alinhamento de linha.
 
-### Bloco professor — foto desktop
+### Bloco professor: foto desktop
 
-Foto ao lado do texto com `align-items: center` no container flex (centro da foto alinhado ao centro do texto). Tamanho fixo: `width: 260px; max-width: none; flex-shrink: 0` no desktop. Mobile: `max-width: 180px; width: 100%`. Não usar `align-items: stretch` nem `object-fit: cover` — distorce a proporção original.
+Foto ao lado do texto com `align-items: center` no container flex (centro da foto alinhado ao centro do texto). Tamanho fixo: `width: 260px; max-width: none; flex-shrink: 0` no desktop. Mobile: `max-width: 180px; width: 100%`. Não usar `align-items: stretch` nem `object-fit: cover`: distorce a proporção original.
 
 ### Quebra de linha condicional (`br.br-desktop`)
 
@@ -466,36 +466,36 @@ Usar em subtítulos de hero e headings que precisam de quebra manual apenas em v
 
 **Modo sem interação (opcional, decidido por teste):** pixel e analytics carregam no evento `load`, sem barra, com a política dizendo "Ao acessar o site você consente com o uso dessas ferramentas". Em teste real elevou a taxa de carregamento (LPV ÷ cliques de saída) de forma significativa; o mecanismo por interação abaixo fica no código e volta por substituição de texto se o experimento for revertido. Detalhes, chave `TRACK_MODE` e vigia de reversão no skill `subir-pagina-top`. Decidir com o usuário e com orientação jurídica própria
 
-**CONFORME** — Pixel e Clarity carregados via `loadTracking()` somente após consentimento. Cookie banner implementado com mecanismo completo de consent.
+**CONFORME**: Pixel e Clarity carregados via `loadTracking()` somente após consentimento. Cookie banner implementado com mecanismo completo de consent.
 
 **Mecanismo de consentimento (junho 2026):**
 - Qualquer scroll na LP → consent, exceto enquanto `_policyFocused = true`
 - Qualquer clique fora do `#cookie-banner` → consent; cliques dentro do banner que não sejam o botão Continuar são suprimidos (texto, link de política, área vazia)
 - Botão "Continuar" → fecha o banner + consent via event bubbling
 - Link "Política de Privacidade" no banner → abre `<details id="politica-privacidade">` inline no footer (não abre nova página); banner permanece visível; `_policyFocused = true` ativado sincronamente antes do `scrollIntoView`
-- Enquanto `_policyFocused = true`: scroll suprimido em toda a fase — a caminho da seção, dentro dela e no evento que a tira da viewport; clique dentro de `#politica-privacidade` também suprimido
-- `_policyViewed = true` marcado quando a seção entra na viewport — distingue "ainda chegando" de "saindo"
+- Enquanto `_policyFocused = true`: scroll suprimido em toda a fase, a caminho da seção, dentro dela e no evento que a tira da viewport; clique dentro de `#politica-privacidade` também suprimido
+- `_policyViewed = true` marcado quando a seção entra na viewport: distingue "ainda chegando" de "saindo"
 - Quando a seção sai da viewport após ter sido vista: flags limpas; consent retoma na **próxima** interação (não no mesmo evento de scroll)
-- Consentimento persistido em `localStorage('app_consent'='granted')` — tracking não carrega novamente em visitas seguintes
+- Consentimento persistido em `localStorage('app_consent'='granted')`: tracking não carrega novamente em visitas seguintes
 
-**DPA Hotmart:** não aplicável — Hotmart BR não tem fluxo de DPA para produtores. Hotmart atua como operadora de dados no checkout pelos próprios termos. Política de privacidade já menciona a Hotmart. Nenhuma ação necessária.
+**DPA Hotmart:** não aplicável, Hotmart BR não tem fluxo de DPA para produtores. Hotmart atua como operadora de dados no checkout pelos próprios termos. Política de privacidade já menciona a Hotmart. Nenhuma ação necessária.
 
 ---
 
 ## Performance
 
-> **Princípio central — mobile-first.** Performance mobile não é otimização opcional — é a base da conversão de tráfego pago. Cada segundo a mais de carregamento reduz conversão diretamente. Toda avaliação (Lighthouse, LCP, CLS, TBT) é feita no modo **Mobile**, aba anônima, URL de produção. Meta: Lighthouse mobile ≥ 90. Score 95+ é factível e deve ser perseguido — uma LP real aplicando as práticas abaixo atingiu 97.
+> **Princípio central, mobile-first.** Performance mobile não é otimização opcional, é a base da conversão de tráfego pago. Cada segundo a mais de carregamento reduz conversão diretamente. Toda avaliação (Lighthouse, LCP, CLS, TBT) é feita no modo **Mobile**, aba anônima, URL de produção. Meta: Lighthouse mobile ≥ 90. Score 95+ é factível e deve ser perseguido: uma LP real aplicando as práticas abaixo atingiu 97.
 
 ### Diagnóstico
 
-- **Lighthouse Mobile**: DevTools → Lighthouse → **Mobile**, aba anônima, URL de produção. Nunca usar preview Vercel — `X-Robots-Tag: noindex` distorce métricas de SEO e pode afetar o score.
+- **Lighthouse Mobile**: DevTools → Lighthouse → **Mobile**, aba anônima, URL de produção. Nunca usar preview Vercel: `X-Robots-Tag: noindex` distorce métricas de SEO e pode afetar o score.
 - **LCP breakdown**: expandir o elemento LCP no Lighthouse → decompor em TTFB + resource load delay + resource load duration + render delay. Cada componente tem causa específica e fix diferente.
 - **Identificar o elemento LCP**: pode ser imagem (thumbnail) ou texto (H1 com fonte externa). A causa muda o fix.
-- **TBT breakdown**: expandir "Minimize main-thread work" no Lighthouse — ver qual script está bloqueando e por quanto tempo.
+- **TBT breakdown**: expandir "Minimize main-thread work" no Lighthouse, ver qual script está bloqueando e por quanto tempo.
 
 ### Regras ordenadas por impacto (mobile)
 
-#### Impacto muito alto — eliminar antes de qualquer outra otimização
+#### Impacto muito alto: eliminar antes de qualquer outra otimização
 
 **1. Eliminar icon fonts**
 
@@ -530,7 +530,7 @@ O LCP element (thumbnail do VSL ou imagem hero) é o maior responsável pelo sco
 - Baixar e converter para WebP: `cwebp -q 70 thumb.jpg -o assets/vsl-thumb.webp` (~78KB para 1280×720)
 - Versão mobile (obrigatória): `cwebp -q 72 thumb.jpg -resize 780 438 -o assets/vsl-thumb-mobile.webp` (~33KB)
 - No `<img>`: `srcset="assets/vsl-thumb-mobile.webp 780w, assets/vsl-thumb.webp 1280w" sizes="(max-width: 900px) 100vw, 880px"` + `fetchpriority="high"` + **sem** `loading="lazy"`
-- No `<head>` preload: `<link rel="preload" as="image" imagesrcset="assets/vsl-thumb-mobile.webp 780w, assets/vsl-thumb.webp 1280w" imagesizes="(max-width: 900px) 100vw, 880px" fetchpriority="high">` — sem `imagesrcset`, o preload ignora srcset e baixa sempre o maior arquivo
+- No `<head>` preload: `<link rel="preload" as="image" imagesrcset="assets/vsl-thumb-mobile.webp 780w, assets/vsl-thumb.webp 1280w" imagesizes="(max-width: 900px) 100vw, 880px" fetchpriority="high">`, sem `imagesrcset`, o preload ignora srcset e baixa sempre o maior arquivo
 - Impacto observado: LCP 6.4s → 4.5s
 
 **4. CSS reset de imagens + atributos dimensionais em todas as `<img>`**
@@ -540,17 +540,17 @@ No reset global:
 img { display: block; max-width: 100%; height: auto; }
 ```
 Em cada `<img>`: `width="X" height="Y"` com dimensões reais (obtidas com `sips -g pixelWidth -g pixelHeight assets/img`).
-- `height: auto` no CSS é obrigatório junto com o atributo `height` — sem ele, o atributo vira pixel fixo e distorce em containers responsivos
+- `height: auto` no CSS é obrigatório junto com o atributo `height`: sem ele, o atributo vira pixel fixo e distorce em containers responsivos
 - Atributos `width`/`height` permitem que o browser reserve espaço antes do download (elimina CLS)
 - Impacto observado: CLS 0.x → 0
 
-#### Impacto alto — aplicar logo após os fundamentos
+#### Impacto alto: aplicar logo após os fundamentos
 
 **5. `loading="lazy"` em tudo abaixo do fold; `fetchpriority="high"` no LCP**
 
 Duas regras complementares para o carregamento de imagens:
-- Toda `<img>` abaixo do fold: `loading="lazy"` — o browser não baixa durante o load inicial, libera banda para o LCP
-- `<img>` acima do fold (logo, hero, LCP element): `fetchpriority="high"` — sobe na fila de prioridade. **Nunca combinar `loading="lazy"` com `fetchpriority="high"`**
+- Toda `<img>` abaixo do fold: `loading="lazy"`, o browser não baixa durante o load inicial, libera banda para o LCP
+- `<img>` acima do fold (logo, hero, LCP element): `fetchpriority="high"`, sobe na fila de prioridade. **Nunca combinar `loading="lazy"` com `fetchpriority="high"`**
 - Auditoria: `grep -n '<img' index.html | grep -v 'loading='`: só a thumbnail LCP deve aparecer
 - **`loading="lazy"` não garante que a imagem fica fora do load.** Em conexão lenta o Chrome baixa imagem lazy até ~2.500 px abaixo da tela (inclusive o `<source srcset>` de um `<picture>`); tudo que começa antes do evento `load` atrasa o que depende dele, como o pixel disparado no `load` e a LPV da Meta
 	- Imagem abaixo da dobra a menos de ~2.500 px do fim da 1ª tela: `data-src` no `<img>` e `data-srcset` nos `<source>`, trocados no `load` por script; `width`/`height` mantêm o layout
@@ -560,18 +560,18 @@ Duas regras complementares para o carregamento de imagens:
 **6. Converter todas as imagens para WebP e comprimir agressivamente**
 
 PNG e JPG pesam 2–5× mais que WebP equivalente. Padrões de qualidade:
-- Fotos/depoimentos: `cwebp -q 65 foto.png -o foto.webp` — limiar ideal qualidade/tamanho
-- Logos e ícones raster: `cwebp -q 80 logo.png -o logo.webp` — preserva bordas nítidas
+- Fotos/depoimentos: `cwebp -q 65 foto.png -o foto.webp`, limiar ideal qualidade/tamanho
+- Logos e ícones raster: `cwebp -q 80 logo.png -o logo.webp`, preserva bordas nítidas
 - Recomprimir WebP já existentes (quando recebidos de terceiros): `dwebp img.webp -o /tmp/tmp.png && cwebp -q 65 /tmp/tmp.png -o img.webp`
 - Verificar dimensões: nunca servir imagem maior que o espaço de display (`sips -g pixelWidth img`)
 - Impacto observado numa LP real: −422KB total de payload (PNGs → WebP + 8 WebPs recomprimidos)
 
 **7. Scripts externos com `defer` ou movidos para `</body>`**
 
-Todo `<script src="...">` sem `defer` no `<head>` bloqueia o parse HTML — cada ms de bloqueio vira TBT:
-- Scripts de analytics/tracking: `defer` ou dentro de `loadTracking()` (dispara só após consentimento — ideal para LGPD + performance)
+Todo `<script src="...">` sem `defer` no `<head>` bloqueia o parse HTML: cada ms de bloqueio vira TBT:
+- Scripts de analytics/tracking: `defer` ou dentro de `loadTracking()` (dispara só após consentimento, ideal para LGPD + performance)
 - Scripts de componentes (masonry, modal): mover para antes de `</body>` ou usar `defer`
-- Nunca usar `async` para scripts que dependem de outros — order não é garantida
+- Nunca usar `async` para scripts que dependem de outros: order não é garantida
 
 **15. Facade para todos os iframes de vídeo (não só o LCP)**
 
@@ -580,16 +580,16 @@ Todo `<iframe>` do YouTube/Vimeo carrega ~500KB de JS no primeiro render. O VSL 
 - JS: ao clicar, substituir o `<div>` pelo `<iframe>` com `?autoplay=1&mute=1`
 - Sem facade, cada iframe de depoimento visível na viewport dispara 1 request externo ao load
 
-**VSL com VSLProgress (YT IFrame API):** o iframe do VSL pode estar no HTML inicial com `enablejsapi=1` (para `new YT.Player()` funcionar no load) ou pode ser injetado no clique com `enablejsapi=1` e `YT.Player` inicializado em seguida — ambos válidos. O iframe de depoimentos usa sempre injeção no clique (padrão simples). Nunca colocar `enablejsapi=1` em iframes de depoimento: aumenta payload desnecessariamente.
+**VSL com VSLProgress (YT IFrame API):** o iframe do VSL pode estar no HTML inicial com `enablejsapi=1` (para `new YT.Player()` funcionar no load) ou pode ser injetado no clique com `enablejsapi=1` e `YT.Player` inicializado em seguida, ambos válidos. O iframe de depoimentos usa sempre injeção no clique (padrão simples). Nunca colocar `enablejsapi=1` em iframes de depoimento: aumenta payload desnecessariamente.
 
 **16. Analytics e tracking só após consentimento (double-win LGPD + performance)**
 
 Pixel e Clarity no `<head>` bloqueiam render e aumentam TBT, além de violar LGPD. Padrão correto:
 - Todo tracking vai dentro de `loadTracking()`, chamado apenas quando usuário aceita o cookie banner
 - Ganho: TBT reduzido no load inicial (~100–200ms); compliance LGPD automático
-- Verificar: `grep -n "fbq\|clarity\|gtag" index.html` — nenhuma ocorrência deve aparecer fora da função de consent
+- Verificar: `grep -n "fbq\|clarity\|gtag" index.html`, nenhuma ocorrência deve aparecer fora da função de consent
 
-**17. INP — modal com `opacity`/`visibility`, não `display:none` (padrão obrigatório para overlays)**
+**17. INP: modal com `opacity`/`visibility`, não `display:none` (padrão obrigatório para overlays)**
 
 `display:none → display:flex` força full layout reflow no click handler, bloqueando o browser de pintar. Em mobile mid-range, esse reflow sozinho já ultrapassa o limiar de 200ms do INP.
 
@@ -628,7 +628,7 @@ btn.addEventListener('click', function(e) {
 - `backdrop-filter: blur()` aplicado ao overlay não bloqueia INP com esta abordagem: a GPU já tem o layer compositor no load
 - `setTimeout(0)` é suficiente para ceder ao browser; `scheduler.yield()` é mais preciso mas Chrome 115+ only
 
-#### Impacto médio — ganhos incrementais garantidos
+#### Impacto médio: ganhos incrementais garantidos
 
 **8. Cache headers no Vercel**
 
@@ -652,7 +652,7 @@ btn.addEventListener('click', function(e) {
 ```
 - Security headers (bloco `/(.*)`): nosniff previne MIME-sniffing; SAMEORIGIN bloqueia embedding por domínio externo (anti-clickjacking); XSS=0 desativa auditor legado; Referrer-Policy mantém origem sem vazar URL completa em requests cross-origin.
 - HTML (`/` e `/*.html`): `max-age=0` (browser revalida sempre) + `s-maxage=86400, stale-while-revalidate=86400` (CDN serve cache 24h sem travar usuário).
-- Assets (`/assets/(.*)`): `max-age=31536000, s-maxage=31536000, immutable` — browser e CDN nunca re-verificam (assets com hash no nome).
+- Assets (`/assets/(.*)`): `max-age=31536000, s-maxage=31536000, immutable`, browser e CDN nunca re-verificam (assets com hash no nome).
 
 **9. Preconnect para 3rd parties críticos + DNS-prefetch para secundários**
 
@@ -677,7 +677,7 @@ npx html-minifier-terser \
   --collapse-boolean-attributes \
   index.html
 ```
-**Nunca usar `--minify-js`**: renomeia funções entre blocos `<script>` separados — quebra chamadas cross-script.
+**Nunca usar `--minify-js`**: renomeia funções entre blocos `<script>` separados, quebra chamadas cross-script.
 
 **11. Override CSS mobile para containers com masonry JS**
 
@@ -688,7 +688,7 @@ Masonry JS usa `element.style.cssText` que sobrescreve CSS de componente. Em mob
   .dep-grid .dep-card { position: static !important; width: 100% !important; left: auto !important; top: auto !important; }
 }
 ```
-Race condition entre `img.load` events e o masonry JS torna `grid.style.cssText = ''` imprevisível — `!important` é a única garantia.
+Race condition entre `img.load` events e o masonry JS torna `grid.style.cssText = ''` imprevisível: `!important` é a única garantia.
 
 **17. Evitar redirect chains**
 
@@ -708,11 +708,11 @@ du -sh assets/               # total da pasta
 ```
 Suspects típicos: PNGs não convertidos (> 200KB), WebPs sem recompressão (> 150KB), fontes completas sem subsetting (> 80KB).
 
-#### Impacto baixo/situacional — +1 a 3 pontos em contextos específicos
+#### Impacto baixo/situacional: +1 a 3 pontos em contextos específicos
 
 **12. AVIF além de WebP**
 
-Suporte 96%+ em 2026. AVIF reduz imagens ~20% adicionais vs WebP na média (observado: 267KB de saving em 35 imagens numa LP real, ~20% de redução). Usar `<picture>` com fallback — browser escolhe o melhor formato disponível:
+Suporte 96%+ em 2026. AVIF reduz imagens ~20% adicionais vs WebP na média (observado: 267KB de saving em 35 imagens numa LP real, ~20% de redução). Usar `<picture>` com fallback: browser escolhe o melhor formato disponível:
 ```html
 <picture>
   <source srcset="assets/img.avif" type="image/avif">
@@ -729,16 +729,16 @@ Para logos: usar `-q 75` (preserva bordas nítidas).
 
 **ATENÇÃO:** AVIF não é sempre menor que WebP. Antes de servir o AVIF, comparar tamanhos:
 - Se `avif >= webp`: deletar o AVIF e usar WebP puro (sem `<picture>`)
-- Não adianta usar `<picture>` com AVIF maior — browser escolheria o maior
+- Não adianta usar `<picture>` com AVIF maior: browser escolheria o maior
 
 **Não converter para AVIF:**
-- VSL thumbnail (LCP element + preload ativo) — complexidade de preload com AVIF não justifica o risco de regredir LCP
+- VSL thumbnail (LCP element + preload ativo): complexidade de preload com AVIF não justifica o risco de regredir LCP
 - Favicons e ícones (pouco impacto)
 - Imagens para og:image/twitter:image (crawlers de social não suportam AVIF)
 
 **13. CSS coverage audit**
 
-DevTools → More tools → Coverage → recarregar a página → CSS não usado destacado em vermelho. Remover seletores de componentes que não existem na LP. Não automatizável via script — requer execução no browser real.
+DevTools → More tools → Coverage → recarregar a página → CSS não usado destacado em vermelho. Remover seletores de componentes que não existem na LP. Não automatizável via script: requer execução no browser real.
 
 **14. Font subsetting avançado**
 
@@ -806,21 +806,21 @@ Referência real (LP de infoproduto aplicando este Guia): **97 Performance / 96 
 
 ---
 
-## SEO + AEO — Princípios e Regras
+## SEO + AEO: Princípios e Regras
 
 > AEO (Answer Engine Optimization) = otimizar para Google AI Overviews, ChatGPT, Claude, DeepSeek, Perplexity e outros modelos que extraem respostas diretamente do conteúdo da página.
 
 ### 1. Meta e head técnico
 
-- **`<title>`**: keyword primária nos primeiros 60 chars; versão longa (700+ chars) para AEO — modelos de linguagem leem o title completo; SERP exibe só os primeiros ~60 chars
+- **`<title>`**: keyword primária nos primeiros 60 chars; versão longa (700+ chars) para AEO: modelos de linguagem leem o title completo; SERP exibe só os primeiros ~60 chars
 - **`<meta description>`**: primeira frase = resposta direta AEO; SERP exibe os primeiros ~155 chars; total pode ser 800–1000 chars para cobertura de AEO
-- **`<meta name="robots">`**: `content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"` — autoriza o Google a usar fragmentos completos, imagens em alta resolução e previews de vídeo para AI Overviews
+- **`<meta name="robots">`**: `content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"`, autoriza o Google a usar fragmentos completos, imagens em alta resolução e previews de vídeo para AI Overviews
 - **`canonical`** e **`hreflang`**: obrigatórios mesmo em site de página única
 - **Open Graph** (`og:*`):
   - `og:type`: `website` para LP; `article` para posts de blog
-  - `og:locale`: `pt_BR` (underscore, não hífen) — ausente = Google assume locale padrão
-  - `og:title` e `og:description`: versões distintas e conversacionais — são o que aparece no WhatsApp, Facebook e LinkedIn
-  - `og:image`: 1200×630px obrigatório para rich preview; `og:image:width` e `og:image:height` explícitos; evitar logo pequena sobre fundo vazio (parece placeholder); logo em canvas full-width com identidade visual da marca é aceitável — o que importa é que a imagem comunique algo no preview social
+  - `og:locale`: `pt_BR` (underscore, não hífen), ausente = Google assume locale padrão
+  - `og:title` e `og:description`: versões distintas e conversacionais, são o que aparece no WhatsApp, Facebook e LinkedIn
+  - `og:image`: 1200×630px obrigatório para rich preview; `og:image:width` e `og:image:height` explícitos; evitar logo pequena sobre fundo vazio (parece placeholder); logo em canvas full-width com identidade visual da marca é aceitável: o que importa é que a imagem comunique algo no preview social
 - **Twitter/X Card** (`twitter:*`):
   - `twitter:card`: `summary_large_image` para imagem de destaque
   - `twitter:title` e `twitter:description`: podem ser iguais aos og:* ou adaptados para o tom do X
@@ -828,50 +828,50 @@ Referência real (LP de infoproduto aplicando este Guia): **97 Performance / 96 
 
 ### 2. Schemas JSON-LD
 
-- Todo schema fica em `<script type="application/ld+json">` único com `@graph` — nunca inline em atributos HTML
+- Todo schema fica em `<script type="application/ld+json">` único com `@graph`: nunca inline em atributos HTML
 - **FAQPage**: aumenta em 3× a probabilidade de aparecer em Google AI Overviews. Campo `text` em plain text (zero HTML). Schema deve ser idêntico ao texto visível na página; se o FAQ mudar, o schema muda junto
 - **Course**: incluir `name`, `description`, `teaches`, `keywords` (40+ termos), `educationalLevel`, `provider`, `instructor`, `inLanguage`, `courseMode`, `hasCourseInstance` com `Offer`
-- **VideoObject**: obrigatório se há VSL — incluir `name`, `description`, `uploadDate`, `duration` (formato ISO 8601: `PT51M48S`), `embedUrl`, `thumbnailUrl`, `contentUrl`
-- **Person**: usar nome completo (ex: `"Nome Sobrenome"`, não só o primeiro nome) — entidade nomeada completa melhora reconhecimento. Incluir `jobTitle`, `description`, `url`, `knowsAbout`, `sameAs`
-- **Organization**: incluir `name`, `url`, `logo`, `contactPoint` e `sameAs` com todas as redes sociais — permite que o Google consolide a mesma entidade em múltiplas plataformas
-- **`sameAs`** (Organization e Person): array com as URLs completas de todas as redes sociais do produto (Instagram, YouTube, TikTok etc.) — ao adicionar nova rede social, atualizar em ambos os schemas
-- **AggregateRating**: só implementar com avaliações verificáveis e visíveis na página (Hotmart ou Google Reviews) — Google pode penalizar markup sem evidência na página
+- **VideoObject**: obrigatório se há VSL, incluir `name`, `description`, `uploadDate`, `duration` (formato ISO 8601: `PT51M48S`), `embedUrl`, `thumbnailUrl`, `contentUrl`
+- **Person**: usar nome completo (ex: `"Nome Sobrenome"`, não só o primeiro nome), entidade nomeada completa melhora reconhecimento. Incluir `jobTitle`, `description`, `url`, `knowsAbout`, `sameAs`
+- **Organization**: incluir `name`, `url`, `logo`, `contactPoint` e `sameAs` com todas as redes sociais, permite que o Google consolide a mesma entidade em múltiplas plataformas
+- **`sameAs`** (Organization e Person): array com as URLs completas de todas as redes sociais do produto (Instagram, YouTube, TikTok etc.): ao adicionar nova rede social, atualizar em ambos os schemas
+- **AggregateRating**: só implementar com avaliações verificáveis e visíveis na página (Hotmart ou Google Reviews), Google pode penalizar markup sem evidência na página
 - **`dateModified`** (no `Course`/`WebPage`, com `datePublished`) atualizado a cada deploy de conteúdo: agentes de IA preferem citar página recente; dado que muda (preço, nº de alunos, avaliação) leva "em {mês/ano}" no texto
 - **Conteúdo-chave no HTML bruto**: preço, prova, oferta e depoimento nunca só injetados por script; agente que não executa JS não enxerga
 - **Vídeo longo (aula/VSL)**: `hasPart` com um `Clip` por parte (nome, `startOffset`, `endOffset`, link com `&t=`) no `VideoObject`; vídeo reeditado, refazer as partes
 
 ### 3. Hierarquia de headings
 
-- **Um único H1** no hero — pode ser emocional, mas deve conter ou remeter à keyword primária
-- **H2 por seção principal** — cada H2 deve ser keyword-rich: descreve o tópico da seção, não apenas nomeia
+- **Um único H1** no hero: pode ser emocional, mas deve conter ou remeter à keyword primária
+- **H2 por seção principal**: cada H2 deve ser keyword-rich: descreve o tópico da seção, não apenas nomeia
   - Bom: "Perguntas Frequentes sobre [Sua Categoria/Nicho]"
   - Ruim: "Perguntas Frequentes - FAQ" (redundante, sem keyword adicional)
   - Bom: "Pesquisas científicas demonstram os benefícios de [seu método/categoria]"
-  - Bom: "[Nome Sobrenome] — [expertise] há [N] anos" (entidade nomeada + keyword)
+  - Bom: "[Nome Sobrenome], [expertise] há [N] anos" (entidade nomeada + keyword)
   - Fraco: "Sobre o professor" (sem keyword, sem entidade nomeada)
 - **H3 para sub-elementos** dentro de cada seção
 - **Nunca pular níveis** (ex: H1 → H3 sem H2 intermediário)
 
-### 4. FAQ — regras AEO específicas
+### 4. FAQ: regras AEO específicas
 
-- **Primeira frase = resposta direta**: crawlers de AI extraem a primeira frase como a resposta para a busca. Deve ser completa, com o dado mais específico e verificável logo no início — nunca uma frase introdutória
-- **Títulos ≤65 chars**: Google trunca rich snippets a ~65 chars — título maior não aparece inteiro no SERP
+- **Primeira frase = resposta direta**: crawlers de AI extraem a primeira frase como a resposta para a busca. Deve ser completa, com o dado mais específico e verificável logo no início: nunca uma frase introdutória
+- **Títulos ≤65 chars**: Google trunca rich snippets a ~65 chars, título maior não aparece inteiro no SERP
 - **Separar por intenção de busca**: personas distintas com estados emocionais diferentes merecem perguntas próprias com AEO leads próprios (ex: TDAH vs. "já tentou e não conseguiu" são clusters de busca separados)
-- **Afirmações científicas**: citar fonte, ano e instituição na mesma frase (ex: Nature 2024, Johns Hopkins JAMA 2014) — aumenta credibilidade para extração por modelos e para o próprio leitor
+- **Afirmações científicas**: citar fonte, ano e instituição na mesma frase (ex: Nature 2024, Johns Hopkins JAMA 2014), aumenta credibilidade para extração por modelos e para o próprio leitor
 - **Links externos de credibilidade**: afirmações com respaldo científico ganham links inline para a fonte primária (PubMed, Nature, Harvard Health, ScienceDaily etc.). Usar classe `ciencia-fonte` (font-size: 11px, color: var(--ink-3)) logo após o texto da afirmação. Quando há múltiplos links que quebrariam em meados do label, envolver em `<span class="ciencia-links">` com `display: block; margin-top: 3px` para forçar os links à linha abaixo. Benefício: sinal de E-E-A-T para Google + âncora de credibilidade para modelos de linguagem que extraem informações com fontes verificáveis
 - **H2 da seção FAQ inclui keyword**: ex. "Perguntas Frequentes sobre [Sua Categoria]", não "FAQ" isolado
 - **Schema FAQPage sincronizado**: o campo `text` do JSON-LD deve ser idêntico ao texto visível na página (plain text, sem HTML)
 
 ### 5. Imagens
 
-- **Self-hosting obrigatório, sem exceções**: toda imagem, fonte e ícone fica em `assets/` e sobe no deploy — nunca referenciar CDN de terceiros. Thumbnails YouTube: baixar e converter para WebP (`vsl-thumb.webp`). Fontes: self-hospedar subset latin em WOFF2. Ícones: substituir por SVG inline.
-- **`fetchpriority="high"`** no LCP: logo e thumb do VSL hero (primeira dobra) — sem lazy loading nessas
-- **`srcset` + `sizes` no LCP**: thumbnail com versão mobile (≤780px, ~33KB) e desktop (1280px, ~78KB) — browser baixa só o tamanho necessário. Preload também precisa de `imagesrcset` + `imagesizes` para respeitar a seleção responsiva.
+- **Self-hosting obrigatório, sem exceções**: toda imagem, fonte e ícone fica em `assets/` e sobe no deploy, nunca referenciar CDN de terceiros. Thumbnails YouTube: baixar e converter para WebP (`vsl-thumb.webp`). Fontes: self-hospedar subset latin em WOFF2. Ícones: substituir por SVG inline.
+- **`fetchpriority="high"`** no LCP: logo e thumb do VSL hero (primeira dobra), sem lazy loading nessas
+- **`srcset` + `sizes` no LCP**: thumbnail com versão mobile (≤780px, ~33KB) e desktop (1280px, ~78KB), browser baixa só o tamanho necessário. Preload também precisa de `imagesrcset` + `imagesizes` para respeitar a seleção responsiva.
 - **`loading="lazy"`** em tudo abaixo da primeira dobra
-- **`width` e `height` explícitos** em todas as imagens — obtidos com `sips -g pixelWidth -g pixelHeight assets/imagem`. Combinar sempre com `img { height: auto }` no CSS global; sem `height: auto`, o atributo height vira pixel fixo e distorce em containers responsivos.
+- **`width` e `height` explícitos** em todas as imagens: obtidos com `sips -g pixelWidth -g pixelHeight assets/imagem`. Combinar sempre com `img { height: auto }` no CSS global; sem `height: auto`, o atributo height vira pixel fixo e distorce em containers responsivos.
 - **WebP em tudo**: converter PNGs e JPGs com `cwebp -q 70`. Alvo: <100KB por imagem de conteúdo, <200KB para fotos grandes.
-- **Alt text descritivo**: descreve o conteúdo + inclui keyword onde natural; formato sugerido: `[Pessoa/contexto] — [resultado/ação com keyword]`; máx 125 chars
-- **Nunca `alt=""`** em imagem informativa — reservar só para imagens puramente decorativas (`aria-hidden="true"` nesses casos)
+- **Alt text descritivo**: descreve o conteúdo + inclui keyword onde natural; formato sugerido: `[Pessoa/contexto]: [resultado/ação com keyword]`; máx 125 chars
+- **Nunca `alt=""`** em imagem informativa: reservar só para imagens puramente decorativas (`aria-hidden="true"` nesses casos)
 - **Print de depoimento**: alt resume (≤125 chars), então o texto integral precisa existir legível por máquina em outro lugar (transcrição no `llms.txt` ou bloco de texto na página). Teste: selecionar o texto com o mouse; se não seleciona, agente de IA também não lê
 	- Só as palavras do aluno: sem as respostas do produtor, sem marcas de grifo, sem nome (o print já borra)
 - **Depoimento em vídeo**: o que o aluno fala só chega a agente de IA em texto. Transcrição integral em dois lugares: `llms.txt` (seção "Depoimentos em vídeo") e `transcript` de um `VideoObject` por vídeo num JSON-LD no fim do `<body>` (no fim: os bytes a mais não atrasam a primeira pintura; ~17 KB custaram ~30 ms no load em rede lenta). Só pontuação e erro óbvio de reconhecimento corrigidos, trecho incerto omitido, nunca reescrito; nome e papel como no card
@@ -880,20 +880,20 @@ Referência real (LP de infoproduto aplicando este Guia): **97 Performance / 96 
 
 ### 6. Semântica HTML
 
-- **`<main>`** wrapping todo o conteúdo principal (entre a abertura do body/wrapper e o `<footer>`) — crawlers e screen readers usam para isolar conteúdo indexável
-- **`<section>` com `id` descritivo** em cada bloco: `id="secao-faq"`, `id="secao-jornada"` etc. — usados pelos scroll markers de tracking e por links internos
+- **`<main>`** wrapping todo o conteúdo principal (entre a abertura do body/wrapper e o `<footer>`): crawlers e screen readers usam para isolar conteúdo indexável
+- **`<section>` com `id` descritivo** em cada bloco: `id="secao-faq"`, `id="secao-jornada"` etc.: usados pelos scroll markers de tracking e por links internos
 - **`aria-label`** em elementos interativos sem texto visível (SVGs, botões de ícone, facades de vídeo)
-- **`<footer>`** separado do `<main>` — conteúdo do footer não é considerado conteúdo principal pelo Google
+- **`<footer>`** separado do `<main>`: conteúdo do footer não é considerado conteúdo principal pelo Google
 
 ### 7. Arquivos auxiliares (raiz do domínio)
 
-- **`llms.txt`**: sintetiza o site para crawlers de modelos de linguagem (Perplexity, ChatGPT, Claude). Manter sincronizado com mudanças de copy e FAQ — se o FAQ muda, o `llms.txt` muda junto na mesma sessão
+- **`llms.txt`**: sintetiza o site para crawlers de modelos de linguagem (Perplexity, ChatGPT, Claude). Manter sincronizado com mudanças de copy e FAQ: se o FAQ muda, o `llms.txt` muda junto na mesma sessão
 - **`robots.txt`**: diretivas para crawlers; `Sitemap:` apontando para `sitemap.xml`; `Disallow:` para versões de preview/staging que não devem ser indexadas antes do deploy
 - **`sitemap.xml`**: submeter no Google Search Console após deploy; atualizar `<lastmod>` a cada mudança de conteúdo relevante
 
 ### 8. Performance como fator de SEO
 
-Core Web Vitals afetam ranking diretamente: LCP < 2.5s, CLS < 0.1, INP < 200ms. Ver playbook completo na seção `## Performance` deste Guia — inclui regras ordenadas por impacto, diagnóstico e meta de score.
+Core Web Vitals afetam ranking diretamente: LCP < 2.5s, CLS < 0.1, INP < 200ms. Ver playbook completo na seção `## Performance` deste Guia: inclui regras ordenadas por impacto, diagnóstico e meta de score.
 
 ### 9. Schemas avaliados e descartados
 
@@ -902,8 +902,8 @@ Documentados para evitar reavaliação desnecessária em sessões futuras.
 | Schema | Decisão | Razão |
 |---|---|---|
 | `Speakable` | Descartado | Google restringiu a publishers de notícias; sem benefício comprovado para LPs de curso em 2025–2026 |
-| `HowTo` | Condicional | Adequado para "como fazer [sua metodologia]" apenas se ela for reestruturada como série de passos numerados — exige mudança estrutural de conteúdo |
-| `Clip` / `SeekToAction` | Condicional | Permite que o Google linke momentos específicos do VSL — requer timestamps exatos e vídeo chaptered no YouTube |
+| `HowTo` | Condicional | Adequado para "como fazer [sua metodologia]" apenas se ela for reestruturada como série de passos numerados: exige mudança estrutural de conteúdo |
+| `Clip` / `SeekToAction` | Condicional | Permite que o Google linke momentos específicos do VSL: requer timestamps exatos e vídeo chaptered no YouTube |
 | `WebSite` + `SearchAction` | Baixa prioridade | Útil para site com múltiplas páginas e busca interna; pouco impacto para LP única |
 
 ### 10. Oportunidades condicionais abertas
@@ -911,8 +911,8 @@ Documentados para evitar reavaliação desnecessária em sessões futuras.
 | Oportunidade | Condição para implementar |
 |---|---|
 | `AggregateRating` schema | Avaliações verificáveis visíveis na página (Hotmart / Google Reviews) |
-| ~~FAQ com links internos~~ | ✅ Implementado — Q1→`#secao-ciencia`, Q2→`#secao-o-que-e`, Q3→`#secao-o-que-e`+`#secao-jornada`, Q5→`#secao-depoimentos`, Q7→`#secao-dep-visuais`, Q9→`#secao-entregaveis` |
-| ~~Milestone events VSL (25%, 50%, 75%)~~ | ✅ Implementado — `VSLProgress25` + `VSLProgress75` via YT IFrame API (`enablejsapi=1`, poll `setInterval(5000)`), Pixel + CAPI |
+| ~~FAQ com links internos~~ | ✅ Implementado: Q1→`#secao-ciencia`, Q2→`#secao-o-que-e`, Q3→`#secao-o-que-e`+`#secao-jornada`, Q5→`#secao-depoimentos`, Q7→`#secao-dep-visuais`, Q9→`#secao-entregaveis` |
+| ~~Milestone events VSL (25%, 50%, 75%)~~ | ✅ Implementado: `VSLProgress25` + `VSLProgress75` via YT IFrame API (`enablejsapi=1`, poll `setInterval(5000)`), Pixel + CAPI |
 | `sameAs` com novas redes sociais | Ao ativar nova rede: adicionar URL em Organization e Person schemas |
 
 ---
@@ -944,7 +944,7 @@ Rodar antes do deploy e periodicamente pós-publicação.
 | O que testar | Ferramenta | O que verificar |
 |---|---|---|
 | Schemas JSON-LD | Google Rich Results Test | FAQPage, Course, VideoObject aparecem sem erros ou warnings |
-| Core Web Vitals | PageSpeed Insights | LCP < 2.5s, CLS < 0.1, INP < 200ms — testar URL de produção |
+| Core Web Vitals | PageSpeed Insights | LCP < 2.5s, CLS < 0.1, INP < 200ms: testar URL de produção |
 | Open Graph | Meta Sharing Debugger | Preview de imagem (1200×630), título e descrição corretos |
 | Twitter/X Card | X Card Validator | Preview exibe imagem grande (`summary_large_image`) |
 | Meta Pixel | Meta Events Manager | Todos os 6 eventos disparando com parâmetros corretos |
@@ -964,13 +964,13 @@ Requisitos mínimos. Não bloqueantes para launch, mas implementar antes de trá
 
 | Requisito | Implementação |
 |---|---|
-| **Foco visível** | `:focus-visible` em todos os interativos — `outline: 2px solid var(--brand-vivid); outline-offset: 2px`. Não usar `:focus` (afeta cliques de mouse) |
-| **Touch targets** | Área clicável ≥44×44px (WCAG 2.5.5) — aplicar `padding` compensatório se o elemento visual for menor |
+| **Foco visível** | `:focus-visible` em todos os interativos: `outline: 2px solid var(--brand-vivid); outline-offset: 2px`. Não usar `:focus` (afeta cliques de mouse) |
+| **Touch targets** | Área clicável ≥44×44px (WCAG 2.5.5): aplicar `padding` compensatório se o elemento visual for menor |
 | **Aria modal** | Modal pré-checkout: `role="dialog"`, `aria-modal="true"`, `aria-labelledby=[id do título]`. Escape fecha. Foco preso dentro do modal (Tab não escapa) |
 | **Aria interativos** | SVGs, botões icon-only, facades de vídeo: obrigatório `aria-label` descritivo |
 | **Alt texts** | Informativas: `alt` com keyword front-loaded, máx 125 chars. Decorativas: `alt=""` + `aria-hidden="true"` |
 | **Movimento reduzido** | `@media (prefers-reduced-motion: reduce)`: desativar transições, animações, scroll parallax |
-| **Contraste** | Corpo ≥4.5:1 WCAG AA; texto grande ≥3:1. `brand_vivid` sobre branco = 3.5:1 — restrito a grifos |
+| **Contraste** | Corpo ≥4.5:1 WCAG AA; texto grande ≥3:1. `brand_vivid` sobre branco = 3.5:1, restrito a grifos |
 
 ---
 
@@ -980,18 +980,18 @@ O que nunca fazer nesta LP, com razão documentada.
 
 | Proibição | Razão |
 |---|---|
-| Fabricar ou modificar qualquer dado específico do produto — nomes de módulos, features, expressões da metodologia (ex: "guru", "Jornada de 40 dias"), contagem ou texto de depoimentos, avaliações agregadas | Se não existe no produto, não entra. Schema markup fabricado é penalizado pelo Google |
-| Usar ponto de exclamação (!) em copy persuasiva | Hipótese em teste — evitar em headings, bullets e CTAs persuasivos. Permitido em momentos reais de conquista: submit de formulário, pós-compra, confirmação de acesso |
-| Usar travessão (—) em copy persuasiva | Padrão de voz; exceções permitidas em headings informativos (ex: H2 com nome do professor) |
+| Fabricar ou modificar qualquer dado específico do produto: nomes de módulos, features, expressões da metodologia (ex: "guru", "Jornada de 40 dias"), contagem ou texto de depoimentos, avaliações agregadas | Se não existe no produto, não entra. Schema markup fabricado é penalizado pelo Google |
+| Usar ponto de exclamação (!) em copy persuasiva | Hipótese em teste: evitar em headings, bullets e CTAs persuasivos. Permitido em momentos reais de conquista: submit de formulário, pós-compra, confirmação de acesso |
+| Usar travessão (, ) em copy persuasiva | Padrão de voz; exceções permitidas em headings informativos (ex: H2 com nome do professor) |
 | Automação pós-lead | Com leads capturados na planilha, implementar fluxo de recuperação de vendas via ferramenta de automação. Condição: Sheet validada em produção |
-| Tracking no `<head>` fora de `loadTracking()` | Viola LGPD — Pixel e Clarity devem disparar só após consentimento |
+| Tracking no `<head>` fora de `loadTracking()` | Viola LGPD: Pixel e Clarity devem disparar só após consentimento |
 | `alt=""` em imagem informativa | Prejudica acessibilidade (screen readers) e SEO (crawler não lê o conteúdo) |
-| `loading="lazy"` na imagem LCP (acima da dobra) | Atrasa LCP — usar `fetchpriority="high"` sem lazy nessas imagens |
-| `loading="lazy"` sem `width`/`height` | Causa CLS (layout shift) — dimensões explícitas são obrigatórias |
+| `loading="lazy"` na imagem LCP (acima da dobra) | Atrasa LCP: usar `fetchpriority="high"` sem lazy nessas imagens |
+| `loading="lazy"` sem `width`/`height` | Causa CLS (layout shift): dimensões explícitas são obrigatórias |
 | Font Awesome (ou qualquer icon font) | Adiciona ~73KB JS + ~18KB CSS não usados + request render-blocking (~1.3s). Substituir por SVG inline. |
 | Google Fonts CDN (ou qualquer fonte via CDN externo) | Dois requests externos (fonts.googleapis.com + fonts.gstatic.com) que bloqueiam render. Self-hospedar subset WOFF2. |
 | `font-display: swap` sem reserva ajustada, ou com LCP em texto | Sem reserva ajustada o texto pula na troca; com LCP em texto, re-pinta o LCP. Com LCP em imagem, usar `swap` + reserva ajustada (regra 2) |
 | Thumbnail do VSL apontando para CDN externo (YouTube, etc.) | DNS+TLS externo no caminho crítico do LCP. Baixar, converter para WebP e self-hospedar. |
 | `<img>` sem `height: auto` no CSS global quando tem atributo `height` | Atributo `height` vira pixel fixo e distorce a imagem em containers responsivos. Reset `img { height: auto }` é obrigatório. |
 | `<link rel="preload" as="image">` sem `imagesrcset` para imagem com srcset | Preload baixa sempre o arquivo maior, ignorando a seleção responsiva do `srcset`. Usar `imagesrcset` + `imagesizes` no preload. |
-| Deploy sem `vercel.json` com cache headers | Assets ficam com cache curto por padrão — Lighthouse penaliza e usuários re-baixam assets imutáveis a cada visita. |
+| Deploy sem `vercel.json` com cache headers | Assets ficam com cache curto por padrão: Lighthouse penaliza e usuários re-baixam assets imutáveis a cada visita. |

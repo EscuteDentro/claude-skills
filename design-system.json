@@ -8,19 +8,19 @@
 
   "principios": [
     "Ordem de decisao: legibilidade > arquitetura da informacao > layout e estetica. Ajuste estetico que piora leitura nao entra",
-    "Legibilidade acima de tudo — toda decisao de tipo, cor e contraste parte de: isso e facil de ler no celular?",
-    "Mobile primeiro — sistema desenhado para 390px. Desktop e variante responsiva: media queries ampliam tipografia, grid e espacamento automaticamente; adaptacoes estruturais maiores (mudancas de layout, novos elementos) sao tratadas como excecoes planejadas, nao como padrao.",
-    "Botao e botao — CTA tem identidade inequivoca. Nenhum outro elemento usa o mesmo radius + fundo solido.",
-    "Contraste como respeito — todo texto passa WCAG AA minimo (4.5:1 corpo, 3:1 texto grande).",
-    "Calma energizada — nao relaxante como spa. Presenca, contencao, clareza. Espaco branco com intencao.",
-    "Intersecao antigo-moderno — tipografia sans-serif (Montserrat, identica ao site original) com componentes contemporaneos.",
-    "Sistema, nao colecao — todo elemento deriva dos mesmos tokens. Nada fora da grade.",
-    "Sem quinas agressivas — border-radius minimo de 6px em qualquer superficie. Zero angulos retos expostos.",
-    "Escala por funcao — cada tamanho vem do papel do texto (tabela escala), calibrado lendo no celular real; hierarquia: titulo de secao > subtitulo de bloco > texto > rotulo. Nunca derivar tamanho por razao fixa.",
-    "Alinhamento — texto de mais de 2 linhas alinhado a esquerda no celular; centralizar so titulo e frase curta.",
-    "Elementos estilisticos contextuais — detalhes decorativos permitidos em secoes especificas desde que usem tokens do sistema.",
-    "Visual antes de texto — toda secao deve ser navegavel por icones, imagens e padroes visuais. Texto corrido com mais de 3 linhas recebe uma quebra visual: icone, separador ou diagrama. Informacao que pode virar esquema, tabela ou bloco com icone nao vira paragrafo. CTA principal: minimo 17px mobile, 18px desktop, legivel a 60cm sem oculos; largura igual a do elemento visual acima dele.",
-    "Legibilidade por maquinas (SEO + AEO) — a LP deve ser igualmente legivel por humanos, buscadores e modelos de linguagem. Cada secao usa <section> com id descritivo e aria-label. Hierarquia de headings estrita: um unico h1 no hero, h2 para cada secao principal, h3 para sub-elementos. FAQ mapeia queries reais de busca pt-BR e cada resposta comeca com a resposta direta na primeira frase. Afirmacoes cientificas referenciam fonte verificavel. Imagens informativas tem alt text com keyword front-loaded, max 125 chars. Todo schema JSON-LD fica em bloco <script type='application/ld+json'> separado. Schemas ativos: FAQPage, Course, Person, Organization, VideoObject. Schema condicional: AggregateRating (requer avaliacao visivel na pagina). Queries prioritarias pt-BR: levantar junto com o usuario as buscas reais do nicho do produto (nunca reusar lista de outro produto)."
+    "Legibilidade acima de tudo: toda decisao de tipo, cor e contraste parte de: isso e facil de ler no celular?",
+    "Mobile primeiro: sistema desenhado para 390px. Desktop e variante responsiva: media queries ampliam tipografia, grid e espacamento automaticamente; adaptacoes estruturais maiores (mudancas de layout, novos elementos) sao tratadas como excecoes planejadas, nao como padrao.",
+    "Botao e botao: CTA tem identidade inequivoca. Nenhum outro elemento usa o mesmo radius + fundo solido.",
+    "Contraste como respeito: todo texto passa WCAG AA minimo (4.5:1 corpo, 3:1 texto grande).",
+    "Calma energizada: nao relaxante como spa. Presenca, contencao, clareza. Espaco branco com intencao.",
+    "Intersecao antigo-moderno: tipografia sans-serif (Montserrat, identica ao site original) com componentes contemporaneos.",
+    "Sistema, nao colecao: todo elemento deriva dos mesmos tokens. Nada fora da grade.",
+    "Sem quinas agressivas: border-radius minimo de 6px em qualquer superficie. Zero angulos retos expostos.",
+    "Escala por funcao: cada tamanho vem do papel do texto (tabela escala), calibrado lendo no celular real; hierarquia: titulo de secao > subtitulo de bloco > texto > rotulo. Nunca derivar tamanho por razao fixa.",
+    "Alinhamento: texto de mais de 2 linhas alinhado a esquerda no celular; centralizar so titulo e frase curta.",
+    "Elementos estilisticos contextuais: detalhes decorativos permitidos em secoes especificas desde que usem tokens do sistema.",
+    "Visual antes de texto: toda secao deve ser navegavel por icones, imagens e padroes visuais. Texto corrido com mais de 3 linhas recebe uma quebra visual: icone, separador ou diagrama. Informacao que pode virar esquema, tabela ou bloco com icone nao vira paragrafo. CTA principal: minimo 17px mobile, 18px desktop, legivel a 60cm sem oculos; largura igual a do elemento visual acima dele.",
+    "Legibilidade por maquinas (SEO + AEO): a LP deve ser igualmente legivel por humanos, buscadores e modelos de linguagem. Cada secao usa <section> com id descritivo e aria-label. Hierarquia de headings estrita: um unico h1 no hero, h2 para cada secao principal, h3 para sub-elementos. FAQ mapeia queries reais de busca pt-BR e cada resposta comeca com a resposta direta na primeira frase. Afirmacoes cientificas referenciam fonte verificavel. Imagens informativas tem alt text com keyword front-loaded, max 125 chars. Todo schema JSON-LD fica em bloco <script type='application/ld+json'> separado. Schemas ativos: FAQPage, Course, Person, Organization, VideoObject. Schema condicional: AggregateRating (requer avaliacao visivel na pagina). Queries prioritarias pt-BR: levantar junto com o usuario as buscas reais do nicho do produto (nunca reusar lista de outro produto)."
   ],
 
   "paleta": {
@@ -44,41 +44,41 @@
   },
 
   "nota_contraste": {
-    "ink_sobre_bg": "16.8:1 — excelente",
-    "ink_sobre_surface": "12.4:1 — excelente",
-    "branco_sobre_brand": "9.2:1 — excelente",
-    "ink_sobre_star": "7.1:1 — excelente (botao CTA)",
-    "star_sobre_bg": "1.5:1 — NAO usar como texto sobre branco, apenas como fundo de botao (cor atualizada para #FFC820, mais vibrante)",
-    "brand_vivid_sobre_bg": "3.5:1 — abaixo do AA para texto; uso exclusivo como fill de icone SVG (icones nao precisam de contraste de texto)",
-    "brand_vivid_como_fundo": "NAO RECOMENDADO para secoes de conteudo. Contraste branco/brand_vivid ~3.3:1 — insuficiente para texto corrido. Permitido apenas em chips/badges de ate 2 linhas com texto branco em bold >= 18px. Nunca como fundo de section com paragrafos.",
-    "brand_royal_sobre_bg": "6.4:1 — passa AA (azul royal saturado, HSL 210 76% 36%); uso em destaques inline sobre fundo branco",
-    "ink_sobre_wa": "~7.2:1 — excelente para botao WhatsApp (cor atualizada para #25D366, mais vibrante)"
+    "ink_sobre_bg": "16.8:1, excelente",
+    "ink_sobre_surface": "12.4:1, excelente",
+    "branco_sobre_brand": "9.2:1, excelente",
+    "ink_sobre_star": "7.1:1, excelente (botao CTA)",
+    "star_sobre_bg": "1.5:1, NAO usar como texto sobre branco, apenas como fundo de botao (cor atualizada para #FFC820, mais vibrante)",
+    "brand_vivid_sobre_bg": "3.5:1, abaixo do AA para texto; uso exclusivo como fill de icone SVG (icones nao precisam de contraste de texto)",
+    "brand_vivid_como_fundo": "NAO RECOMENDADO para secoes de conteudo. Contraste branco/brand_vivid ~3.3:1, insuficiente para texto corrido. Permitido apenas em chips/badges de ate 2 linhas com texto branco em bold >= 18px. Nunca como fundo de section com paragrafos.",
+    "brand_royal_sobre_bg": "6.4:1, passa AA (azul royal saturado, HSL 210 76% 36%); uso em destaques inline sobre fundo branco",
+    "ink_sobre_wa": "~7.2:1, excelente para botao WhatsApp (cor atualizada para #25D366, mais vibrante)"
   },
 
   "icones": {
     "cor": "#1A9DE0 (brand_vivid)",
     "css_var": "var(--brand-vivid)",
-    "estilo": "filled SVG — fill no elemento SVG pai, sem stroke, sem caixa de fundo",
+    "estilo": "filled SVG, fill no elemento SVG pai, sem stroke, sem caixa de fundo",
     "tamanho_wrapper_px": 48,
     "tamanho_svg_px": 44,
     "alinhamento_no_card": "align-self: center (flex column card)",
-    "regra_exclusividade": "brand_vivid apenas para fills de icone SVG — proibido como cor de texto, fundo de secao ou botao",
-    "em_fundo_escuro": "fill='white' ou fill='rgba(255,255,255,0.9)' — brand_vivid nao tem contraste sobre brand (#2B5580)",
-    "biblioteca_referencia": "Heroicons solid (viewBox 0 0 24 24) e FontAwesome solid (viewBox 0 0 512 512 ou 576 512) — ambas compativeis"
+    "regra_exclusividade": "brand_vivid apenas para fills de icone SVG, proibido como cor de texto, fundo de secao ou botao",
+    "em_fundo_escuro": "fill='white' ou fill='rgba(255,255,255,0.9)': brand_vivid nao tem contraste sobre brand (#2B5580)",
+    "biblioteca_referencia": "Heroicons solid (viewBox 0 0 24 24) e FontAwesome solid (viewBox 0 0 512 512 ou 576 512), ambas compativeis"
   },
 
   "copy_tom": {
-    "exclamacao_copy_persuasiva": "Proibido em headings, subtitulos, bullets e CTAs de contexto informativo. Nao adiciona enfase — reduz credibilidade e viola o tom calma-energizada.",
+    "exclamacao_copy_persuasiva": "Proibido em headings, subtitulos, bullets e CTAs de contexto informativo. Nao adiciona enfase: reduz credibilidade e viola o tom calma-energizada.",
     "exclamacao_momentos_conquista": "Permitido em momentos de acolhimento e conquista: submit de formulario, confirmacao de compra, telas de obrigado. Esses momentos sao de celebracao genuina, nao de persuasao.",
-    "celebracao": "Celebrar e bom. A restricao nao e contra a alegria — e contra alegria artificial como ferramenta de persuasao. 'Parabens, voce esta a um passo de sentir isso' no checkout = acolhimento genuino. 'PARABENS! Nao perca essa oportunidade!' na LP = manipulacao.",
+    "celebracao": "Celebrar e bom. A restricao nao e contra a alegria: e contra alegria artificial como ferramenta de persuasao. 'Parabens, voce esta a um passo de sentir isso' no checkout = acolhimento genuino. 'PARABENS! Nao perca essa oportunidade!' na LP = manipulacao.",
     "travessao": "Proibido em copy persuasiva. Permitido em headings informativos (ex: H2 com entidade nomeada). Aceitavel como separador visual em bullets.",
-    "excecao_modal_submit": "Botao de submit do modal pre-checkout usa '!' — momento de comprometimento final do usuario, nao copy persuasiva."
+    "excecao_modal_submit": "Botao de submit do modal pre-checkout usa '!', momento de comprometimento final do usuario, nao copy persuasiva."
   },
 
   "tipografia": {
     "fonte_heading": "Montserrat",
     "fonte_body": "Montserrat",
-    "google_fonts_link": "NAO USAR — substituido por self-hosting. Google Fonts = request externo bloqueante.",
+    "google_fonts_link": "NAO USAR, substituido por self-hosting. Google Fonts = request externo bloqueante.",
     "fonte_self_hosted": "assets/montserrat.woff2 (25KB, subsetado com pyftsubset). @font-face com font-weight:400 700, font-display:swap com reservas ajustadas as medidas da fonte ('Fonte Fallback' sobre Arial, 'Fonte Fallback Roboto' sobre Roboto do Android), quando o LCP e imagem; navegador sem size-adjust fica em optional via @supports not (font-size-adjust: from-font); LCP em texto: optional. unicode-range declarado. Subsetado em jun/2026: U+0020-007E,U+00A9,U+00C0-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2013-2014,U+2000-206F,U+20AC,U+2122,U+FEFF,U+FFFD. Original (35KB) mantido como montserrat-original.woff2.",
     "escala": {
       "hero":  { "desktop": "42px", "mobile": "21px", "fonte": "Montserrat", "peso": 700, "line_height": 1.2 },
@@ -96,28 +96,28 @@
     "cores_por_contexto": {
       "fundo_claro": {
         "nota": "Fundos #FFFFFF, #E8FAFF, #E0F0F8",
-        "h1_h2_h3": "#2B5580 (brand) — validado no hero; calmo, legivel, contraste 6.4:1",
+        "h1_h2_h3": "#2B5580 (brand), validado no hero; calmo, legivel, contraste 6.4:1",
         "subtitulos_leads": "#2B5580 (brand)",
-        "body_paragrafos": "#3D5A6E (ink-2) — texto corrido e descricoes",
+        "body_paragrafos": "#3D5A6E (ink-2), texto corrido e descricoes",
         "listas_items": "#3D5A6E (ink-2)",
         "listas_numeros_icones": "#3D5A6E (ink-2)",
         "small_caption": "#7A9BAD (ink-3)",
-        "destaque_inline": "#1060A8 (brand_royal), weight 700 — azul mais saturado que brand, 6.4:1 sobre branco, passa AA"
+        "destaque_inline": "#1060A8 (brand_royal), weight 700, azul mais saturado que brand, 6.4:1 sobre branco, passa AA"
       },
       "fundo_escuro": {
-        "nota": "Fundos #2B5580 (brand) — CTAs, hero alternativo, oferta final",
+        "nota": "Fundos #2B5580 (brand), CTAs, hero alternativo, oferta final",
         "h1_h2_h3": "#FFFFFF",
         "body_paragrafos": "rgba(255,255,255,0.85)",
         "small_caption": "rgba(255,255,255,0.55)",
-        "destaque_inline": "#E8A820 (star) — uso pontual, nao em blocos inteiros"
+        "destaque_inline": "#E8A820 (star), uso pontual, nao em blocos inteiros"
       },
-      "regra_geral": "Nunca usar ink (#1A2E3F) em headings ou subtitulos em fundos claros — parece pesado. Reservar ink para texto muito pequeno ou elementos de UI (borda de botao, footer).",
-      "botao_cta_texto": "#1A2E3F (ink) — unica excecao onde ink aparece em destaque; contraste 6.2:1 sobre amber"
+      "regra_geral": "Nunca usar ink (#1A2E3F) em headings ou subtitulos em fundos claros, parece pesado. Reservar ink para texto muito pequeno ou elementos de UI (borda de botao, footer).",
+      "botao_cta_texto": "#1A2E3F (ink), unica excecao onde ink aparece em destaque; contraste 6.2:1 sobre amber"
     }
   },
 
   "padroes_de_bloco": {
-    "secao_padding": "24px 20px 40px (mobile) — padding-top 24px (sp-md), horizontal 20px, bottom 40px. Classe .sec aplicada em toda section.",
+    "secao_padding": "24px 20px 40px (mobile), padding-top 24px (sp-md), horizontal 20px, bottom 40px. Classe .sec aplicada em toda section.",
     "h2_secao": {
       "alinhamento": "center",
       "cor": "#2B5580 (brand)",
@@ -148,53 +148,53 @@
       "padding": "20px 16px",
       "titulo_cor": "#2B5580 (brand)",
       "desc_cor": "#3D5A6E (ink-2)",
-      "icone_cor_fundo_claro": "#1A9DE0 (brand_vivid) — filled SVG, sem caixa de fundo",
+      "icone_cor_fundo_claro": "#1A9DE0 (brand_vivid), filled SVG, sem caixa de fundo",
       "icone_cor_fundo_escuro": "#FFFFFF",
       "icone_estilo": "filled SVG fill=brand_vivid. Nunca stroke. Sem container background. Tamanho: 48px wrapper, 44px SVG.",
-      "icone_regra": "brand_vivid exclusivo para fills de icone SVG — nunca como cor de texto ou fundo de secao"
+      "icone_regra": "brand_vivid exclusivo para fills de icone SVG, nunca como cor de texto ou fundo de secao"
     },
     "grid_masonry": {
-      "descricao": "JS masonry (position:absolute) para grids de cards com alturas variáveis — encaixe orgânico sem espaço vazio, coluna mais curta recebe o próximo card.",
+      "descricao": "JS masonry (position:absolute) para grids de cards com alturas variáveis, encaixe orgânico sem espaço vazio, coluna mais curta recebe o próximo card.",
       "algoritmo": "shortest-column-first: col = tops.indexOf(Math.min.apply(null, tops)). Cada card vai para a coluna com menor altura acumulada.",
       "css_container_base": "display: block; position: relative; (JS define height explícita)",
       "css_container_desktop": "display: block; position: relative; (JS posiciona filhos absolute)",
       "css_card_desktop": "position: absolute; width: colW + 'px'; left: col*(colW+gap)+'px'; top: tops[col]+'px'; (tudo via JS)",
       "mobile_reset": "Abaixo do breakpoint (900px): grid.style.cssText = ''; cards.forEach(c => c.style.cssText = ''); restaura fluxo normal do CSS base.",
-      "lazy_images": "images com loading=lazy têm height 0 no DOMContentLoaded — adicionar listener por imagem: if (!img.complete) img.addEventListener('load', run)",
-      "resize": "window.addEventListener('resize', debounce(run, 120)) — recalcula ao redimensionar viewport",
+      "lazy_images": "images com loading=lazy têm height 0 no DOMContentLoaded, adicionar listener por imagem: if (!img.complete) img.addEventListener('load', run)",
+      "resize": "window.addEventListener('resize', debounce(run, 120)): recalcula ao redimensionar viewport",
       "quando_usar": "Cards de alturas variadas (depoimentos visuais, blocos de pesquisa). Preenche gaps organicamente; mobile não afetado.",
       "quando_nao_usar": "Cards de altura uniforme (ícone + título + desc fixo) → usar CSS grid convencional.",
-      "tradeoff": "Ordem visual no desktop não é estritamente sequencial — cada card vai para a coluna mais curta, não para a próxima posição da esquerda.",
-      "script_reutilizavel": "function masonry(selector, cols, gap) — aceita qualquer seletor, número de colunas e gap. Instanciar uma vez por grid.",
+      "tradeoff": "Ordem visual no desktop não é estritamente sequencial, cada card vai para a coluna mais curta, não para a próxima posição da esquerda.",
+      "script_reutilizavel": "function masonry(selector, cols, gap), aceita qualquer seletor, número de colunas e gap. Instanciar uma vez por grid.",
       "instancias_exemplo": "dep-grid: masonry('.dep-grid', 3, 8) | ciencia-grid: masonry('.ciencia-grid', 2, 24)"
     },
     "watermark_decorativo": {
-      "descricao": "SVG de fundo em seções de conteúdo — marca-d'água atrás do texto.",
+      "descricao": "SVG de fundo em seções de conteúdo, marca-d'água atrás do texto.",
       "posicionamento": "position: absolute; z-index: -1; dentro de seção com position: relative; overflow: hidden; isolation: isolate.",
       "alinhamento_viewport": "Usar left: calc(50vw - Xpx) em vez de right: fixo quando precisar alinhar a ponta do SVG com elemento específico do texto em qualquer viewport > 900px.",
       "formula_left": "Xpx = metade_viewport_alvo - posição_horizontal_desejada. exemplo: calc(50vw - 50px) alinha ponta esquerda da estrela com a palavra 'milenares' em viewports 900px+.",
       "star_polygon": "points='100,18 116,72 171,59 132,100 171,141 116,128 100,182 84,128 29,141 68,100 29,59 84,72' viewBox='0 0 200 200'",
-      "star_cor": "#FFC820 — var(--star)",
+      "star_cor": "#FFC820, var(--star)",
       "opacidade": "0.35",
       "tamanho": "480x480px"
     },
     "footer_desktop": {
       "descricao": "Footer no desktop em fundo claro: logo à esquerda, texto centralizado no espaço restante.",
       "layout": "display: flex; flex-direction: row; justify-content: flex-start; align-items: center; gap: 8px 24px",
-      "logo_altura": "140px; opacity: 1.0 — fundo claro, sem redução de opacidade",
-      "texto_flex": "privacy-copy recebe flex: 1; text-align: center — centraliza entre a logo e a borda direita, não no viewport inteiro",
-      "fundo": "var(--brand-ice) — preserva legibilidade da logo sem tratamento de cor",
+      "logo_altura": "140px; opacity: 1.0: fundo claro, sem redução de opacidade",
+      "texto_flex": "privacy-copy recebe flex: 1; text-align: center, centraliza entre a logo e a borda direita, não no viewport inteiro",
+      "fundo": "var(--brand-ice), preserva legibilidade da logo sem tratamento de cor",
       "nota_mobile": "Mobile: footer em coluna, logo centralizada, sem flex-direction row"
     },
     "footer_mobile_logo_clip": {
       "descricao": "Técnica de clip para logos com espaço em branco interno: usa overflow:hidden no wrapper + margin-top negativo na img para remover whitespace do topo do arquivo e mostrar apenas os elementos figurativos.",
       "quando_usar": "Quando o arquivo de logo tem margem/padding interno no topo que empurra os elementos visuais para baixo do frame visível.",
-      "css_wrapper": "overflow: hidden; height: [altura desejada]px — define quanto da imagem aparece",
+      "css_wrapper": "overflow: hidden; height: [altura desejada]px, define quanto da imagem aparece",
       "css_img": "height: [maior que wrapper]px; margin-top: -[whitespace a esconder]px",
-      "valores_exemplo": "wrapper height: 62px; img height: 72px; margin-top: -10px — janela visível: pixels 10–72 do arquivo (62px de conteúdo, pulando 10px de whitespace)"
+      "valores_exemplo": "wrapper height: 62px; img height: 72px; margin-top: -10px, janela visível: pixels 10–72 do arquivo (62px de conteúdo, pulando 10px de whitespace)"
     },
     "br_desktop": {
-      "descricao": "Quebra de linha condicional — visível só em desktop, oculta no mobile. Controla quebras em textos longos sem criar HTML duplicado.",
+      "descricao": "Quebra de linha condicional, visível só em desktop, oculta no mobile. Controla quebras em textos longos sem criar HTML duplicado.",
       "html": "<br class='br-desktop'>",
       "css_base": "br.br-desktop { display: none; }",
       "css_desktop": "br.br-desktop { display: inline; } /* dentro do bloco @media (min-width: 900px) */",
@@ -232,17 +232,17 @@
     "subtitulo_a": "16px / 500 / #2B5580 (brand); alinhado a esquerda no celular (4 linhas), centralizado no computador",
     "subtitulo_b": "15px / 600 / #2B5580 (brand), alinhado a esquerda",
     "lista": "14px / 500 / #2B5580 (brand), numeros 700; tamanho limitado para a capa do video nao descer",
-    "subtitulo_a_desktop": "22px / line-height 1.3 — passo h3 da escala DS; 30px seria h2, excessivo para subtítulo de suporte; line-height comprimida mantém as 2 linhas coladas"
+    "subtitulo_a_desktop": "22px / line-height 1.3: passo h3 da escala DS; 30px seria h2, excessivo para subtítulo de suporte; line-height comprimida mantém as 2 linhas coladas"
   },
 
   "favicon": {
     "arquivo": "assets/favicon.png",
     "tamanho": "256x256",
-    "design": "Estrela SVG 12 pontas — polygon r=32 (interno), R=82 (externo), fill=#E8A820 (star_dark), fundo=#E8FAFF (brand-ice)",
+    "design": "Estrela SVG 12 pontas, polygon r=32 (interno), R=82 (externo), fill=#E8A820 (star_dark), fundo=#E8FAFF (brand-ice)",
     "polygon_points": "0,-82 16,-28 71,-41 32,0 71,41 16,28 0,82 -16,28 -71,41 -32,0 -71,-41 -16,-28",
     "html_tag": "<link rel=\"icon\" href=\"assets/favicon.png\" type=\"image/png\" sizes=\"256x256\">",
     "source_html": "~/seuprojeto/paginas/favicon-export.html",
-    "nota": "So a estrela — ondas removidas por serem indiferenciadas em tamanhos pequenos. Redesign filled (estrela + ondinhas sem stroke) pendente para proxima sessao."
+    "nota": "So a estrela, ondas removidas por serem indiferenciadas em tamanhos pequenos. Redesign filled (estrela + ondinhas sem stroke) pendente para proxima sessao."
   },
 
   "botao": {
@@ -258,8 +258,8 @@
       "hover_transform": "translateY(3px)",
       "hover_bg":     "#E8A020",
       "mobile_padding":"18px 20px",
-      "nota_cor_texto": "Ink (#1A2E3F) testado. Brand (#2B5580) tem contraste 3.4:1 — insuficiente para WCAG AA. Manter ink.",
-      "em_fundo_escuro": "Remover ring ink do box-shadow — fundo escuro ja garante separacao visual do botao; ring adiciona peso sem proposito. Usar: 0 5px 0 0 #7a5200, 0 8px 20px rgba(232,168,32,0.4). Aplicar via seletor escopado: .preco-sec .btn-cta, .ga-sec .btn-cta, .garantia-final .btn-cta"
+      "nota_cor_texto": "Ink (#1A2E3F) testado. Brand (#2B5580) tem contraste 3.4:1, insuficiente para WCAG AA. Manter ink.",
+      "em_fundo_escuro": "Remover ring ink do box-shadow, fundo escuro ja garante separacao visual do botao; ring adiciona peso sem proposito. Usar: 0 5px 0 0 #7a5200, 0 8px 20px rgba(232,168,32,0.4). Aplicar via seletor escopado: .preco-sec .btn-cta, .ga-sec .btn-cta, .garantia-final .btn-cta"
     },
     "secundario": {
       "background":   "transparent",
@@ -277,7 +277,7 @@
     },
     "whatsapp": {
       "background":   "#25D366 (wa)",
-      "color":        "#1A2E3F (ink) — mesmo texto e icone dos outros botoes",
+      "color":        "#1A2E3F (ink), mesmo texto e icone dos outros botoes",
       "icon":         "SVG path oficial do WhatsApp, fill=ink",
       "border_radius":"10px (igual ao primario)",
       "padding":      "18px 20px",
@@ -295,7 +295,7 @@
     "tipos_permitidos": [
       "Mudanca de fundo: branco para glacial ou vice-versa. Sem linha, sem elemento extra.",
       "Linha decorativa fina: 1px solid border (#C8DDE8), max-width 80px, centralizada.",
-      "Bloco de cor plena: secao inteira em brand (#2B5580) com texto branco — hero, CTAs, oferta final."
+      "Bloco de cor plena: secao inteira em brand (#2B5580) com texto branco, hero, CTAs, oferta final."
     ],
     "proibido": "Qualquer divisor com padding generoso e cor solida que possa ser confundido com botao"
   },
@@ -332,7 +332,7 @@
   },
 
   "numbered_list": {
-    "descricao": "Lista numerada usada no Hero — numeros em destaque + texto corrido",
+    "descricao": "Lista numerada usada no Hero, numeros em destaque + texto corrido",
     "font_size": "14px (mobile; desktop 18px)",
     "peso_cor_mobile": "500, var(--brand) (texto e numero); 400 cinza fica fraco no celular sobre fundo claro",
     "line_height": 1.5,
@@ -365,50 +365,50 @@
   },
 
   "mood": "calma-energizada",
-  "observacoes": "Azul brand (#2B5580) e glacial (#E0F0F8) derivam diretamente da logo. Logo pode ser colocada em qualquer secao brand-ice sem preocupacao de fundo. Estrela ambar (#E8A820) e exclusiva dos botoes CTA — nenhum outro elemento usa esse tom como fundo solido. Contorno escuro no botao (#1A2E3F em box-shadow) e obrigatorio para anti-banner-blindness.",
+  "observacoes": "Azul brand (#2B5580) e glacial (#E0F0F8) derivam diretamente da logo. Logo pode ser colocada em qualquer secao brand-ice sem preocupacao de fundo. Estrela ambar (#E8A820) e exclusiva dos botoes CTA: nenhum outro elemento usa esse tom como fundo solido. Contorno escuro no botao (#1A2E3F em box-shadow) e obrigatorio para anti-banner-blindness.",
 
   "performance": {
     "_ver_guia": "Regras completas (19 itens, ordenados por impacto) na secao Performance do Guia. Este DS registra apenas os valores de configuracao especificos do projeto.",
     "meta_score": "Lighthouse mobile >= 90. Perseguir 95+. Referencia: LP de referência atingiu 97/96/100/100 (Performance/Accessibility/Best Practices/SEO).",
     "imagens_acima_fold": "Sem loading=lazy. Logo e thumb do VSL: fetchpriority='high', sem lazy. Preload com imagesrcset+imagesizes para thumbnail com srcset responsivo.",
     "imagens_abaixo_fold": "loading='lazy' obrigatorio em toda imagem nao visivel sem scroll.",
-    "formato_imagem": "AVIF primeiro, WebP como fallback, via <picture>. Para fotos/screenshots: avifenc -q 65 --speed 6 (dwebp -> PNG -> avifenc). Para logos: -q 75. Comparar tamanhos antes de servir: se avif >= webp, deletar avif e usar WebP puro. Conversao WebP: cwebp -q 65 (fotos), cwebp -q 80 (logos). VSL thumbnail: WebP apenas (LCP + preload — ver thumbnail_vsl). Saving observado: ~20% AVIF vs WebP (267KB em 35 imagens de referência).",
-    "thumbnail_vsl": "Self-hosted WebP obrigatorio. Desktop: quality 70 (~78KB para 1280x720). Mobile: versao menor quality 72 (~33KB para 780x438). srcset + sizes no <img> e imagesrcset + imagesizes no <link rel=preload>. Nao converter para AVIF — complexidade de preload regride LCP.",
+    "formato_imagem": "AVIF primeiro, WebP como fallback, via <picture>. Para fotos/screenshots: avifenc -q 65 --speed 6 (dwebp -> PNG -> avifenc). Para logos: -q 75. Comparar tamanhos antes de servir: se avif >= webp, deletar avif e usar WebP puro. Conversao WebP: cwebp -q 65 (fotos), cwebp -q 80 (logos). VSL thumbnail: WebP apenas (LCP + preload, ver thumbnail_vsl). Saving observado: ~20% AVIF vs WebP (267KB em 35 imagens de referência).",
+    "thumbnail_vsl": "Self-hosted WebP obrigatorio. Desktop: quality 70 (~78KB para 1280x720). Mobile: versao menor quality 72 (~33KB para 780x438). srcset + sizes no <img> e imagesrcset + imagesizes no <link rel=preload>. Nao converter para AVIF: complexidade de preload regride LCP.",
     "dimensoes_de_imagem": "width e height explicitos em todo <img>. Combinar com img { height: auto } no CSS global.",
     "css_reset_imagens": "img { display: block; max-width: 100%; height: auto; }",
     "preconnect": "<link rel='preconnect'> para: clarity.ms, connect.facebook.net, pay.hotmart.com. <link rel='dns-prefetch'> para YouTube (carrega so no click).",
     "cache_headers": "vercel.json: Cache-Control public, max-age=31536000, immutable para /assets/(.*). HTML: max-age=0, must-revalidate.",
     "html_minification": "html-minifier-terser --collapse-whitespace --remove-comments --remove-redundant-attributes --collapse-boolean-attributes. NAO --minify-js. Rodar antes do commit ou num passo de build (a Vercel nao minifica).",
     "masonry_mobile": "Containers com JS masonry: @media (max-width: 899px) com !important cobrindo position:static e grid-template-columns:1fr.",
-    "fora_do_escopo": "Brotli e HTTP/2 — ativos automaticamente no Vercel.",
+    "fora_do_escopo": "Brotli e HTTP/2, ativos automaticamente no Vercel.",
     "core_web_vitals": "Metas: LCP < 2.5s; CLS = 0; TBT < 150ms; FCP < 1.5s.",
     "fetchpriority": "fetchpriority='high' na logo do hero e na thumbnail do VSL. Sem fetchpriority nos demais."
   },
 
   "responsividade": {
     "principio": "Mobile primeiro, desktop como ampliacao. Nenhuma decisao de desktop deve degradar a experiencia ou a performance no mobile.",
-    "estrategia": "CSS mobile-first: estilos base para 390px. Media queries (min-width) ampliam para telas maiores — nunca sobrescrevem o mobile com max-width.",
+    "estrategia": "CSS mobile-first: estilos base para 390px. Media queries (min-width) ampliam para telas maiores: nunca sobrescrevem o mobile com max-width.",
     "breakpoints": {
-      "sm":  "500px — .testi-card: flex-direction row (thumb 55% + texto flex:1)",
-      "md":  "700px — .feat-grid: 2 colunas",
-      "lg":  "900px — .sec padding 60px 32px; .t-hero 42px (margem abaixo 12px; no celular 10px); .t-h2 30px; .t-h3 22px; body text 17px; .btn-cta/.btn-wa 18px; .feat-grid 3 col; .dep-grid 4 col; .preco-main 54px"
+      "sm":  "500px, .testi-card: flex-direction row (thumb 55% + texto flex:1)",
+      "md":  "700px, .feat-grid: 2 colunas",
+      "lg":  "900px, .sec padding 60px 32px; .t-hero 42px (margem abaixo 12px; no celular 10px); .t-h2 30px; .t-h3 22px; body text 17px; .btn-cta/.btn-wa 18px; .feat-grid 3 col; .dep-grid 4 col; .preco-main 54px"
     },
-    "max_width_conteudo": "960px de conteudo. .page-wrap e full-width (fundos edge-to-edge). Centralizacao feita em .sec via padding: 24px max(20px, calc(50vw - 480px)) 40px — conteudo fica em 960px em viewports acima de 1000px.",
-    "tipografia_desktop": "Hero: 42px. H2: 30px. H3: 22px. Body: 17px. CTA: 18px. Valores da secao escala — FONTE DE VERDADE.",
+    "max_width_conteudo": "960px de conteudo. .page-wrap e full-width (fundos edge-to-edge). Centralizacao feita em .sec via padding: 24px max(20px, calc(50vw - 480px)) 40px, conteudo fica em 960px em viewports acima de 1000px.",
+    "tipografia_desktop": "Hero: 42px. H2: 30px. H3: 22px. Body: 17px. CTA: 18px. Valores da secao escala: FONTE DE VERDADE.",
     "escala_desktop_formula": {
       "regra": "Ponto de partida do desktop numa LP nova: H1 x2 (21->42) · H2 x1.5 (20->30) · H3 x1.22 (18->22) · body +1px (16->17); tamanho final por funcao, lido no aparelho",
-      "razao_h2_body_desktop": "1.76x — harmonia visual validada em 900px+",
-      "razao_h3_body_desktop": "1.29x — harmonia visual validada em 900px+",
+      "razao_h2_body_desktop": "1.76x: harmonia visual validada em 900px+",
+      "razao_h3_body_desktop": "1.29x: harmonia visual validada em 900px+",
       "principio": "Desktop amplifica, nao redesenha. A hierarquia entre papeis do mobile (titulo de secao > subtitulo de bloco > texto > rotulo) e preservada no desktop.",
-      "aplicacao_css": "@media (min-width: 900px) — bloco unico consolidado, mobile base intocado"
+      "aplicacao_css": "@media (min-width: 900px), bloco unico consolidado, mobile base intocado"
     },
     "botao_desktop": "Botoes mantidos em width: 100% dentro do .page-wrap. Font-size sobe de 17px para 18px em 900px+.",
     "imagens_desktop": "Servir imagens maiores apenas quando necessario (srcset). Nao carregar imagem 1200px para mostrar em 390px.",
-    "regra_de_ouro": "Se uma melhoria de desktop exigir JS extra, recurso extra ou script adicional que carregue no mobile — ela nao vale.",
-    "touch_targets": "Todo elemento clicavel (links, botoes, items de FAQ, acordeoes) deve ter area minima de 44x44px (WCAG 2.5.5). Aplicar padding compensatorio onde necessario — o elemento visual pode ser menor, mas a area de toque nao.",
+    "regra_de_ouro": "Se uma melhoria de desktop exigir JS extra, recurso extra ou script adicional que carregue no mobile, ela nao vale.",
+    "touch_targets": "Todo elemento clicavel (links, botoes, items de FAQ, acordeoes) deve ter area minima de 44x44px (WCAG 2.5.5). Aplicar padding compensatorio onde necessario: o elemento visual pode ser menor, mas a area de toque nao.",
     "safe_area": "Elementos fixos no rodape (cookie banner, CTAs flutuantes) recebem padding-bottom: env(safe-area-inset-bottom) para acomodar barra de sistema do iPhone (Dynamic Island, Home indicator). Browsers sem notch ignoram a instrucao.",
-    "landscape_mobile": "Telas em (max-height: 500px) and (orientation: landscape) comprimem secoes de texto longo. Tratar como excecao de baixa prioridade — adicionar breakpoint apenas se confirmado em testes reais.",
-    "largura_conteudo_secao": "Para seções que se beneficiam de conteúdo mais largo no desktop, ampliar o padding de max(20px, calc(50vw - 480px)) para max(16px, calc(50vw - Xpx)) onde X > 480. A cada +100px em X, o conteúdo cresce +200px em viewports largos. Padrão do site: 480px (960px de conteúdo). Para Quem É usa 580px (~1160px em 1440px). Usar com moderação — quebra a grade uniforme e deve ser justificado visualmente (ex: cards com ícones grandes)."
+    "landscape_mobile": "Telas em (max-height: 500px) and (orientation: landscape) comprimem secoes de texto longo. Tratar como excecao de baixa prioridade: adicionar breakpoint apenas se confirmado em testes reais.",
+    "largura_conteudo_secao": "Para seções que se beneficiam de conteúdo mais largo no desktop, ampliar o padding de max(20px, calc(50vw - 480px)) para max(16px, calc(50vw - Xpx)) onde X > 480. A cada +100px em X, o conteúdo cresce +200px em viewports largos. Padrão do site: 480px (960px de conteúdo). Para Quem É usa 580px (~1160px em 1440px). Usar com moderação: quebra a grade uniforme e deve ser justificado visualmente (ex: cards com ícones grandes)."
   },
 
   "tracking": {
@@ -416,16 +416,16 @@
       "prioridade": "ESSENCIAL. Instalar antes de qualquer outra coisa.",
       "posicao": "<head>, antes das fontes. O pixel precisa disparar o mais cedo possivel para rastrear a visita completa.",
       "eventos_padrao_lp": {
-        "PageView": "Dispara automaticamente ao carregar — configurado no proprio pixel.",
+        "PageView": "Dispara automaticamente ao carregar, configurado no proprio pixel.",
         "ViewContent": "Disparar apos 3 segundos na pagina, confirmando que o user realmente leu (nao apenas abriu e fechou).",
-        "Lead": "Disparado no submit do modal pre-checkout (substituiu InitiateCheckout — Hotmart dispara InitiateCheckout nativamente).",
-        "PrecheckoutOpen": "Custom event — modal aberto (identifica qual botao originou).",
-        "PrecheckoutEmailDigitado": "Custom event — email preenchido no modal (comportamental, sem enviar dado).",
-        "PrecheckoutAbandono": "Custom event — modal fechado sem submit.",
-        "VSLPlay": "Custom event — clique no facade do VSL hero.",
-        "FAQOpen": "Custom event — acordeao FAQ aberto.",
-        "Purchase": "Disparar na pagina de obrigado — configurar via Hotmart webhook ou pixel da plataforma.",
-        "REMOVIDO_InitiateCheckout": "Removido da LP — Hotmart dispara nativamente. Aparece no Meta Ads como conversao estimada, nao como dado real da LP."
+        "Lead": "Disparado no submit do modal pre-checkout (substituiu InitiateCheckout, Hotmart dispara InitiateCheckout nativamente).",
+        "PrecheckoutOpen": "Custom event, modal aberto (identifica qual botao originou).",
+        "PrecheckoutEmailDigitado": "Custom event, email preenchido no modal (comportamental, sem enviar dado).",
+        "PrecheckoutAbandono": "Custom event, modal fechado sem submit.",
+        "VSLPlay": "Custom event, clique no facade do VSL hero.",
+        "FAQOpen": "Custom event, acordeao FAQ aberto.",
+        "Purchase": "Disparar na pagina de obrigado, configurar via Hotmart webhook ou pixel da plataforma.",
+        "REMOVIDO_InitiateCheckout": "Removido da LP, Hotmart dispara nativamente. Aparece no Meta Ads como conversao estimada, nao como dado real da LP."
       }
     },
     "identificadores_de_clique": {
@@ -442,24 +442,24 @@
     "scroll_depth": {
       "convencao": "Inserir <div class='scroll-marker' data-depth='25' aria-hidden='true' style='height:0'></div> nos pontos de 25%, 50%, 75% e 100% da pagina. Scripts de analytics observam quando entram no viewport via IntersectionObserver.",
       "marcadores_sugeridos": [
-        "25% — fim do hero",
-        "50% — fim dos entregaveis",
-        "75% — fim dos depoimentos",
-        "100% — oferta final"
+        "25%: fim do hero",
+        "50%: fim dos entregaveis",
+        "75%: fim dos depoimentos",
+        "100%: oferta final"
       ]
     },
-    "custom_events": "ScrollSection: IntersectionObserver em 12 secoes (threshold 30%), dispara uma vez por secao com parametro section:'preco' etc. — dentro de loadTracking(). VSLPlay: fbq trackCustom ao clicar no facade do VSL hero. InitiateCheckout: parametro content_name identifica qual botao disparou (cta-hero, cta-meio, cta-preco, cta-final).",
+    "custom_events": "ScrollSection: IntersectionObserver em 12 secoes (threshold 30%), dispara uma vez por secao com parametro section:'preco' etc.: dentro de loadTracking(). VSLPlay: fbq trackCustom ao clicar no facade do VSL hero. InitiateCheckout: parametro content_name identifica qual botao disparou (cta-hero, cta-meio, cta-preco, cta-final).",
     "video_play": "VSL hero: facade dispara VSLPlay custom event + troca por iframe. Testi-cards: facade sem evento de pixel (so troca por iframe).",
-    "heatmap_session": "Microsoft Clarity — Project ID: {CLARITY_ID}. Carregado via loadTracking() sob consentimento (banner LGPD). Nao esta no <head>.",
-    "utm_params": "A pagina deve funcionar normalmente com ?utm_source=... na URL. O Hotmart preserva UTMs ate o checkout — nao interferir.",
-    "consent_lgpd": "Meta Pixel e Clarity carregados via loadTracking() no final do body. Disparam somente apos consentimento. Consentimento salvo em localStorage key 'app_consent' = 'granted'. Gatilhos: (1) scroll na LP, exceto enquanto _policyFocused=true; (2) clique FORA do #cookie-banner — cliques dentro do banner que nao sejam #cookie-banner-btn sao suprimidos; (3) botao Continuar (fecha banner + consent via bubbling). Mecanismo _policyFocused: ativado sincronamente ao clicar no link de politica (antes do scrollIntoView, sem setTimeout). _policyViewed=true quando secao entra na viewport — distingue 'a caminho' de 'saindo'. Scroll suprimido em toda a fase: transito ate a secao, dentro dela e no evento que a tira da viewport. Consent retoma na proxima interacao apos saida completa. STATUS: CONFORME.",
-    "gtm": "Google Tag Manager como caminho de escalabilidade: centraliza disparos (Pixel, Clarity, GA4) sem reeditar HTML. Nao implementado — avaliar antes do lancamento se multiplas ferramentas forem adicionadas."
+    "heatmap_session": "Microsoft Clarity, Project ID: {CLARITY_ID}. Carregado via loadTracking() sob consentimento (banner LGPD). Nao esta no <head>.",
+    "utm_params": "A pagina deve funcionar normalmente com ?utm_source=... na URL. O Hotmart preserva UTMs ate o checkout: nao interferir.",
+    "consent_lgpd": "Meta Pixel e Clarity carregados via loadTracking() no final do body. Disparam somente apos consentimento. Consentimento salvo em localStorage key 'app_consent' = 'granted'. Gatilhos: (1) scroll na LP, exceto enquanto _policyFocused=true; (2) clique FORA do #cookie-banner: cliques dentro do banner que nao sejam #cookie-banner-btn sao suprimidos; (3) botao Continuar (fecha banner + consent via bubbling). Mecanismo _policyFocused: ativado sincronamente ao clicar no link de politica (antes do scrollIntoView, sem setTimeout). _policyViewed=true quando secao entra na viewport: distingue 'a caminho' de 'saindo'. Scroll suprimido em toda a fase: transito ate a secao, dentro dela e no evento que a tira da viewport. Consent retoma na proxima interacao apos saida completa. STATUS: CONFORME.",
+    "gtm": "Google Tag Manager como caminho de escalabilidade: centraliza disparos (Pixel, Clarity, GA4) sem reeditar HTML. Nao implementado: avaliar antes do lancamento se multiplas ferramentas forem adicionadas."
   },
 
   "ab_testing": {
-    "abordagem_recomendada": "Duas versoes do HTML (vendas-v1.html e vendas-v2.html). Split de trafego no nivel do anuncio no Meta Ads — dois conjuntos de anuncios, cada um apontando para uma URL diferente. Resultado medido por custo por compra, nao por CTR.",
+    "abordagem_recomendada": "Duas versoes do HTML (vendas-v1.html e vendas-v2.html). Split de trafego no nivel do anuncio no Meta Ads: dois conjuntos de anuncios, cada um apontando para uma URL diferente. Resultado medido por custo por compra, nao por CTR.",
     "o_que_testar_primeiro": [
-      "1. Headline do hero — maior impacto, mais facil de isolar",
+      "1. Headline do hero: maior impacto, mais facil de isolar",
       "2. Thumb ou abertura do VSL",
       "3. Texto e cor do CTA",
       "4. Ordem das secoes (ex: depoimentos antes do metodo)"
@@ -467,28 +467,28 @@
     "convencao_de_ids": "Toda secao principal tem id='secao-hero', id='secao-entregaveis', id='secao-depoimentos' etc. Facilita identificar variantes em heatmaps e session recordings.",
     "regra_de_significancia": "Nao encerrar teste antes de 100 conversoes (compras) no grupo menor. Diferenca menor que 20% entre variantes pode ser ruido estatistico.",
     "ferramentas": "Para split mais sofisticado: VWO (pago) ou Google Optimize (descontinuado). O Hotmart nao tem A/B nativo para paginas externas. Manual via Meta Ads e o caminho mais simples e confiavel para este produto.",
-    "duracao_maxima": "Encerrar o teste apos 100 conversoes no grupo menor OU apos 30 dias — o que vier primeiro. Resultado inconclusivo = repetir com mais trafego antes de decidir.",
-    "log_de_testes": "Registrar cada teste em seuprojeto/Testes A-B/YYYY-MM-DD — [nome do teste].md. Campos obrigatorios: canal de trafego, hipotese, variantes A e B, tamanho de amostra, resultado, conclusao e proximo passo."
+    "duracao_maxima": "Encerrar o teste apos 100 conversoes no grupo menor OU apos 30 dias, o que vier primeiro. Resultado inconclusivo = repetir com mais trafego antes de decidir.",
+    "log_de_testes": "Registrar cada teste em seuprojeto/Testes A-B/YYYY-MM-DD, [nome do teste].md. Campos obrigatorios: canal de trafego, hipotese, variantes A e B, tamanho de amostra, resultado, conclusao e proximo passo."
   },
 
   "lgpd": {
     "principio": "Consentimento antes de rastreamento. Qualquer ferramenta de analytics comportamental exige consentimento explicito do usuario antes de disparar.",
     "ferramentas_que_precisam_de_consentimento": ["Meta Pixel (publicidade comportamental)", "Microsoft Clarity (gravacao de sessao e heatmap)"],
-    "ferramentas_sem_consentimento": ["Google Fonts (funcional — sem coleta identificavel)"],
-    "status_atual": "CONFORME — Pixel e Clarity carregados sob consentimento via loadTracking(). Banner implementado (junho 2026).",
-    "implementacao": "Barra fixa no rodape com botao Continuar e link 'Politica de Privacidade'. Link de politica: abre accordion <details id='politica-privacidade'> no footer via JS (nao navega para nova pagina), banner permanece visivel. Mecanismo de consent: qualquer scroll ou click na LP dispara loadTracking() silenciosamente — banner fica. Excecoes: (a) link de politica nunca dispara consent; (b) enquanto _policyFocused=true, QUALQUER interacao (scroll ou clique) dentro de #politica-privacidade e suprimida — o usuario foi mandado para la, nao esta agindo por conta propria; ao sair da secao (scroll que tira elemento do viewport ou clique fora dela), consent retoma normalmente. Botao Continuar: fecha banner + consent via event bubbling. Consentimento persistido em localStorage('app_consent'='granted').",
-    "base_legal": "LGPD — Lei 13.709/2018. Consentimento deve ser livre, informado e inequivoco (Art. 8).",
+    "ferramentas_sem_consentimento": ["Google Fonts (funcional, sem coleta identificavel)"],
+    "status_atual": "CONFORME, Pixel e Clarity carregados sob consentimento via loadTracking(). Banner implementado (junho 2026).",
+    "implementacao": "Barra fixa no rodape com botao Continuar e link 'Politica de Privacidade'. Link de politica: abre accordion <details id='politica-privacidade'> no footer via JS (nao navega para nova pagina), banner permanece visivel. Mecanismo de consent: qualquer scroll ou click na LP dispara loadTracking() silenciosamente, banner fica. Excecoes: (a) link de politica nunca dispara consent; (b) enquanto _policyFocused=true, QUALQUER interacao (scroll ou clique) dentro de #politica-privacidade e suprimida: o usuario foi mandado para la, nao esta agindo por conta propria; ao sair da secao (scroll que tira elemento do viewport ou clique fora dela), consent retoma normalmente. Botao Continuar: fecha banner + consent via event bubbling. Consentimento persistido em localStorage('app_consent'='granted').",
+    "base_legal": "LGPD, Lei 13.709/2018. Consentimento deve ser livre, informado e inequivoco (Art. 8).",
     "pagina_necessaria": "Politica de Privacidade com: CNPJ, dados coletados, finalidade, retencao, direitos do titular e contato."
   },
 
   "acessibilidade": {
-    "foco_visivel": ":focus-visible em todos os elementos interativos (links, botoes, acordeoes, itens de FAQ) — outline: 2px solid var(--brand-vivid); outline-offset: 2px. Usar :focus-visible, nao :focus, para nao afetar usuarios de mouse.",
+    "foco_visivel": ":focus-visible em todos os elementos interativos (links, botoes, acordeoes, itens de FAQ), outline: 2px solid var(--brand-vivid); outline-offset: 2px. Usar :focus-visible, nao :focus, para nao afetar usuarios de mouse.",
     "touch_targets": "Ver responsividade.touch_targets. 44x44px minimo WCAG 2.5.5 em todo elemento clicavel.",
     "aria_modal": "Modal pre-checkout: role='dialog', aria-modal='true', aria-labelledby=[id do titulo]. Tecla Escape fecha o modal. Foco preso dentro do modal enquanto aberto (focus trap basico: Tab nao sai dos elementos do modal).",
     "aria_interativos": "Elementos interativos sem texto visivel (SVGs, botoes icon-only, facades de video) precisam de aria-label descritivo.",
     "alt_texts": "Imagens informativas: alt text com keyword front-loaded, max 125 chars. Imagens puramente decorativas: alt='' + aria-hidden='true'. Nunca alt='' em imagem que transmite informacao.",
     "semantica_html": "Hierarquia de headings estrita: unico h1 no hero, h2 em cada secao principal, h3 para sub-elementos. Usar <main>, <section>, <header>, <footer> com significado semantico real.",
-    "contraste": "Todo texto corpo >= 4.5:1 WCAG AA. Texto grande >= 3:1. brand_vivid (#1A9DE0) sobre branco = 3.5:1 — abaixo do AA para texto corrido; uso restrito a grifos e elementos decorativos.",
+    "contraste": "Todo texto corpo >= 4.5:1 WCAG AA. Texto grande >= 3:1. brand_vivid (#1A9DE0) sobre branco = 3.5:1, abaixo do AA para texto corrido; uso restrito a grifos e elementos decorativos.",
     "reducao_movimento": "@media (prefers-reduced-motion: reduce): desativar transicoes, animacoes e efeitos de scroll. Usuarios com epilepsia fotossensivel, vestigial tremor ou preferencia declarada devem ter experiencia estatica equivalente."
   },
 
@@ -497,14 +497,14 @@
     "campos": {
       "nome": "input text, obrigatorio",
       "email": "input email, obrigatorio, validacao /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/",
-      "ddi": "input-addon: .pc-ddi-badge (span estatico — bandeira + '+') + .pc-ddi-input (input numerico, 58px, value='55'). DDI_MAP ~120 paises — lookup no blur. Badge mostra flag + ' +' se reconhecido, '+' se desconhecido. Erro 'DDI invalido' se campo vazio.",
+      "ddi": "input-addon: .pc-ddi-badge (span estatico, bandeira + '+') + .pc-ddi-input (input numerico, 58px, value='55'). DDI_MAP ~120 paises, lookup no blur. Badge mostra flag + ' +' se reconhecido, '+' se desconhecido. Erro 'DDI invalido' se campo vazio.",
       "telefone": "input tel, validacao >= 7 digitos internacionais"
     },
     "css_ddi": ".pc-ddi-group { display:flex; align-items:center; gap:6px }. .pc-ddi-badge { font-size:15px; white-space:nowrap; user-select:none }. .pc-ddi-input { border: 1px solid var(--ink-3); border-radius:6px; width:58px; padding:6px 8px }. .pc-ddi-input.error { border-color:#e53e3e }",
     "validacao_blur": "DDI: showError se val vazio; atualiza badge no blur. Email e telefone: sem blur-validation (so no submit).",
     "validacao_submit": "clearError em todos (nome, email, ddi, phone) + validacao sequencial. Formulario bloqueado ate ok=true.",
-    "dados": "phoneClean = ddi + phone.replace(/\\D/g,'') — DDI prefixado antes de gravar. Vai para Sheet via Apps Script; Hotmart recebe ?name=&email= (sem &phone= — parametro nao suportado).",
-    "pixel": "Lead no submit. InitiateCheckout removido — Hotmart dispara nativamente.",
+    "dados": "phoneClean = ddi + phone.replace(/\\D/g,''), DDI prefixado antes de gravar. Vai para Sheet via Apps Script; Hotmart recebe ?name=&email= (sem &phone=, parametro nao suportado).",
+    "pixel": "Lead no submit. InitiateCheckout removido: Hotmart dispara nativamente.",
     "apps_script": "URL hardcoded no JS do modal. Nao alterar sem redeployar o Apps Script correspondente."
   },
 
