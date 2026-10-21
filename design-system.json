@@ -49,7 +49,7 @@
     "branco_sobre_brand": "9.2:1, excelente",
     "ink_sobre_star": "7.1:1, excelente (botao CTA)",
     "star_sobre_bg": "1.5:1, NAO usar como texto sobre branco, apenas como fundo de botao (cor atualizada para #FFC820, mais vibrante)",
-    "brand_vivid_sobre_bg": "3.5:1, abaixo do AA para texto; uso exclusivo como fill de icone SVG (icones nao precisam de contraste de texto)",
+    "brand_vivid_sobre_bg": "3.0:1 (medido), abaixo do AA para texto; uso exclusivo como fill de icone SVG (icones nao precisam de contraste de texto)",
     "brand_vivid_como_fundo": "NAO RECOMENDADO para secoes de conteudo. Contraste branco/brand_vivid ~3.3:1, insuficiente para texto corrido. Permitido apenas em chips/badges de ate 2 linhas com texto branco em bold >= 18px. Nunca como fundo de section com paragrafos.",
     "brand_royal_sobre_bg": "6.4:1, passa AA (azul royal saturado, HSL 210 76% 36%); uso em destaques inline sobre fundo branco",
     "ink_sobre_wa": "~7.2:1, excelente para botao WhatsApp (cor atualizada para #25D366, mais vibrante)"
@@ -488,7 +488,7 @@
     "aria_interativos": "Elementos interativos sem texto visivel (SVGs, botoes icon-only, facades de video) precisam de aria-label descritivo.",
     "alt_texts": "Imagens informativas: alt text com keyword front-loaded, max 125 chars. Imagens puramente decorativas: alt='' + aria-hidden='true'. Nunca alt='' em imagem que transmite informacao.",
     "semantica_html": "Hierarquia de headings estrita: unico h1 no hero, h2 em cada secao principal, h3 para sub-elementos. Usar <main>, <section>, <header>, <footer> com significado semantico real.",
-    "contraste": "Todo texto corpo >= 4.5:1 WCAG AA. Texto grande >= 3:1. brand_vivid (#1A9DE0) sobre branco = 3.5:1, abaixo do AA para texto corrido; uso restrito a grifos e elementos decorativos.",
+    "contraste": "Todo texto corpo >= 4.5:1 WCAG AA. Texto grande >= 3:1. brand_vivid (#1A9DE0) sobre branco = 3.0:1, abaixo do AA para texto corrido; uso restrito a grifos e elementos decorativos.",
     "reducao_movimento": "@media (prefers-reduced-motion: reduce): desativar transicoes, animacoes e efeitos de scroll. Usuarios com epilepsia fotossensivel, vestigial tremor ou preferencia declarada devem ter experiencia estatica equivalente."
   },
 

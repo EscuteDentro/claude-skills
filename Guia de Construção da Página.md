@@ -230,6 +230,17 @@ O modal acima já salva o lead na Sheet: isso funciona sozinho, sem nada abaixo.
 - **Não ler o HTML completo**: é ~1900 linhas; consultar via grep/offset
 - **PREVIEW ONLY block**: remover antes do deploy (últimas ~50 linhas do `<style>`)
 
+### Revisão automática de design (Impeccable, sem instalar)
+
+Recurso guardado para segunda opinião de design; nunca instalado no projeto nem no vault.
+
+- O que é: `pbakaus/impeccable` (Apache-2.0), 61 regras determinísticas que rodam sem IA e sem chave (contraste WCAG, padrões visuais típicos de página gerada por IA: gradiente roxo-azul, card dentro de card, texto cinza sobre fundo colorido, fonte Inter genérica) + comandos com IA (`critique`, `audit`, `polish`, `typeset`, `layout`, `bolder`, `quieter`)
+- Rodar as regras, sobre uma cópia do HTML fora da pasta do projeto: `DO_NOT_TRACK=1 IMPECCABLE_NO_TELEMETRY=1 npx -y impeccable@4.7.0 detect --no-config <copia>/index.html > achados.txt` (achados na saída padrão; código de saída 2 = há achados). Versão fixa: subir a versão só depois de nova auditoria
+- Comandos com IA: ler o prompt em `skills/impeccable/` no GitHub e aplicar à mão na sessão; sem instalar nada
+- **Proibido `npx impeccable install` sem `--no-hooks`**: o instalador grava um gatilho em `.claude/settings.local.json` que roda o detector a cada edição de arquivo visual, em toda sessão
+- **Proibido `detect <URL de produção>`**: abre a página num Chrome real e dispara pixel, analytics e contador como se fosse visita
+- Achado de contraste confere com a linha Contraste do checklist acima; achado de "cara de IA" é sugestão, decidida por peça
+
 ### Checklist de avaliação antes de qualquer mudança
 
 Toda alteração na LP, de copy, CSS, HTML, schema ou arquivos auxiliares, deve ser avaliada conscientemente contra os seguintes critérios antes de implementar. Desvios são permitidos, mas devem ser explicitados.
@@ -238,7 +249,7 @@ Toda alteração na LP, de copy, CSS, HTML, schema ou arquivos auxiliares, deve 
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Tipografia**     | Fonte (Montserrat), tamanho (escala por função no mobile → desktop via multiplicadores DS), peso, cor por contexto; mudanças desktop só em `@media (min-width: 900px)` |
 | **Cores**          | Usa tokens do DS (`--brand`, `--brand-vivid`, `--star`, `--ink` etc.): nunca hex avulso                                                     |
-| **Contraste**      | Texto corpo ≥4.5:1 WCAG AA; texto grande ≥3:1                                                                                                |
+| **Contraste**      | Texto corpo ≥4.5:1 WCAG AA; texto grande ≥3:1. Conferir com o Impeccable (seção acima)                                                                                                |
 | **Copy**           | Sem travessão (`—`) em copy persuasiva, sem ponto de exclamação em copy persuasiva (permitido em momentos de conquista: submit, pós-compra), sem "guru", sem "jornada de 40 dias"; texto de alunos exato do site/copy file |
 | **SEO+AEO**        | H1 único; H2 com keyword; FAQ: lead AEO + título ≤65 chars; alt text descritivo; schema sincronizado                                         |
 | **Performance**    | Self-hosting de todo asset (sem exceções); fontes self-hosted com `font-display` decidido pelo elemento LCP (regra 2 de Performance); ícones como SVG inline (nunca icon font); `fetchpriority="high"` + `srcset` no LCP; `width`/`height` + `img { height: auto }` em todas as imagens; nada abaixo da dobra baixado antes do `load` (regra 5); Lighthouse mobile ≥ 90. Ver `## Performance` neste Guia. |
@@ -970,7 +981,7 @@ Requisitos mínimos. Não bloqueantes para launch, mas implementar antes de trá
 | **Aria interativos** | SVGs, botões icon-only, facades de vídeo: obrigatório `aria-label` descritivo |
 | **Alt texts** | Informativas: `alt` com keyword front-loaded, máx 125 chars. Decorativas: `alt=""` + `aria-hidden="true"` |
 | **Movimento reduzido** | `@media (prefers-reduced-motion: reduce)`: desativar transições, animações, scroll parallax |
-| **Contraste** | Corpo ≥4.5:1 WCAG AA; texto grande ≥3:1. `brand_vivid` sobre branco = 3.5:1, restrito a grifos |
+| **Contraste** | Corpo ≥4.5:1 WCAG AA; texto grande ≥3:1. `brand_vivid` sobre branco = 3,0:1 (medido), restrito a grifos |
 
 ---
 

@@ -50,7 +50,7 @@ Com esses dados extraídos, pré-preencher o DS (paleta, tipografia, tracking ID
 
 **LP existente querendo otimizar:** se Guia + DS já existem, pular passos 2–4 e executar o passo de revisão abaixo, depois ir aos checklists. Se Guia + DS ainda não existem, gerar agora com base na LP atual.
 
-> **Revisão de Guia + DS existentes:** antes de ir aos checklists, verificar: (1) seção Performance do Guia: cobre as regras de performance deste skill (passo 8)? (2) DS tokens de cor: há contraste suficiente? (3) DS performance: `formato_imagem` inclui AVIF? (4) Seção LGPD: mecanismo de consentimento ou aviso implementado e documentado, e coerente com o `TRACK_MODE` (passo 9c)? (5) Tracking IDs: ainda válidos? Atualizar os campos defasados antes de rodar o checklist.
+> **Revisão de Guia + DS existentes:** antes de ir aos checklists, verificar: (1) seção Performance do Guia: cobre as regras de performance deste skill (passo 8)? (2) DS tokens de cor: há contraste suficiente? (medir, sem instalar nada, com o detector do Impeccable: Guia, seção "Revisão automática de design") (3) DS performance: `formato_imagem` inclui AVIF? (4) Seção LGPD: mecanismo de consentimento ou aviso implementado e documentado, e coerente com o `TRACK_MODE` (passo 9c)? (5) Tracking IDs: ainda válidos? Atualizar os campos defasados antes de rodar o checklist.
 
 ---
 
