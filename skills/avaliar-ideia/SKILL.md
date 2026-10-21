@@ -102,6 +102,8 @@ Fora da resposta por padrão (entregar só se pedido): paths de arquivo, leque c
 
 ## 5. Registro se aprovada
 
+Backlog guarda só o que fica pendente. Adaptação pequena (edição de manual, item de checklist) cabe na mesma sessão: propor aplicar direto, sem oferecer backlog.
+
 Se o veredito for **Adotar** ou **Adaptar**, oferecer (não fazer sem confirmar) salvar uma entrada num arquivo de backlog do seu projeto, dentro da seção da área certa (backlog agrupado por área, pendentes antes das feitas; área nova só se nenhuma servir), formato:
 
 ```markdown
