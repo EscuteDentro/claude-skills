@@ -981,7 +981,7 @@ Requisitos mínimos. Não bloqueantes para launch, mas implementar antes de trá
 | **Aria interativos** | SVGs, botões icon-only, facades de vídeo: obrigatório `aria-label` descritivo |
 | **Alt texts** | Informativas: `alt` com keyword front-loaded, máx 125 chars. Decorativas: `alt=""` + `aria-hidden="true"` |
 | **Movimento reduzido** | `@media (prefers-reduced-motion: reduce)`: desativar transições, animações, scroll parallax |
-| **Contraste** | Corpo ≥4.5:1 WCAG AA; texto grande ≥3:1. `brand_vivid` sobre branco = 3,0:1 (medido), restrito a grifos |
+| **Contraste** | Corpo ≥4.5:1 WCAG AA; texto grande ≥3:1. Cor de ícone vibrante quase nunca passa como texto: criar uma variante escura do mesmo matiz para texto (ex.: `brand_vivid` 3:1 só em ícone, `brand_vivid_text` 5:1 em destaque, rótulo e link); cinza de apoio abaixo de 4,5:1 nunca em texto, nem em aviso legal |
 
 ---
 
