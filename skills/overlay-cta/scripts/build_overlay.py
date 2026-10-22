@@ -44,7 +44,7 @@ def dilate_uniform(mask: Image.Image, px: int) -> Image.Image:
     padded = np.pad(arr, px, mode="constant", constant_values=False)
     dist = distance_transform_edt(~padded)
     out = (dist <= px).astype(np.uint8) * 255
-    return Image.fromarray(out, mode="L")
+    return Image.fromarray(out)  # uint8 2D: modo L inferido (Pillow 13 removeu mode=)
 
 
 def rounded_rect_tail_shape(w: int, h: int, radius: int | None = None, tail_h: int | None = None,
