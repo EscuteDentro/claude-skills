@@ -866,7 +866,7 @@ Por quê: a taxa de carregamento da Meta só registra visita com pixel disparado
 
 **Guardião de deploy** (script local no launchd/cron, 1h; a skill não o fornece): compara o deploy no ar com o último commit, checa o contrato e a saúde dos eventos e, após duas falhas seguidas, reverte o commit (`git revert`) e dá push. Travas obrigatórias: só commit recente (24h), nunca o mesmo duas vezes, nunca reverter uma reversão.
 
-**Proporção servidor:navegador é diagnóstico, não meta.** Servidor > navegador é o esperado com CAPI próprio + CAPI da Meta (se ativa) + visitantes com bloqueador. Nunca desligar fonte correta nem criar canal duplicado (ex: relay de `/tr`) para aproximar o número. Saúde = cobertura ≥75%, dedup por `event_id` ≥90% nos dois lados, nenhum evento indevido.
+**Proporção servidor:navegador é diagnóstico, não meta.** Servidor > navegador é o esperado com CAPI próprio + CAPI da Meta (se ativa) + visitantes com bloqueador. Nunca desligar fonte correta nem criar canal duplicado (ex: relay de `/tr`) para aproximar o número. Saúde = cobertura ≥75%, dedup por `event_id` ≥90% nos dois lados (PageView do navegador só como aviso: a plataforma de checkout dispara PageView pelo mesmo pixel sem `event_id`), nenhum evento indevido.
 
 **Alerta só com ação.** Métrica que oscila (taxa de carregamento, EMQ) fica em `warnings` e é lida no acompanhamento; e-mail e notificação só para falha com ação clara (deploy fora de sincronia, contrato quebrado, fonte de evento parada). Pausa automática de campanha baseada em compra atribuída pela Meta é proibida: a atribuição chega com horas de atraso e venda real passa despercebida.
 
@@ -1184,7 +1184,8 @@ const DATASET = 'SEU_PIXEL_ID';
 // verificação com ok=false, "vigia" sem notícia há 26h+ (máquina desligada ou agendador parado) ou verificação velha (72h+).
 // Sem monitor local, remova o bloco "monitor" e o lib/redis.
 //
-// Falha imediata: API inacessível; deduplicação por event_id < 90% (navegador ou servidor) em evento-chave.
+// Falha imediata: API inacessível; deduplicação por event_id < 90% (navegador ou servidor) em evento-chave
+// (exceto PageView de navegador, que vira aviso: ver abaixo).
 // Aviso (sem e-mail): nota de correspondência (EMQ) < 6 em PageView/ViewContent.
 // Falha a partir de ENFORCE_FROM: cobertura de servidor < 75% (meta da própria Meta) em evento-chave.
 // A data existe porque a janela da Meta ainda contém dados de antes das correções; reprovar cedo gera alarme falso.
@@ -1229,7 +1230,9 @@ module.exports = async function handler(req, res) {
     var ddS = dd && dd.server_events_with_dedupe_key && dd.server_events_with_dedupe_key.percentage;
     events[w.event_name] = { emq: emq, coverage: cov, dedup_event_id_browser: ddB, dedup_event_id_server: ddS };
 
-    if (ddB != null && ddB < 90) failures.push(w.event_name + ': event_id em ' + ddB + '% dos eventos de navegador');
+    // PageView de navegador também chega das páginas da plataforma de checkout que carregam o mesmo pixel (sem event_id
+    // do site): com pouco tráfego derruba a média sem ação possível. Regressão do site aparece nos demais eventos-chave.
+    if (ddB != null && ddB < 90) (w.event_name === 'PageView' ? warnings : failures).push(w.event_name + ': event_id em ' + ddB + '% dos eventos de navegador');
     if (ddS != null && ddS < 90) failures.push(w.event_name + ': event_id em ' + ddS + '% dos eventos de servidor');
     var list = enforce ? failures : warnings;
     if (cov != null && cov < 75) list.push(w.event_name + ': cobertura de servidor ' + cov + '% (meta 75%)');
