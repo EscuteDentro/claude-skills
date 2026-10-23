@@ -94,6 +94,7 @@ InitiateCheckout · Purchase
 - **Hierarquia por peso, não por cor**: destaque dentro de título em peso diferente na mesma cor
 - **Uma única seção escura** para marcar o método; as demais alternam fundos claros
 - **Prova científica**: título do estudo domina; print em cinza esmaecido, como apoio
+- **Entregáveis**: só o que é entregue dentro do produto; garantia, prazo de acesso e suporte ficam no preço, no FAQ e no bloco final. Cartão que é parte do método leva selo pequeno no alto da imagem com o papel dele ("Pilar do método"); selo com o nome do produto dá a entender que os outros cartões não são do produto
 
 ## Funil e comparação de versões (decisão fechada, out/2026)
 
