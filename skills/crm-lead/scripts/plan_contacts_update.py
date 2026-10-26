@@ -105,7 +105,9 @@ def build_groups():
             "telefone": canonical[idx["Telefone"]].strip(),
             "email": canonical[idx["E-mail"]].strip(),
             "duplicado": len(members) > 1,
-            "mmaa": month_year(canonical[idx["Timestamp"]]),
+            # Mês/ano do PRIMEIRO preenchimento, nunca do reenvio: o nome do
+            # contato guarda quando a pessoa entrou; reenvio só ganha o "+".
+            "mmaa": month_year(rows[members[0]][idx["Timestamp"]]),
             "elegivel": elegivel,
             "status_crm": canonical[idx["Status CRM"]].strip(),
         })
