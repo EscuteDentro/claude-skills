@@ -103,6 +103,7 @@ Um veredito por oportunidade relevante que sobreviveu à passada 2 — não um v
 5. **Pergunta final:** 1 linha, a próxima decisão do usuário.
 
 **Lote de links (3+ fontes):** objetiva, assertiva e organizada, agrupada por veredito, sem repetir a estrutura de 5 itens por link.
+- Numeração única e contínua em tudo (oportunidades, fontes, decisões: 1, 2, 3... sem reiniciar por seção), pro usuário responder "no 4, tal coisa"; resposta a comentários dele segue os números que ele usou
 - Topo: as 3 oportunidades mais fortes do lote, cada uma com o que muda na prática + veredito
 - Depois: 1 linha por fonte (nome curto: mecanismo → onde encaixa → veredito), agrupadas Adotar/Adaptar, Vigiar, Descartar
 - Alegação que o usuário pediu pra verificar: veredito de veracidade explícito (confirmado / parcial / não encontrado na fonte primária)
