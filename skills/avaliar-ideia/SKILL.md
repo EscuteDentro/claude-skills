@@ -15,6 +15,9 @@ Avalia se uma ideia, ferramenta ou skill que alguém compartilhou (slide, link d
 - **Link de repositório/skill (GitHub etc.):** localizar e ler o código-fonte de verdade antes de opinar. Nunca julgar pelo README, pitch ou marketing — pode ter algo genial (ou um problema grave) que só aparece no código.
 - **Link de Reddit/X/artigo:** abrir o link real (WebFetch/leitura de página), não confiar só no texto que a pessoa colou. **Padrão pra X/Twitter: sempre ler os comentários também**, não só o post principal (rolar a página) — frequentemente têm o link real da ferramenta citada, a resposta do próprio autor sobre "como" (mecanismo, não só o resultado), e sinais de ceticismo/checagem da comunidade que mudam a leitura. WebFetch costuma ser bloqueado em x.com (erro 402) — usar navegação de browser (ex: extensão Claude in Chrome) + extração de texto/scroll nesse caso.
   - **Autor é parte interessada:** checar se quem postou é fundador/afiliado da ferramenta sendo indicada (aparece no card "Relevant people" ou na bio) — se for, tratar o post como material promocional próprio, não relato neutro de terceiro, mesmo com formato de "dica que descobri".
+  - **Caminho mais barato no X:** `curl -s https://api.vxtwitter.com/{usuario}/status/{id}` devolve texto, links de mídia (mp4) e prévia de artigo sem abrir browser; vários posts num comando só. Artigo do X (`x.com/i/article/...`): browser + extração de texto (a 1ª extração costuma voltar vazia; repetir)
+- **Vídeo é a fonte quando existe:** se o post, página ou artigo tem vídeo, o conteúdo dele entra na avaliação. Baixar e transcrever (qualquer transcritor local); VSL em player embutido: achar o `.m3u8` pelo `performance.getEntriesByType('resource')` e extrair o áudio com `ffmpeg`. Vídeo sem fala: avaliar pelo que mostra (frames), nunca pular
+- **Opinião não é verdade:** post sobre como usar IA, editar vídeo, escrever hook etc. é opinião de quem posta. Tratar cada regra como hipótese e perguntar o que ela acrescenta ao que já roda (incremental, sinergia); adotar só o que sobrevive à comparação com o sistema atual ou a teste
 - **Slide/screenshot:** ler visualmente, extrair a ideia central. Ignorar o quão bem produzido o slide é — isso não é sinal de qualidade da ideia.
 - **Texto colado direto:** usar como está, mas checar se há link embutido que vale abrir.
 
@@ -42,6 +45,7 @@ Objetivo: não deixar risco/custo podar uma ideia genial antes de ela ser mapead
     - Páginas e infraestrutura (LP, tracking, deploy)
     - Conteúdo orgânico e distribuição (redes sociais, formatos)
   - **Camada estrutural/estratégica** (mede território novo — é onde mora o disruptivo, porque não tem skill/ferramenta cobrindo hoje). Ponto de partida genérico:
+    - Marca pessoal do fundador (autoridade, convicção própria, termo ou formato que o mercado associa ao nome, repetição visual): conteúdo sobre marca pessoal, *personal brand* ou negócio de uma pessoa só sempre gera leitura do que fortalece a marca do usuário, mesmo sem nada parecido em uso hoje
     - Retenção e comunidade pós-venda (cliente depois que compra — a camada operacional acima para na conversão)
     - Modelo de negócio e precificação (upsell, bundle, assinatura vs. pagamento único)
     - Parcerias e canais de distribuição (afiliados, colabs, canal que hoje não existe)
@@ -88,7 +92,7 @@ Um veredito por oportunidade relevante que sobreviveu à passada 2 — não um v
 
 **Adotar** / **Adaptar** (útil, mas precisa mudança antes de usar) / **Vigiar** (não agora — falta maturidade, preço vai cair, esperar validação) / **Descartar** — com justificativa em 1-2 linhas cada.
 
-**Assimetria de erro:** dúvida real entre veredictos vizinhos resolve pra cima (Vigiar > Descartar, Adaptar > Vigiar) — perder oportunidade boa custa mais que investigar uma ruim. **Descartar** só com risco eliminatório concreto ou redundância comprovada, nunca por incerteza.
+**Assimetria de erro:** dúvida real entre veredictos vizinhos resolve pra cima (Vigiar > Descartar, Adaptar > Vigiar) — perder oportunidade boa custa mais que investigar uma ruim. **Descartar** só com risco eliminatório concreto ou redundância comprovada, nunca por incerteza. Assunto que o negócio nunca tocou (âmbito novo) nunca é motivo de descarte nem de rebaixamento; oportunidade indireta ou nada óbvia vale tanto quanto a óbvia.
 
 **Formato da resposta (obrigatório, curta):** as passadas 1 e 2 são raciocínio interno; a resposta mostra só a conclusão. Teto ~15 linhas, linguagem de leigo, sem jargão da fonte (traduzir termo técnico ou não usar). Estrutura fixa:
 
@@ -97,6 +101,13 @@ Um veredito por oportunidade relevante que sobreviveu à passada 2 — não um v
 3. **Onde encaixa:** no máximo 3 itens, cada um em 1-2 linhas: o que muda na prática pro usuário + veredito (Adotar/Adaptar/Vigiar).
 4. **Custo/risco:** 1 linha, só se relevante pra decisão.
 5. **Pergunta final:** 1 linha, a próxima decisão do usuário.
+
+**Lote de links (3+ fontes):** objetiva, assertiva e organizada, agrupada por veredito, sem repetir a estrutura de 5 itens por link.
+- Topo: as 3 oportunidades mais fortes do lote, cada uma com o que muda na prática + veredito
+- Depois: 1 linha por fonte (nome curto: mecanismo → onde encaixa → veredito), agrupadas Adotar/Adaptar, Vigiar, Descartar
+- Alegação que o usuário pediu pra verificar: veredito de veracidade explícito (confirmado / parcial / não encontrado na fonte primária)
+- Fecha com as decisões dele numa lista curta
+- Comentários do X no lote: ler onde mudam o veredito (link da ferramenta, alegação a verificar, ferramenta paga); post só de opinião dispensa
 
 Fora da resposta por padrão (entregar só se pedido): paths de arquivo, leque completo, risco eixo a eixo, descartados, detalhe da fonte, contagem do backlog (citar em 1 linha só se houver item relacionado). Em dúvida entre incluir ou cortar: cortar.
 
