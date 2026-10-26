@@ -45,6 +45,8 @@ Abrir WhatsApp Web, buscar `config.MARCADOR_BUSCA_WHATSAPP` na busca, rolar até
 
 Ignorar contatos que claramente não são leads reais (ex: nome de comércio que só coincide ter o marcador de busca numa palavra do nome — checar contexto antes de tratar como lead).
 
+**Lead contatado de número não salvo fica fora da busca "Lead".** Antes de concluir que um lead da aba Leads está sem contato, buscar no WhatsApp pelos 8 últimos dígitos do telefone. `Status CRM` vazio não prova falta de contato: só mostra que nenhuma rodada registrou ainda
+
 ### 2. Diff contra o estado gravado
 
 ```bash
