@@ -25,6 +25,8 @@ real, copie esse exemplo e preencha com seus próprios valores num arquivo **for
 - Enumeração: um item por card, cada card com a informação completa; nunca item espremido com o próximo. Vale inclusive na legenda montada à mão, fora do script
 - Tamanho da fonte é fixo: frase que não cabe quebra em mais linhas ou em outro card, mesmo com uma palavra por linha; nunca encolher a fonte pra caber
 
+Conferência: `scripts/checar_cards.py cards.json` aponta filler, pontuação no fim e lista no mesmo card. Rodar também em legenda curada à mão.
+
 ## Duas camadas
 
 - **Hook**: a primeira frase inteira, na tela desde o frame 0, fonte grande, centralizada.

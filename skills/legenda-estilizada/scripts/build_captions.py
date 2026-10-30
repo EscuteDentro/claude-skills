@@ -382,6 +382,10 @@ def scale_config_to_video(cfg: dict, video_w: int, video_h: int) -> dict:
 _FALSE_START_PATTERN = re.compile(r"^\w{1,12}-{1,2}$", re.IGNORECASE)
 
 
+# Filler vocal nunca vira legenda; so forma alongada, pra nao pegar "e" ou "ah" com sentido
+_FILLER_VOCAL = re.compile(r"^(h?[ãa]{2,}|h?[eé]{2,}|ah+n+|hu*m{2,}|uh+m*)[,.!?…-]*$", re.IGNORECASE)
+
+
 def load_words(transcript_path: str) -> list[dict]:
     data = json.loads(Path(transcript_path).read_text())
     words = data.get("words", data) if isinstance(data, dict) else data
@@ -390,6 +394,7 @@ def load_words(transcript_path: str) -> list[dict]:
     words = [w for w in words if w.get("type", "word") == "word"]  # drop spacing/audio_event
     words = [w for w in words if (w.get("text") or "").strip()]
     words = [w for w in words if not _FALSE_START_PATTERN.match(w["text"].strip())]
+    words = [w for w in words if not _FILLER_VOCAL.match(w["text"].strip())]
     return words
 
 
@@ -434,20 +439,42 @@ def apply_text_rules(words: list[dict], rules: list[dict]) -> None:
             w["text"] = pat.sub(repl, w["text"])
 
 
+def _text_w(text, font, draw, stroke_width) -> float:
+    b = draw.textbbox((0, 0), text, font=font, stroke_width=stroke_width)
+    return b[2] - b[0]
+
+
 def wrap_fits(text: str, font, max_w: int, draw, stroke_width: int) -> list[str]:
+    """Quebra no menor numero de linhas, com larguras o mais parecidas possivel.
+    Palavra-chave em caixa alta no fim do card (CTA) fica sozinha na ultima linha."""
     words = text.split()
-    lines, cur = [], []
+    last = words[-1].strip(".,:;!?\"'") if words else ""
+    if len(words) > 1 and len(last) >= 5 and last.isupper():
+        return wrap_fits(" ".join(words[:-1]), font, max_w, draw, stroke_width) + [words[-1]]
+    n, cur = 1, []
     for w in words:
-        trial = " ".join(cur + [w])
-        bbox = draw.textbbox((0, 0), trial, font=font, stroke_width=stroke_width)
-        if bbox[2] - bbox[0] > max_w and cur:
-            lines.append(" ".join(cur))
-            cur = [w]
+        if _text_w(" ".join(cur + [w]), font, draw, stroke_width) > max_w and cur:
+            n, cur = n + 1, [w]
         else:
             cur.append(w)
-    if cur:
-        lines.append(" ".join(cur))
-    return lines
+    if n == 1:
+        return [text] if words else []
+    best, nota = None, None
+    def rec(i, k, ac):
+        nonlocal best, nota
+        if k == 1:
+            L = ac + [" ".join(words[i:])]
+            ws = [_text_w(x, font, draw, stroke_width) for x in L]
+            if max(ws) > max_w and len(words[i:]) > 1:
+                return
+            d = max(ws) - min(ws)
+            if nota is None or d < nota:
+                best, nota = L, d
+            return
+        for j in range(i + 1, len(words) - k + 2):
+            rec(j, k - 1, ac + [" ".join(words[i:j])])
+    rec(0, n, [])
+    return best or words
 
 
 def fits_in(words_group, font, max_w, draw, stroke_width, max_lines) -> bool:
