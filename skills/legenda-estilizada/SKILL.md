@@ -22,6 +22,7 @@ real, copie esse exemplo e preencha com seus próprios valores num arquivo **for
 
 - Filler vocal fica fora ("hããã", "éé", "ahn"): a legenda começa na primeira palavra com sentido, no instante dela
 - Linhas de largura parecida no mesmo card: nunca palavra sozinha na última linha. Destaque (palavra-chave de CTA) pode ir sozinho numa linha, quando o card fica simétrico
+- Enumeração: um item por card, cada card com a informação completa; nunca item espremido com o próximo. Vale inclusive na legenda montada à mão, fora do script
 - Tamanho da fonte é fixo: frase que não cabe quebra em mais linhas ou em outro card, mesmo com uma palavra por linha; nunca encolher a fonte pra caber
 
 ## Duas camadas
