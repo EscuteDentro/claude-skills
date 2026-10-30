@@ -125,6 +125,6 @@ Se o veredito for **Adotar** ou **Adaptar**, oferecer (não fazer sem confirmar)
   - Próximo passo: {{ação concreta pra implementar}}
 ```
 
-**Teste da leitura fria antes de salvar**: a entrada tem que funcionar pra quem lê meses depois, sem esta conversa. Nomear cada coisa pelo nome completo e onde ela está (produto, arquivo, link), nunca por apelido da conversa ("o pacote", "o 1º comprador"); gatilho é um evento que se reconhece ao ver ("1º cliente pagante do pacote X"), nunca uma referência ao que foi dito aqui.
+**Teste da leitura fria antes de salvar**: a entrada tem que funcionar pra quem lê meses depois, sem esta conversa. Nomear cada coisa pelo nome completo e onde ela está (produto, arquivo, link), nunca por apelido da conversa ("o pacote", "o 1º comprador"); gatilho é um evento que se reconhece ao ver ("1º cliente pagante do pacote X"), nunca uma referência ao que foi dito aqui. Prioridade: eficácia (quem lê entende tudo, rápido) e só depois concisão; na dúvida, a frase a mais que evita a releitura fica.
 
 Se **Vigiar** ou **Descartar**, não registrar — fica só na conversa, a menos que o usuário peça explicitamente pra guardar o motivo do descarte (ex: pra não reavaliar a mesma ideia depois).
