@@ -18,6 +18,11 @@ suba fonte/posição reais de uma marca pra este repo público). Pra reproduzir 
 real, copie esse exemplo e preencha com seus próprios valores num arquivo **fora deste repo**
 (privado).
 
+## Texto da legenda
+
+- Filler vocal fica fora ("hããã", "éé", "ahn"): a legenda começa na primeira palavra com sentido, no instante dela
+- Tamanho da fonte é fixo: frase que não cabe quebra em mais linhas ou em outro card, mesmo com uma palavra por linha; nunca encolher a fonte pra caber
+
 ## Duas camadas
 
 - **Hook**: a primeira frase inteira, na tela desde o frame 0, fonte grande, centralizada.
