@@ -3,7 +3,7 @@
 Infraestrutura comum para skills que recebem conteúdo do celular por um bot de Telegram (ex: `avaliar-telegram`). Não é uma skill invocável: é o script que coleta, transcreve, agrupa e enfileira.
 
 - Um bot por finalidade, cada um com a própria pasta de config: `~/.config/telegram-inbox/<nome>/`
-- Agrupa num item: resposta (reply) a uma mensagem, álbum, mensagens a até `GROUP_GAP_SECONDS` uma da outra
+- Um item: cada mensagem, mais as respostas (reply) a ela, mesmo dias depois; álbum de fotos é um item só. Comentário ou instrução vai na mesma mensagem ou em resposta
 - Lock da sessão Telethon: vários bots usam a mesma sessão; o script espera o próprio lock e os de `WAIT_LOCKS` (outros programas na mesma sessão)
 
 ## Setup
@@ -23,4 +23,4 @@ Compartilhe links, textos, áudios, vídeos e arquivos do celular para um bot de
    ```
 5. Primeira execução: `python3 inbox_telegram.py --bot <nome>` pede telefone e código do Telegram para criar a sessão
 
-Opcional no config: `GROUP_GAP_SECONDS=120`, `WAIT_LOCKS=/caminho/outro.lock`
+Opcional no config: `WAIT_LOCKS=/caminho/outro.lock`

@@ -11,7 +11,8 @@ Coleta o que chegou no bot e aplica `../avaliar-ideia/SKILL.md` a cada ideia. O 
 1. Ler `../avaliar-ideia/SKILL.md` inteiro antes de avaliar
 2. Rodar `python3 ../telegram-inbox/inbox_telegram.py --bot ideias` (infra comum dos bots, pasta `telegram-inbox` ao lado): baixa mensagens novas e mídia, transcreve áudio/vídeo (`.transcript.txt`), gera contact sheet de vídeo (`.sheet.jpg`) e imprime a fila pendente em JSON
 	- Fila vazia: dizer em 1 linha e encerrar
-	- Um item: resposta (reply) a uma mensagem, mesmo dias depois; álbum; mensagens a até 2 min uma da outra. Agrupamento é sugestão: separar assuntos sem relação, juntar repetidos; pedido do usuário na mensagem ("junta com a anterior", "avalia separado") prevalece
+	- Um item: cada mensagem, mais as respostas (reply) a ela, mesmo dias depois; álbum de fotos é um item só. Separar assuntos sem relação dentro de um item; juntar repetidos
+	- O que o usuário escreve na mensagem ou na resposta é instrução e prevalece sobre esta skill ("junta com a anterior", "avalia separado", "foca em X")
 	- Comentário do usuário junto ("pensei pra landing page") aponta um encaixe a checar, nunca limita o leque da passada 1
 3. Toda ideia recebe a avaliação completa, com a profundidade de um pedido direto. O que chegou é o ponto de partida; a fonte é o que ele aponta
 	- Link: seção 0 do avaliar-ideia inteira (post do X com comentários, artigo, repo, documento ou ferramenta citada, vídeo do post baixado e transcrito)

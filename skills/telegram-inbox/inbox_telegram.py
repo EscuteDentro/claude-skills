@@ -17,14 +17,13 @@ Uso:
 Agrupamento (um item = uma unidade de trabalho):
   - resposta (reply) a uma mensagem entra no item dela, mesmo dias depois
   - álbum (várias fotos de uma vez) é um item
-  - mensagens a até GROUP_GAP_SECONDS uma da outra viram um item (link + comentário)
+  - fora isso, cada mensagem é um item (comentário vai na mesma mensagem ou em resposta)
 
 Config: ~/.config/telegram-inbox/NOME/config (chave=valor)
   TELEGRAM_API_ID, TELEGRAM_API_HASH   # my.telegram.org
   BOT_USERNAME                         # ex: meu_bot
   TELETHON_SESSION                     # caminho da sessão, sem .session
   INBOX_DIR                            # onde guardar mídia e fila
-  GROUP_GAP_SECONDS                    # opcional, padrão 120
   WAIT_LOCKS                           # opcional: lockfiles (com PID) de outros programas
                                        # que usam a mesma sessão, separados por vírgula
 """
@@ -63,7 +62,6 @@ def load_config(config_dir):
             k, v = line.split("=", 1)
             cfg[k.strip()] = v.strip()
     cfg["INBOX_DIR"] = Path(cfg.get("INBOX_DIR", config_dir / "inbox")).expanduser()
-    cfg["GROUP_GAP_SECONDS"] = int(cfg.get("GROUP_GAP_SECONDS", 120))
     cfg["WAIT_LOCKS"] = [Path(p).expanduser() for p in cfg.get("WAIT_LOCKS", "").split(",") if p.strip()]
     return cfg
 
@@ -184,17 +182,14 @@ def process_message(client, msg, media_dir):
 
 # ── Fila ────────────────────────────────────────────────────────────────────────
 
-def add_to_fila(fila, entries, msgs, gap):
+def add_to_fila(fila, entries, msgs):
     owner = {e["msg_id"]: g for g in fila for e in g["messages"]}
-    last, last_ts, last_gid = None, None, None
+    last, last_gid = None, None
     new = 0
     for e, m in zip(entries, msgs):
-        ts = m.date.timestamp()
         target = owner.get(m.reply_to_msg_id) if m.reply_to_msg_id else None
-        if target is None and last is not None:
-            same_album = m.grouped_id is not None and m.grouped_id == last_gid
-            if same_album or ts - last_ts <= gap:
-                target = last
+        if target is None and last is not None and m.grouped_id is not None and m.grouped_id == last_gid:
+            target = last
         if target is None:
             target = {"id": m.id, "status": "pendente", "messages": []}
             fila.append(target)
@@ -204,7 +199,7 @@ def add_to_fila(fila, entries, msgs, gap):
             target["reaberto"] = True
         target["messages"].append(e)
         owner[m.id] = target
-        last, last_ts, last_gid = target, ts, m.grouped_id
+        last, last_gid = target, m.grouped_id
     return new
 
 
@@ -225,7 +220,7 @@ def fetch(cfg, state_path, fila_path):
                 entries.append(process_message(client, m, cfg["INBOX_DIR"] / "media"))
     finally:
         lock.unlink(missing_ok=True)
-    new = add_to_fila(fila, entries, mine, cfg["GROUP_GAP_SECONDS"])
+    new = add_to_fila(fila, entries, mine)
     save_json(fila_path, fila)
     if msgs:
         state["last_message_id"] = max(m.id for m in msgs)
