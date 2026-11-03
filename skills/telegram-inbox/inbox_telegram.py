@@ -102,21 +102,44 @@ def acquire_session_lock(cfg):
 
 # ── Mídia ───────────────────────────────────────────────────────────────────────
 
+def transcription_alerts(text, duration):
+    """Sinais de transcrição incompleta: fala lenta demais pro tamanho do áudio, ou loop no fim."""
+    alerts = []
+    words = text.split()
+    if duration and duration > 20 and len(words) / duration * 60 < 25:
+        alerts.append(f"poucas palavras pro áudio ({len(words)} em {duration:.0f}s): pode faltar trecho")
+    tail = [w.strip(".,!?…").lower() for w in words[-12:]]
+    if len(tail) >= 8 and len(set(tail[-8:])) <= 2:
+        alerts.append("fim repetitivo (loop do Whisper): pode ter perdido o final")
+    return alerts
+
+
 def transcribe(media_path):
+    """Transcreve com mlx-whisper. condition_on_previous_text=False evita o loop de repetição
+    que o Whisper cria em áudio longo ou com pausas (e que esconde o final da fala)."""
     out = media_path.with_suffix(".transcript.txt")
     if out.exists():
-        return out
+        return out, []
     try:
         from mlx_whisper import transcribe as mlx_transcribe
-        text = mlx_transcribe(
+        result = mlx_transcribe(
             str(media_path),
             path_or_hf_repo="mlx-community/whisper-large-v3-turbo",
-        ).get("text", "").strip()
+            condition_on_previous_text=False,
+        )
     except Exception as e:  # sem fala, formato estranho, modelo ausente
         print(f"  ⚠ transcrição falhou em {media_path.name}: {type(e).__name__}: {e}")
-        return None
+        return None, [f"transcrição falhou: {type(e).__name__}"]
+    text = result.get("text", "").strip()
+    dur = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(media_path)],
+        capture_output=True, text=True,
+    ).stdout.strip()
+    alerts = transcription_alerts(text, float(dur)) if dur else []
+    for al in alerts:
+        print(f"  ⚠ {media_path.name}: {al}")
     out.write_text(text or "(sem fala detectada)", encoding="utf-8")
-    return out
+    return out, alerts
 
 
 def contact_sheet(video_path):
@@ -169,9 +192,11 @@ def process_message(client, msg, media_dir):
         f = {"path": str(path), "mime": msg.file.mime_type or ""}
         is_av = bool(msg.voice or msg.audio or msg.video or msg.video_note or f["mime"].startswith(("audio/", "video/")))
         if is_av:
-            t = transcribe(path)
+            t, alerts = transcribe(path)
             if t:
                 f["transcript"] = str(t)
+            if alerts:
+                f["alertas"] = alerts
         if msg.video or msg.video_note or f["mime"].startswith("video/"):
             s = contact_sheet(path)
             if s:
