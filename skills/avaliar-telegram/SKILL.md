@@ -9,7 +9,7 @@ user-invocable: true
 Coleta o que chegou no bot e aplica `../avaliar-ideia/SKILL.md` a cada ideia. O método de avaliação vive só lá; esta skill cuida de entrada, modelo e fila.
 
 1. Ler `../avaliar-ideia/SKILL.md` inteiro antes de avaliar
-2. Rodar `python3 scripts/inbox_telegram.py` (caminho relativo à pasta da skill`: baixa mensagens novas e mídia, transcreve áudio/vídeo (`.transcript.txt`), gera contact sheet de vídeo (`.sheet.jpg`) e imprime a fila pendente em JSON
+2. Rodar `python3 scripts/inbox_telegram.py` (caminho relativo à pasta da skill): baixa mensagens novas e mídia, transcreve áudio/vídeo (`.transcript.txt`), gera contact sheet de vídeo (`.sheet.jpg`) e imprime a fila pendente em JSON
 	- Fila vazia: dizer em 1 linha e encerrar
 	- Mensagens com até 2 min de intervalo viram uma ideia só (link + comentário, álbum). Agrupamento é sugestão: separar assuntos sem relação, juntar repetidos
 	- Comentário do usuário junto ("pensei pra landing page") aponta um encaixe a checar, nunca limita o leque da passada 1
