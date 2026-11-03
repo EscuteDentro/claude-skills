@@ -11,6 +11,7 @@ Uso:
   python3.12 inbox_telegram.py            # puxa novidades e mostra a fila pendente
   python3.12 inbox_telegram.py list       # só mostra a fila pendente (JSON)
   python3.12 inbox_telegram.py done ID..  # marca ideias como avaliadas
+  --config DIR                            # pasta de config de outro bot (padrão abaixo)
 
 Config: ~/.config/avaliar-ideia-inbox/config (chave=valor)
   TELEGRAM_API_ID, TELEGRAM_API_HASH   # my.telegram.org
@@ -27,6 +28,10 @@ from datetime import datetime
 from pathlib import Path
 
 CONFIG_DIR = Path.home() / ".config/avaliar-ideia-inbox"
+if "--config" in sys.argv:
+    _i = sys.argv.index("--config")
+    CONFIG_DIR = Path(sys.argv[_i + 1]).expanduser()
+    del sys.argv[_i:_i + 2]
 CONFIG_PATH = CONFIG_DIR / "config"
 STATE_PATH = CONFIG_DIR / "state.json"
 URL_RE = re.compile(r"https?://\S+")
