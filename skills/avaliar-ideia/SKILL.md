@@ -8,6 +8,24 @@ user-invocable: true
 
 Avalia se uma ideia, ferramenta ou skill que alguém compartilhou (slide, link de Reddit/X/GitHub, texto colado) vale a pena adotar em algum ponto do processo/negócio ativo. Não é brainstorm livre nem parecer técnico solto — é um processo de duas passadas em ordem fixa, porque inverter a ordem poda ideia boa antes dela aparecer.
 
+## Entrada pela caixa do Telegram (opcional)
+
+`/avaliar-ideia` sem argumento, ou "puxa a caixa"/"avalia o que mandei": avaliar a fila do bot de Telegram configurado, onde o usuário compartilha do celular (X, Instagram, ideia falada) o que quer avaliado. Setup no `README.md`.
+
+1. Rodar `python3 scripts/inbox_telegram.py` (caminho relativo à pasta da skill): baixa mensagens novas e mídia, transcreve áudio/vídeo (`.transcript.txt`), gera contact sheet de vídeo (`.sheet.jpg`) e imprime a fila pendente em JSON
+	- Mensagens com até 2 min de intervalo viram uma ideia só (link + comentário, álbum). Agrupamento é sugestão: separar assuntos sem relação, juntar repetidos
+	- Comentário do usuário junto ("pensei pra landing page") aponta um encaixe a checar, nunca limita o leque da passada 1
+2. Toda ideia da fila recebe a avaliação completa desta skill, com a profundidade de um pedido direto. O que chegou é o ponto de partida; a fonte é o que ele aponta
+	- Link: seção 0 inteira (post do X com comentários, artigo, repo, documento ou ferramenta citada, vídeo do post baixado e transcrito)
+	- Áudio, vídeo, foto ou documento mandado direto: ler transcrição, contact sheet e arquivo; vídeo sem fala, avaliar pelos frames
+	- Post público de Instagram: baixar anônimo (`yt-dlp` sem cookies), nunca com sessão da conta
+	- Ideia falada (áudio sem link): a transcrição é a ideia; buscar se já existe ferramenta ou prática que a realiza
+3. Modelo: avaliação é julgamento profundo, nunca tarefa operacional; roda no modelo mais capaz disponível, nunca num menor (perde profundidade)
+	- Até 4 ideias: sessão principal avalia direto
+	- 5+: 1 subagente por ideia, no mesmo modelo (brief: esta skill inteira + itens da ideia + inventário do sistema), orquestrador confere e consolida
+4. Resposta: formato de lote (seção 4) com 3+ ideias, numerada pelo número da ideia na fila
+5. Ao entregar: `inbox_telegram.py done ID ...` com as avaliadas
+
 ## 0. Ler a fonte real, nunca o resumo ou o marketing
 
 **Regra dura:** avaliar o objeto real, não a descrição dele.
