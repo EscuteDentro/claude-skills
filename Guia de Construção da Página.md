@@ -168,6 +168,8 @@ Linktree (bio Instagram, TikTok, YouTube): `utm_source=linktree&utm_medium=socia
 
 Esses parâmetros são capturados por `captureUtms()` no modal e gravados na Sheet: colunas: UTM Source, UTM Medium, UTM Campaign, UTM Content, UTM Term, UTM Adset, Duplicado, Obs Duplicação. Ao criar campanha nova no Meta, replicar essa estrutura em "Parâmetros de URL" no adset ou anúncio.
 
+**Macro do Meta não preenchida conta como ausente.** O Meta só troca `{{campaign.name}}` etc. pelo valor real no clique entregue pelo anúncio; prévia do anúncio, link compartilhado ou copiado chega com a macro crua. Todo ponto que lê UTM da URL (contador, tags do Clarity, `captureUtms()`) descarta valor com `{` ou `}`: a planilha recebe vazio, o checkout não recebe o parâmetro, o contador cai em `na`. Ponto novo que ler UTM da URL aplica o mesmo filtro.
+
 ---
 
 ## Modal pré-checkout
