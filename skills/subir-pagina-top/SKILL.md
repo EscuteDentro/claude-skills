@@ -268,6 +268,10 @@ Criar na raiz de `{pasta-base}/` (os arquivos estáticos ficam em `{pasta-base}/
   ],
   "rewrites": [
     { "source": "/fbcdn/:path*", "destination": "https://connect.facebook.net/:path*" }
+  ],
+  "redirects": [
+    { "source": "/",       "has": [{"type": "host", "value": "{projeto}.vercel.app"}], "destination": "https://{dominio}/",       "permanent": false },
+    { "source": "/:path*", "has": [{"type": "host", "value": "{projeto}.vercel.app"}], "destination": "https://{dominio}/:path*", "permanent": false }
   ]
 }
 ```
@@ -275,6 +279,8 @@ Criar na raiz de `{pasta-base}/` (os arquivos estáticos ficam em `{pasta-base}/
 > `X-Frame-Options: SAMEORIGIN`: padrão seguro para LP standalone. Remover **apenas** se a LP precisar ser embarcada em iframe por domínio externo (ex: funil de terceiros que carrega a página dentro de um frame).
 >
 > O `rewrites` de `/fbcdn/` serve à configuração do pixel pelo seu domínio (9c). Os arquivos `robots.txt`, `sitemap.xml` e `llms.txt` ficam em `src/` e precisam ser criados junto com a página.
+>
+> O `redirects` leva o endereço `{projeto}.vercel.app` (único endereço da Vercel aberto ao público; prévias pedem login) para o domínio do site. Sem ele, esse endereço serve a página inteira e o rastreio pode contar visita e evento fora do domínio. A raiz `/` precisa de regra própria: `/:path*` não cobre o endereço sem caminho. Conferir: `curl -sI https://{projeto}.vercel.app/` → 307 para o domínio. Com hospedagem que não seja a Vercel, o equivalente é redirecionar o endereço padrão da plataforma para o domínio
 
 #### 9b. Deploy, repositório e CI/CD
 
