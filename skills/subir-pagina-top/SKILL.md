@@ -402,6 +402,7 @@ export async function onRequest({ request, params, waitUntil }) {
 	- **Bot Fight Mode: desligado** (bloqueia robôs de redes sociais e de IA que leem a página)
 	- AI Crawl Control: robôs de IA liberados e o `robots.txt` do repositório valendo (sem a versão gerenciada da Cloudflare, que acrescenta bloqueios)
 	- SSL/TLS: "Always Use HTTPS" ligado; certificado Universal ativo antes de ligar o proxy
+	- Scripts próprios que chamam o site (monitor, cópia de dados, testes agendados) mandam `User-Agent` com nome próprio: o "Browser Integrity Check" recusa o padrão do Python (`Python-urllib`, erro 1010, HTTP 403) e o monitor fica cego sem aviso. Em Python: `o = urllib.request.build_opener(); o.addheaders = [('User-Agent', '<projeto>-<script>')]; urllib.request.install_opener(o)` logo depois do import
 
 **Criar o projeto:** painel › Workers & Pages › Create › **Pages** › Connect to Git (repositório privado do produto, ramo `main`, sem comando de build, diretório de saída `src`). Pelo terminal, `wrangler pages project create` em versões recentes tenta converter em Worker e pode publicar um Worker por engano: criar pelo painel ou pela API. Projeto ligado ao Git publica sozinho a cada push no `main`; ramos geram prévia em `*.pages.dev` (com o adaptador, prévia nunca manda evento real).
 
