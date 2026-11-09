@@ -39,7 +39,7 @@ Data: 2026-05-11
 
 **Arquitetura aprovada:** Pixel browser + CAPI server-side em paralelo para 100% de cobertura.
 
-- `META_CAPI_KEY`: token de acesso encrypted no Vercel (nunca em código ou `.env` commitado)
+- `META_CAPI_KEY`: token de acesso como segredo da plataforma (Cloudflare Pages ou Vercel) (nunca em código ou `.env` commitado)
 - Pixel ID: `0000000000000000` (hardcoded em `api/capi.js`)
 - `event_id` via `crypto.randomUUID()`: gerado antes de cada `fbq()`, passado para Pixel e CAPI. Deduplicação garantida pelo Meta dentro de 48h.
 - PII no Lead: email + phone (E.164 sem `+`, DDI 55 prefixado) + nome: todos hasheados SHA-256 com `toLowerCase().trim()` antes de enviar.
@@ -74,7 +74,7 @@ InitiateCheckout · Purchase
 - robots.txt e sitemap: `max-age=86400`
 - Preload VSL thumbnail via `<link rel="preload" as="image" imagesrcset="...">` (sem picture/AVIF simultâneo: double download)
 - Prefetch da URL Hotmart no `<head>` para acelerar redirect no submit
-- Headers de segurança HTTP via `vercel.json` (bloco global `/(.*)`): `X-Content-Type-Options: nosniff` · `X-Frame-Options: SAMEORIGIN` · `X-XSS-Protection: 0` · `Referrer-Policy: strict-origin-when-cross-origin`, aplicados em produção desde 2026-07-03
+- Headers de segurança HTTP via `src/_headers` (Cloudflare Pages, bloco `/*`) ou `vercel.json` (bloco global `/(.*)`): `X-Content-Type-Options: nosniff` · `X-Frame-Options: SAMEORIGIN` · `X-XSS-Protection: 0` · `Referrer-Policy: strict-origin-when-cross-origin`, aplicados em produção desde 2026-07-03
 
 ## Tracking: taxa de carregamento (decisão fechada)
 

@@ -41,7 +41,7 @@ Todos os valores específicos do site em um único lugar. Preencher com os dados
 | **HTML de trabalho** | ⬜ `{sua-pasta-de-trabalho}/paginas/index.html` | LP completa |
 | **Design System (DS)** | ⬜ `{sua-pasta-de-trabalho}/design-system.json` | Tokens + regras completas (ver domínios abaixo) |
 | **Auxiliares (raiz do domínio)** | ⬜ `{sua-pasta-de-trabalho}/paginas/` | `robots.txt`, `llms.txt`, `sitemap.xml` |
-| **Política de privacidade** | ⬜ `{sua-pasta-de-trabalho}/paginas/privacidade.html` | Deploy em `/privacidade` no Vercel |
+| **Política de privacidade** | ⬜ `{sua-pasta-de-trabalho}/paginas/privacidade.html` | Publicada em `/privacidade` (Cloudflare Pages ou Vercel) |
 | **Template A/B** | ⬜ `{sua-pasta-de-trabalho}/testes-ab/template.md` | Template e naming convention de testes |
 | **Log de testes A/B** | ⬜ `{sua-pasta-de-trabalho}/testes-ab/` | Relatórios datados por teste |
 
@@ -126,8 +126,8 @@ Todos os eventos dentro ou protegidos por `loadTracking()`: função que só dis
 **Clarity tags adicionais:** `traffic_source: utm_source` (capturado em `loadTracking()`).
 
 **CAPI: arquitetura:**
-- Endpoint: `api/capi.js` (função serverless da Vercel, publicada junto com a página por push no `main` ou Vercel CLI)
-- Token: `META_CAPI_KEY` (env var encrypted no Vercel, nunca em código)
+- Endpoint: `api/capi.js` (handler no formato `handler(req, res)`; no Cloudflare Pages roda pelo adaptador de `functions/`, na Vercel como serverless; publicado junto com a página por push no `main`)
+- Token: `META_CAPI_KEY` (segredo da plataforma: `wrangler pages secret put` no Cloudflare, Sensitive na Vercel; nunca em código)
 - Pixel ID: `{PIXEL_ID}` (hardcoded no `api/capi.js`)
 - PII no Lead: email + phone (E.164, DDI 55 prefixado) + nome: hasheados SHA-256 `toLowerCase().trim()`
 - `_fbc` reconstruído de `fbclid` na chegada, dentro de `loadTracking()`: 90 dias, `SameSite=Lax`
@@ -501,7 +501,7 @@ Usar em subtítulos de hero e headings que precisam de quebra manual apenas em v
 
 ### Diagnóstico
 
-- **Lighthouse Mobile**: DevTools → Lighthouse → **Mobile**, aba anônima, URL de produção. Nunca usar preview Vercel: `X-Robots-Tag: noindex` distorce métricas de SEO e pode afetar o score.
+- **Lighthouse Mobile**: DevTools → Lighthouse → **Mobile**, aba anônima, URL de produção. Nunca usar prévia (`*.pages.dev`, preview da Vercel): `X-Robots-Tag: noindex` distorce métricas de SEO e pode afetar o score.
 - **LCP breakdown**: expandir o elemento LCP no Lighthouse → decompor em TTFB + resource load delay + resource load duration + render delay. Cada componente tem causa específica e fix diferente.
 - **Identificar o elemento LCP**: pode ser imagem (thumbnail) ou texto (H1 com fonte externa). A causa muda o fix.
 - **TBT breakdown**: expandir "Minimize main-thread work" no Lighthouse, ver qual script está bloqueando e por quanto tempo.
@@ -643,9 +643,9 @@ btn.addEventListener('click', function(e) {
 
 #### Impacto médio: ganhos incrementais garantidos
 
-**8. Cache headers no Vercel**
+**8. Cache headers**
 
-`vercel.json` na raiz do projeto, incluído no payload de deploy:
+Cloudflare Pages (padrão): os mesmos valores em `src/_headers` (formato `/caminho` + linhas `Cabeçalho: valor`; não vale para funções, que recebem os de segurança pelo adaptador). Vercel: `vercel.json` na raiz do projeto:
 ```json
 {
   "headers": [
@@ -681,7 +681,7 @@ No `<head>`, antes de qualquer script externo:
 
 **10. HTML minificado**
 
-`html-minifier-terser` remove whitespace, comentários e atributos redundantes: reduz HTML de ~140KB para ~126KB sem risco. A Vercel não minifica sozinha: rodar antes do commit (ou num passo de build) e conferir a página depois.
+`html-minifier-terser` remove whitespace, comentários e atributos redundantes: reduz HTML de ~140KB para ~126KB sem risco. Nem o Cloudflare Pages nem a Vercel minificam sozinhos: rodar antes do commit (ou num passo de build) e conferir a página depois.
 ```bash
 npx html-minifier-terser \
   --collapse-whitespace \
@@ -705,7 +705,7 @@ Race condition entre `img.load` events e o masonry JS torna `grid.style.cssText 
 
 **17. Evitar redirect chains**
 
-Cada redirect (www → apex, http → https) adiciona 100–300ms de round-trip antes do primeiro byte. Configurar o domínio canônico diretamente no DNS (A record para apex, CNAME para www → apex no Vercel). Verificar:
+Cada redirect (www → apex, http → https) adiciona 100–300ms de round-trip antes do primeiro byte. Escolher um domínio canônico e fazer o outro redirecionar uma vez só (no Cloudflare: Redirect Rule 308 com "Preserve query string"; "Always Use HTTPS" para o http). Verificar:
 ```bash
 curl -I https://www.{seu-dominio}.com.br/
 # Location: deve apontar diretamente para apex, sem cascata de redirects
@@ -932,7 +932,7 @@ Documentados para evitar reavaliação desnecessária em sessões futuras.
 
 ## Versão nova da página: medir, comparar, restaurar
 
-- **Subida**: ramo próprio, tag de checkpoint da versão anterior antes de subir (`lp-v1`, permanente); deploy antigo também volta por `vercel promote` enquanto existir (a Vercel apaga deploy de produção com mais de 30 dias fora dos 10 mais recentes)
+- **Subida**: ramo próprio, tag de checkpoint da versão anterior antes de subir (`lp-v1`, permanente); deploy antigo também volta pela plataforma enquanto existir (Cloudflare: Deployments › Rollback; Vercel: `vercel promote`, que apaga deploy de produção com mais de 30 dias fora dos 10 mais recentes)
 - **Restauro por seção**: script que, dada a tag e o `id` da seção, imprime o HTML, o CSS (inclusive dentro de `@media`) e os assets dela, com o comando para recuperar asset apagado e aviso do JS que a seção usa. Seção nova sempre com `id="secao-<nome>"`
 - **Funil da página no contador próprio** (anônimo, agregado, sem cookie nem ID), nunca no pixel: a Meta não precisa desses sinais e eles sujariam o aprendizado
 	- `play` (capa do vídeo clicada); `vw:<marco>` (posição alcançada no vídeo: minutos-chave e 25/50/75/100%); `sec:<id>` (1º aparecimento de cada seção com o topo nos 75% de cima da tela, uma vez por visita, IntersectionObserver); `cta:<nome>` (botão de compra, do `data-track`); envio do pré-checkout
@@ -1007,4 +1007,4 @@ O que nunca fazer nesta LP, com razão documentada.
 | Thumbnail do VSL apontando para CDN externo (YouTube, etc.) | DNS+TLS externo no caminho crítico do LCP. Baixar, converter para WebP e self-hospedar. |
 | `<img>` sem `height: auto` no CSS global quando tem atributo `height` | Atributo `height` vira pixel fixo e distorce a imagem em containers responsivos. Reset `img { height: auto }` é obrigatório. |
 | `<link rel="preload" as="image">` sem `imagesrcset` para imagem com srcset | Preload baixa sempre o arquivo maior, ignorando a seleção responsiva do `srcset`. Usar `imagesrcset` + `imagesizes` no preload. |
-| Deploy sem `vercel.json` com cache headers | Assets ficam com cache curto por padrão: Lighthouse penaliza e usuários re-baixam assets imutáveis a cada visita. |
+| Deploy sem `_headers`/`vercel.json` com cache headers | Assets ficam com cache curto por padrão: Lighthouse penaliza e usuários re-baixam assets imutáveis a cada visita. |
