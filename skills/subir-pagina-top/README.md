@@ -1,6 +1,6 @@
 # Skill: /subir-pagina-top
 
-Publica uma landing page de infoproduto (Hotmart, Kiwify, etc.) no Vercel com Meta Pixel + CAPI server-side embutidos: tracking é parte obrigatória do deploy, não etapa opcional.
+Publica uma landing page de infoproduto (Hotmart, Kiwify, etc.) no Cloudflare Pages (padrão; ou Vercel Pro) com Meta Pixel + CAPI server-side embutidos: tracking é parte obrigatória do deploy, não etapa opcional.
 
 **Status:** funcional e pronto para uso.
 
@@ -17,8 +17,8 @@ Conduz o processo completo de publicação de uma LP de conversão em 10 passos:
 7. Checklist de responsividade (mobile-first, 390px)
 8. Checklist de performance (Lighthouse mobile ≥ 90)
 9. **Infraestrutura de deploy e tracking** (tudo embutido):
-   - `vercel.json` com headers de segurança HTTP e cache policy
-   - Deploy por push no `main` (Vercel Git) ou Vercel CLI; nunca API REST com bundle local
+   - `src/_headers`, `src/_redirects`, `404.html` e adaptador `functions/` (Cloudflare) ou `vercel.json` (Vercel), com headers de segurança e cache
+   - Deploy por push no `main` (Git ligado ao projeto); na Vercel, nunca API REST com bundle local
    - Meta Pixel snippet base
    - Eventos por tipo de página (vendas, captura, obrigado)
    - `api/capi.js`: CAPI server-side com SHA-256, normalização E.164, deduplicação
@@ -38,7 +38,7 @@ Para uma LP de infoproduto, o Meta Pixel + CAPI não é opcional: sem tracking, 
 No `api/capi.js` gerado pelo skill, substituir:
 - `SEU_PIXEL_ID` pelo ID do seu Meta Pixel
 - `https://SEU-DOMINIO.com` pela URL canônica da sua LP
-- Configurar a variável de ambiente `META_CAPI_KEY` no Vercel (Settings → Environment Variables → tipo Sensitive)
+- Configurar `META_CAPI_KEY` como segredo da plataforma (Cloudflare: `wrangler pages secret put`; Vercel: Settings → Environment Variables, tipo Sensitive)
 
 No HTML da página, substituir `SEU_PIXEL_ID` pelo mesmo ID.
 
@@ -50,7 +50,7 @@ No HTML da página, substituir `SEU_PIXEL_ID` pelo mesmo ID.
 ```
 ---
 name: subir-pagina-top
-description: Publica LP de infoproduto no Vercel com Pixel + CAPI, domínio, headers e SEO
+description: Publica LP de infoproduto no Cloudflare Pages (ou Vercel) com Pixel + CAPI, domínio, headers e SEO
 allowed-tools: Read, Write, Edit, Bash
 ---
 

@@ -2,7 +2,7 @@
 name: subir-pagina-top
 description: >
   Bootstrapa e publica uma landing page de infoproduto (Hotmart, Kiwify, etc.) no
-  Vercel: gera o Guia de Construção da Página e o design-system.json, configura
+  Cloudflare Pages (ou Vercel): gera o Guia de Construção da Página e o design-system.json, configura
   domínio, headers de segurança, cache, robots.txt, sitemap, SEO, Meta Pixel +
   CAPI server-side, medição da base e monitoramento. Nunca usa valores de outro
   produto como placeholder. Tracking é parte obrigatória do deploy.
@@ -219,8 +219,8 @@ Performance mobile é princípio central: impacto direto em conversão de tráfe
 | **Imagem do LCP: o arquivo que o celular baixa** | Com `srcset` por largura e `sizes="100vw"`, tela densa (3x) pede 3 × a largura e escolhe a versão de computador. Declarar no celular um `sizes` menor (ex: `50vw`) faz o navegador pegar a versão leve; o mesmo valor vai no `<link rel="preload" imagesizes>` e no `<img sizes>`, senão baixa duas vezes. Conferir na aba Network, em 4G lento, qual arquivo desce |
 | **font-display pelo elemento LCP** | LCP imagem: `swap` + `@font-face` reserva com `size-adjust`/`ascent-override`/`descent-override`/`line-gap-override` (calcular no woff2), uma sobre Arial e outra sobre `local('Roboto')` (Android não tem Arial), mais `@supports not (font-size-adjust: from-font)` com a mesma face em `optional` (navegador sem `size-adjust`); conferir o pulo em várias larguras com a fonte bloqueada e carregada; LCP texto: `optional`. `optional` deixa a 1ª visita em rede móvel na fonte do sistema |
 | **preconnect LGPD** | `grep 'preconnect' index.html`: DEVE ter ZERO preconnects para tracking domains (Meta, Clarity, GA) no `<head>`. `preconnect` estabelece TCP+TLS, expõe o IP do usuário ao servidor remoto e conta como transferência de dado pessoal sob LGPD antes do aceite. Apenas checkout/plataforma de pagamento aceita pré-consent. Tracking domains: injetar `preconnect` dinamicamente dentro de `loadTracking()` via `document.createElement('link')`. `dns-prefetch` (sem handshake) é aceitável pré-consent |
-| **vercel.json com cache headers** | Arquivo existe na raiz do deploy com `max-age=31536000, immutable` para `/assets/(.*)` |
-| **HTML minificado (opcional)** | O deploy da Vercel não minifica nada. Se quiser minificar, rodar antes do commit: `npx html-minifier-terser --collapse-whitespace --remove-comments --conserve-collapse -o src/index.html fonte/index.html` (sem `--minify-js`: o JS inline do tracking e do contador não deve ser reescrito). Manter o HTML-fonte legível fora de `src/` |
+| **Cache headers** | `src/_headers` (Cloudflare) ou `vercel.json` (Vercel) com `max-age=31536000, immutable` para `/assets/` |
+| **HTML minificado (opcional)** | Nem o Cloudflare Pages nem a Vercel minificam o HTML. Se quiser minificar, rodar antes do commit: `npx html-minifier-terser --collapse-whitespace --remove-comments --conserve-collapse -o src/index.html fonte/index.html` (sem `--minify-js`: o JS inline do tracking e do contador não deve ser reescrito). Manter o HTML-fonte legível fora de `src/` |
 | **Iframes de vídeo com facade** | `grep -c '<iframe' index.html`: depoimentos devem ser 0 (injetados no clique via `innerHTML`). VSL principal: facade é obrigatório por performance (nenhum iframe carrega antes da interação). Se VSLProgress implementado, o iframe pode ser pré-existente com `enablejsapi=1` (Opção A) ou criado via `YT.Player` na div-container (Opção B); ambos valem como facade, pois o player só inicializa no clique |
 | **Tracking fora do `<head>`** | `grep -n "fbq\|clarity\|gtag" index.html \| grep -v "loadTracking\|function\|//"` nenhuma ocorrência fora da função de carregamento do tracking (as exceções são o bloco de sandbox e o contador do início do `<head>`, 9n) |
 | **AVIF com fallback WebP** | `grep -c 'type="image/avif"' index.html`: imagens grandes devem ter `<picture>` com source AVIF + img WebP. Exceção: VSL thumbnail (LCP + preload) |
@@ -242,23 +242,182 @@ Performance mobile é princípio central: impacto direto em conversão de tráfe
 
 ### 9. Infraestrutura de deploy e tracking (obrigatório antes de ir ao ar)
 
-#### 9a. vercel.json
+#### 9a. Hospedagem: Cloudflare Pages (padrão) ou Vercel
 
-Criar na raiz de `{pasta-base}/` (os arquivos estáticos ficam em `{pasta-base}/src/`; `api/` fica na raiz):
+**Escolha:** página que vende é uso comercial. O plano gratuito da Vercel (Hobby) proíbe uso comercial; o da Cloudflare Pages permite (limites grátis: 100 mil chamadas de função por dia, 10 ms de CPU por chamada, transferência sem custo). Padrão: **Cloudflare Pages**. Vercel só com plano Pro (US$ 20/mês) ou se o usuário já tiver tudo lá e aceitar o custo. Os handlers de `api/` (formato `handler(req, res)` da Vercel) são os mesmos nas duas: no Cloudflare um adaptador os executa sem mudar uma linha, então os templates de 9e a 9n servem para as duas.
+
+**Estrutura no Cloudflare Pages** (raiz de `{pasta-base}/`):
+```
+wrangler.toml              ← name, pages_build_output_dir = "src", compatibility_flags = ["nodejs_compat"]
+src/                       ← estáticos: index.html, _headers, _redirects, 404.html, robots.txt, sitemap.xml, llms.txt, assets/
+api/*.js                   ← handlers (templates de 9e em diante), iguais aos da Vercel
+functions/_adaptador.js    ← executa os handlers ("_" não vira rota)
+functions/api/<nome>.js    ← uma linha por função: import handler from '../../api/<nome>.js'; import { vercel } from '../_adaptador.js'; export const onRequest = vercel(handler);
+functions/fbcdn/[[path]].js← proxy da configuração do pixel (9c)
+```
+
+`wrangler.toml`:
+```toml
+name = "{projeto}"
+pages_build_output_dir = "src"
+compatibility_date = "{data de hoje, AAAA-MM-DD}"
+compatibility_flags = ["nodejs_compat"]
+```
+
+`src/_headers` (cabeçalhos dos estáticos; **não vale para funções**, que recebem os de segurança pelo adaptador):
+```
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  X-XSS-Protection: 0
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/
+  Cache-Control: public, max-age=0, s-maxage=86400, stale-while-revalidate=86400
+
+/assets/*
+  Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable
+
+/sw.js
+  Cache-Control: no-cache
+
+/robots.txt
+  Cache-Control: public, max-age=86400
+
+/sitemap.xml
+  Cache-Control: public, max-age=86400
+```
+
+`src/_redirects`: página em pasta (`/x/index.html`) ganha barra no fim no Pages (`/x` → 308 → `/x/`), um salto a mais para quem vem de anúncio. Rewrite 200 serve `/x` direto, com os parâmetros do anúncio intactos. **Toda página nova em pasta ganha uma linha:**
+```
+/{pasta} /{pasta}/ 200
+```
+O `_redirects` não faz proxy para outro domínio: por isso o `/fbcdn/` é uma função.
+
+`src/404.html` obrigatório: sem ele o Pages devolve a página principal com 200 para qualquer endereço inexistente (conta visita falsa e confunde o Google). Página curta, `<meta name="robots" content="noindex">` e link para a home.
+
+`functions/_adaptador.js` (copiar inteiro; trocar `PRODUCAO_PADRAO` pelos endereços de produção):
+```js
+// Executa handlers no formato da Vercel (handler(req, res)) como Pages Functions.
+const PRODUCAO_PADRAO = 'www.{dominio},{dominio}';
+const SEGURANCA = { 'x-content-type-options': 'nosniff', 'x-frame-options': 'SAMEORIGIN', 'x-xss-protection': '0', 'referrer-policy': 'strict-origin-when-cross-origin' };
+
+function ipDoVisitante(h) { return (h.get('cf-connecting-ipv6') || h.get('cf-connecting-ip') || '').trim(); }
+
+async function lerCorpo(request) {
+  if (request.method === 'GET' || request.method === 'HEAD') return undefined;
+  const tipo = (request.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+  const texto = await request.text();
+  if (!texto) return tipo === 'application/json' ? undefined : texto;
+  if (tipo === 'application/json') { try { return JSON.parse(texto); } catch (e) { return undefined; } }
+  if (tipo === 'application/x-www-form-urlencoded') return Object.fromEntries(new URLSearchParams(texto));
+  return texto; // text/plain (sendBeacon): string
+}
+
+export function vercel(handler) {
+  return async function onRequest(ctx) {
+    const { request, env } = ctx;
+    const url = new URL(request.url);
+    for (const k of Object.keys(env || {})) if (typeof env[k] === 'string' && process.env[k] === undefined) process.env[k] = env[k];
+    const producao = String((env && env.PRODUCAO_HOSTS) || PRODUCAO_PADRAO).split(',').map((s) => s.trim()).filter(Boolean);
+    process.env.VERCEL_ENV = producao.includes(url.hostname) ? 'production' : 'preview'; // *.pages.dev e prévias nunca mandam evento real
+
+    const cacheavel = request.method === 'GET' && !url.searchParams.has('k');
+    const cache = typeof caches !== 'undefined' ? caches.default : null;
+    if (cacheavel && cache) { const hit = await cache.match(request); if (hit) return hit; }
+
+    const headers = {};
+    request.headers.forEach((v, k) => { headers[k] = v; });
+    const ip = ipDoVisitante(request.headers);
+    if (ip) { headers['x-real-ip'] = ip; headers['x-forwarded-for'] = ip; }
+    headers['x-forwarded-host'] = url.host;
+    const query = {};
+    url.searchParams.forEach((v, k) => { query[k] = k in query ? [].concat(query[k], v) : v; });
+    const req = { method: request.method, url: url.pathname + url.search, headers, query, body: await lerCorpo(request), cookies: {} };
+
+    const saida = { status: 200, headers: new Headers(), body: null };
+    const res = {
+      statusCode: 200,
+      status(c) { saida.status = c; this.statusCode = c; return this; },
+      setHeader(k, v) { if (Array.isArray(v)) { saida.headers.delete(k); v.forEach((x) => saida.headers.append(k, String(x))); } else saida.headers.set(k, String(v)); return this; },
+      getHeader(k) { return saida.headers.get(k); },
+      removeHeader(k) { saida.headers.delete(k); },
+      json(o) { if (!saida.headers.has('content-type')) saida.headers.set('content-type', 'application/json; charset=utf-8'); saida.body = JSON.stringify(o); return this; },
+      send(b) {
+        if (b !== null && typeof b === 'object' && !(b instanceof Uint8Array) && !(b instanceof ArrayBuffer)) return this.json(b);
+        if (typeof b === 'string' && !saida.headers.has('content-type')) saida.headers.set('content-type', 'text/html; charset=utf-8');
+        saida.body = b === undefined ? null : b; return this;
+      },
+      end(b) { if (b !== undefined) saida.body = b; return this; },
+    };
+    try { await handler(req, res); }
+    catch (e) {
+      console.error('[adaptador]', url.pathname, (e && e.stack) || e);
+      saida.status = 500; saida.body = JSON.stringify({ ok: false, error: 'erro interno' });
+      saida.headers = new Headers({ 'content-type': 'application/json; charset=utf-8' });
+    }
+    if (!saida.headers.has('cache-control')) saida.headers.set('cache-control', 'public, max-age=0, must-revalidate');
+    for (const [k, v] of Object.entries(SEGURANCA)) if (!saida.headers.has(k)) saida.headers.set(k, v);
+    const semCorpo = saida.status === 204 || saida.status === 304 || request.method === 'HEAD';
+    const resposta = new Response(semCorpo ? null : saida.body, { status: saida.status, headers: saida.headers });
+    const cc = saida.headers.get('cache-control') || '';
+    if (cacheavel && cache && saida.status === 200 && /s-maxage=\d+/.test(cc) && !/no-store|private/.test(cc)) ctx.waitUntil(cache.put(request, resposta.clone()));
+    return resposta;
+  };
+}
+```
+O IP do visitante chega ao `capi.js` por `x-real-ip` (IPv6 real quando existe). Testar uma vez com IPv4 e com IPv6: o IP que chega à função é o do visitante, nunca o da rede da Cloudflare.
+
+`functions/fbcdn/[[path]].js` (configuração do pixel pelo próprio domínio, 9c):
+```js
+const UPSTREAM = 'https://connect.facebook.net/';
+const REMOVER = ['set-cookie', 'content-encoding', 'content-length', 'transfer-encoding', 'connection', 'alt-svc', 'report-to', 'nel'];
+export async function onRequest({ request, params, waitUntil }) {
+  if (request.method !== 'GET' && request.method !== 'HEAD') return new Response(null, { status: 405 });
+  const url = new URL(request.url);
+  const chave = new Request(url.toString(), { method: 'GET' });
+  const hit = await caches.default.match(chave);
+  if (hit) return request.method === 'HEAD' ? new Response(null, hit) : hit;
+  let up;
+  try { up = await fetch(UPSTREAM + [].concat(params.path || []).map(encodeURIComponent).join('/') + url.search, { headers: { 'user-agent': request.headers.get('user-agent') || '', accept: request.headers.get('accept') || '*/*' } }); }
+  catch (e) { return new Response('// fbcdn indisponível', { status: 502, headers: { 'content-type': 'application/javascript', 'cache-control': 'no-store' } }); }
+  const h = new Headers(up.headers);
+  REMOVER.forEach((k) => h.delete(k));
+  if (up.ok && !h.has('cache-control')) h.set('cache-control', 'public, max-age=1200');
+  if (!up.ok) h.set('cache-control', 'no-store');
+  const resp = new Response(await up.arrayBuffer(), { status: up.status, headers: h });
+  if (up.ok) waitUntil(caches.default.put(chave, resp.clone()));
+  return request.method === 'HEAD' ? new Response(null, { status: up.status, headers: h }) : resp;
+}
+```
+
+**Áudio e vídeo servidos pelo próprio site:** o estático do Cloudflare ignora pedido de trecho (`Range`) e devolve o arquivo inteiro com 200; o iPhone precisa de 206 para tocar e avançar. Mídia própria passa por uma função em `functions/<pasta>/[[arquivo]].js` que lê o arquivo de `env.ASSETS` e responde 206 com `Content-Range` (416 fora do intervalo; 404 quando o Pages devolveria a página no lugar do arquivo). Teste: `curl -s -o /dev/null -D - -H 'Range: bytes=0-1023' https://{dominio}/<arquivo>` → `206` e `content-range: bytes 0-1023/<total>`. Vídeo no YouTube não precisa disso.
+
+**Domínio no Cloudflare:**
+- A raiz do domínio (sem www) só aponta para o Pages com o DNS do domínio no Cloudflare (Pages não tem IP fixo e vários registradores, como o Registro.br, não aceitam CNAME na raiz). Criar a zona no Cloudflare (plano Free), conferir que **todos** os registros do DNS atual foram copiados (inclusive os de e-mail: `send`, `_domainkey`, `_dmarc`, MX, SPF e qualquer CNAME de verificação), e só então trocar os servidores no registrador. Registros de e-mail e de verificação ficam sempre "DNS only"
+- DNSSEC: se o registrador assina hoje, a troca de servidores tira a assinatura (no Registro.br, o próprio painel faz a transição em ~2 h, sem queda). Depois que o site estiver no ar pelo Cloudflare, ligar DNSSEC no Cloudflare (DNS › Settings) e cadastrar o DS no registrador (Key Tag e Digest). Conferir: `dig +dnssec www.{dominio} @1.1.1.1` com a flag `ad`
+- No projeto Pages › Custom domains: adicionar `www.{dominio}`; registro `www` CNAME `{projeto}.pages.dev` com proxy. Raiz: registro com proxy + Rules › Redirect Rules › modelo "Redirect from root to WWW", **status 308 e "Preserve query string" marcado** (sem isso o redirecionamento perde `utm_*` e `fbclid`)
+- Ajustes da zona que afetam a página (conferir na criação):
+	- Security › Settings › **Email Address Obfuscation: desligado** (ligado por padrão; injeta script e troca os e-mails do HTML por "[email protected]", o que pesa no desempenho e esconde o contato de robôs de IA)
+	- **Bot Fight Mode: desligado** (bloqueia robôs de redes sociais e de IA que leem a página)
+	- AI Crawl Control: robôs de IA liberados e o `robots.txt` do repositório valendo (sem a versão gerenciada da Cloudflare, que acrescenta bloqueios)
+	- SSL/TLS: "Always Use HTTPS" ligado; certificado Universal ativo antes de ligar o proxy
+
+**Criar o projeto:** painel › Workers & Pages › Create › **Pages** › Connect to Git (repositório privado do produto, ramo `main`, sem comando de build, diretório de saída `src`). Pelo terminal, `wrangler pages project create` em versões recentes tenta converter em Worker e pode publicar um Worker por engano: criar pelo painel ou pela API. Projeto ligado ao Git publica sozinho a cada push no `main`; ramos geram prévia em `*.pages.dev` (com o adaptador, prévia nunca manda evento real).
+
+**Segredos:** `wrangler pages secret put META_CAPI_KEY --project-name {projeto}` (idem `METRICS_REPORT_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`). Valem a partir do próximo deploy (push ou "Retry deployment" no painel). Rodar pelo `bash` com o valor vindo de arquivo ou variável, conferindo que não está vazio: um `put` com entrada vazia grava segredo vazio sem erro.
+
+**Alternativa Vercel (`vercel.json`, só com plano Pro ou decisão consciente do usuário):** mesma estrutura sem `functions/`, `_headers`, `_redirects` e `wrangler.toml`; a Vercel monta `api/` sozinha. Criar na raiz:
 ```json
 {
   "outputDirectory": "src",
   "cleanUrls": true,
   "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options",   "value": "nosniff" },
-        { "key": "X-Frame-Options",           "value": "SAMEORIGIN" },
-        { "key": "X-XSS-Protection",          "value": "0" },
-        { "key": "Referrer-Policy",           "value": "strict-origin-when-cross-origin" }
-      ]
-    },
+    { "source": "/(.*)", "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection", "value": "0" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" } ] },
     { "source": "/",            "headers": [{"key": "Cache-Control", "value": "public, max-age=0, s-maxage=86400, stale-while-revalidate=86400"}] },
     { "source": "/(.*)\\.html", "headers": [{"key": "Cache-Control", "value": "public, max-age=0, s-maxage=86400, stale-while-revalidate=86400"}] },
     { "source": "/assets/(.*)", "headers": [{"key": "Cache-Control", "value": "public, max-age=31536000, s-maxage=31536000, immutable"}] },
@@ -266,60 +425,53 @@ Criar na raiz de `{pasta-base}/` (os arquivos estáticos ficam em `{pasta-base}/
     { "source": "/robots.txt",  "headers": [{"key": "Cache-Control", "value": "public, max-age=86400"}] },
     { "source": "/sitemap.xml", "headers": [{"key": "Cache-Control", "value": "public, max-age=86400"}] }
   ],
-  "rewrites": [
-    { "source": "/fbcdn/:path*", "destination": "https://connect.facebook.net/:path*" }
-  ],
+  "rewrites": [ { "source": "/fbcdn/:path*", "destination": "https://connect.facebook.net/:path*" } ],
   "redirects": [
     { "source": "/",       "has": [{"type": "host", "value": "{projeto}.vercel.app"}], "destination": "https://{dominio}/",       "permanent": false },
     { "source": "/:path*", "has": [{"type": "host", "value": "{projeto}.vercel.app"}], "destination": "https://{dominio}/:path*", "permanent": false }
   ]
 }
 ```
+O `redirects` leva `{projeto}.vercel.app` (endereço público da Vercel) para o domínio; sem ele, esse endereço serve a página e o rastreio conta visita fora do domínio. A raiz `/` precisa de regra própria. No Cloudflare o equivalente é a trava do adaptador (`*.pages.dev` nunca manda evento) e do bloco de sandbox do HTML.
 
-> `X-Frame-Options: SAMEORIGIN`: padrão seguro para LP standalone. Remover **apenas** se a LP precisar ser embarcada em iframe por domínio externo (ex: funil de terceiros que carrega a página dentro de um frame).
+> `X-Frame-Options: SAMEORIGIN`: padrão seguro para LP standalone. Remover **apenas** se a LP precisar ser embarcada em iframe por domínio externo.
 >
-> O `rewrites` de `/fbcdn/` serve à configuração do pixel pelo seu domínio (9c). Os arquivos `robots.txt`, `sitemap.xml` e `llms.txt` ficam em `src/` e precisam ser criados junto com a página.
->
-> O `redirects` leva o endereço `{projeto}.vercel.app` (único endereço da Vercel aberto ao público; prévias pedem login) para o domínio do site. Sem ele, esse endereço serve a página inteira e o rastreio pode contar visita e evento fora do domínio. A raiz `/` precisa de regra própria: `/:path*` não cobre o endereço sem caminho. Conferir: `curl -sI https://{projeto}.vercel.app/` → 307 para o domínio. Com hospedagem que não seja a Vercel, o equivalente é redirecionar o endereço padrão da plataforma para o domínio
+> `robots.txt`, `sitemap.xml` e `llms.txt` ficam em `src/` e são criados junto com a página.
 
 #### 9b. Deploy, repositório e CI/CD
 
-**Pré-requisito de infra:** conta na [Vercel](https://vercel.com) (plano gratuito suficiente para LP). Necessário para criar o projeto, configurar a env var `META_CAPI_KEY` e publicar. Sem conta Vercel, o deploy e o CAPI não funcionam.
+**Não existe script de deploy a gerar.** Caminho normal nas duas plataformas: **push no `main`** do repositório ligado ao projeto publica em produção.
+- Cloudflare Pages: publicação em 1 a 2 min. Gatilho falhou: painel › projeto › Deployments › "Retry deployment", ou commit vazio + push. Não cria registro de deploy no GitHub: confirmar sempre pelo conteúdo servido (abaixo)
+- Vercel: `git config user.email` com o e-mail de um membro da equipe Vercel (senão o deploy é rejeitado em silêncio). Sem push: `vercel deploy --prod --yes` com a CLI logada. **Proibido:** API REST de deploy com bundle local (`POST /v13/deployments`): marca READY e as funções dão 500 em silêncio
 
-**Não existe script de deploy a gerar.** A Vercel monta as funções de `api/` e publica `src/` sozinha. Dois caminhos válidos:
-1. **Push no `main` (Vercel Git), caminho normal.** Conectar o repositório GitHub ao projeto Vercel (vercel.com → integração GitHub → instalar na conta/organização do produto). Cada push no `main` publica em produção; outros ramos geram prévia.
-	- Requisito: `git config user.email` no diretório do projeto com o email de um membro da equipe Vercel. Se o email do commit não corresponder a nenhum membro, o CI/CD rejeita o deploy em silêncio
-2. **Vercel CLI**, para publicar sem push ou quando o gatilho Git falha: `npm i -g vercel`, `.vercel/project.json` na raiz (com `projectId` e `orgId`), e na raiz do projeto: `vercel deploy --prod --yes`
-	- Autenticação: CLI já logada (`vercel whoami`). `VERCEL_TOKEN` só é preciso fora de uma CLI logada; exportar na hora (`VERCEL_TOKEN="..." vercel deploy --prod --yes`), nunca salvar em arquivo nem em texto
+Manter o projeto em **diretório permanente**, nunca `/tmp`.
 
-**Proibido: API REST de deploy com bundle local** (`POST /v13/deployments` com arquivos montados por você). Ela gera SHA-1 UIDs nas funções Lambda via `ncc` local e dá 500 em runtime, mas o deploy aparece como READY no dashboard e o CDN continua servindo o HTML em cache. O erro é silencioso e difícil de diagnosticar. Push no `main` e CLI não têm esse problema.
-
-Manter o projeto em **diretório permanente**, nunca `/tmp` (arquivos desaparecem no restart de ambiente). Se o usuário não tiver `.vercel/project.json`, gerar agora (`vercel link`); não deixar como `⬜ a fazer`.
-
-**Env vars:** configurar `META_CAPI_KEY` no projeto Vercel (Settings → Environment Variables → tipo Sensitive). **Nunca colocar o token no código nem em arquivos commitados.**
+**Segredos:** `META_CAPI_KEY` (e os do contador) só como segredo da plataforma (Cloudflare: `wrangler pages secret put`; Vercel: Settings › Environment Variables, tipo Sensitive) e no `.env` local fora do Git. **Nunca no código nem em arquivo commitado.**
 
 **Verificação obrigatória após cada deploy:**
 ```bash
 curl -s -o /dev/null -w "%{http_code}" https://SEU-DOMINIO.com/                    # 200
+curl -s -o /dev/null -w "%{http_code}" https://SEU-DOMINIO.com/nao-existe          # 404 (no Cloudflare, prova que o 404.html existe)
 curl -s https://SEU-DOMINIO.com/api/healthcheck                                     # {"ok":true,"ts":...}
 curl -s https://SEU-DOMINIO.com/api/capi -X POST \
   -H "Content-Type: application/json" \
   -d '{"event_name":"PageView","event_id":"test"}'                                  # {"ok":true}
 curl -s https://SEU-DOMINIO.com/api/capi-check                                      # {"ok":true,"token_valid":true}
+curl -s https://SEU-DOMINIO.com/ | grep -c 'cdn-cgi'                               # 0 (nada injetado pela Cloudflare)
 ```
-O `POST` de teste acima envia um `PageView` de verdade em produção. Para testar sem poluir as estatísticas, usar `test_event_code` do Events Manager (campo no body ou env `META_CAPI_TEST_CODE`; ver 9e). Em prévia (ramo que não é `main`) a função devolve `{"ok":true,"sandbox":true}` e não envia nada.
+O `POST` de teste envia um `PageView` de verdade em produção. Para testar sem poluir as estatísticas, usar `test_event_code` do Events Manager (ver 9e). Em prévia a função devolve `{"ok":true,"sandbox":true}` e não envia nada.
 
 **Repositório Git (backup e histórico).** Versionar o diretório permanente em repositório GitHub privado, na conta do produto. Regras:
 - **`git add -p` ou arquivo específico, nunca `git add -A`/`git add .`**: revisar o diff antes de qualquer commit
-- Tokens (`META_CAPI_KEY`, `VERCEL_TOKEN`) permanecem exclusivamente como env var: nunca no código, nunca no commit
+- Tokens permanecem exclusivamente como segredo da plataforma: nunca no código, nunca no commit
 - Nenhum dado de usuário/lead/cliente entra no diretório do projeto: CSV, JSON de CRM, qualquer arquivo com nome/email/telefone ficam em outro diretório
 - Debug com dados reais: usar `test_event_code` do painel do pixel; nunca salvar PII localmente
-- `.gitignore`: adicionar `out/`, `.DS_Store`, `*.log`, `.env*`, `src/vercel.json`, `*.csv`, `*.xlsx`, `*leads*`, `*export*`
-- `.vercelignore`: scripts operacionais que não precisam ser deployados (ex: scripts de monitoramento local, `preview-paleta.html`)
-- `.vercel/project.json` pode ser commitado em repo privado (contém só IDs de projeto, não tokens)
-- Fluxo normal de edição: editar no diretório local → `git add -p && git commit` → `git push` (publica pela Vercel Git)
+- `.gitignore`: `out/`, `.DS_Store`, `*.log`, `.env*`, `.dev.vars`, `.wrangler/`, `*.csv`, `*.xlsx`, `*leads*`, `*export*`
+- Fluxo normal de edição: editar no diretório local → `git add -p && git commit` → `git push` (publica)
 
-**Confirmar que o deploy saiu.** O gatilho Git→Vercel falha em silêncio: o commit entra no repositório e nenhum deploy é criado, com o CDN servindo a versão antiga por horas. Depois de todo push, conferir pelo conteúdo: o hash do HTML servido (`curl -s https://SEU-DOMINIO.com/ | shasum -a 256`) igual ao do arquivo commitado (`git show HEAD:src/index.html | shasum -a 256`), e `/api/selfcheck` (9n) ok. Um commit vazio reativa o gatilho. `?query` na URL não fura o cache do CDN: conferir `age` e `x-vercel-cache` no `curl -sI`.
+**Confirmar que o deploy saiu.** O gatilho Git pode falhar em silêncio, com o CDN servindo a versão antiga. Depois de todo push, conferir pelo conteúdo: o hash do HTML servido (`curl -s https://SEU-DOMINIO.com/ | shasum -a 256`) igual ao do arquivo commitado (`git show HEAD:src/index.html | shasum -a 256`), e `/api/selfcheck` (9n) ok. Hash diferente com o deploy feito: procurar conteúdo injetado pela plataforma (`grep cdn-cgi`). `?query` na URL não fura o cache do CDN.
+
+**Política de privacidade:** a tabela de operadores nomeia quem hospeda e processa os eventos (Cloudflare ou Vercel) e onde fica o contador (Upstash). Trocou de hospedagem, troca a política no mesmo dia.
 
 #### 9c. Meta Pixel: snippet base (obrigatório)
 
@@ -346,7 +498,7 @@ src="https://www.facebook.com/tr?id=SEU_PIXEL_ID&ev=PageView&noscript=1"/></nosc
 <!-- End Meta Pixel -->
 ```
 
-**Configuração do pixel pelo seu domínio.** `fbq('set', 'cdn', location.origin + '/fbcdn/')` antes do `fbq('init')` e o `rewrites` de `/fbcdn/` no `vercel.json` (9a). Comando nativo do fbevents. Sem isso, quem tem `connect.facebook.net` bloqueado (DNS bloqueador, lista de rastreador) carrega o pixel e nunca envia evento, porque a configuração não chega. O CDN da Vercel guarda a resposta (~20 min), o que ainda encurta o caminho até o primeiro envio. Medido numa página real: nenhum ganho geral na taxa de carregamento; fica como proteção contra bloqueio. O envio (`facebook.com/tr`) continua direto do navegador: nunca repassar `/tr` pelo seu servidor (perde o IP real do visitante).
+**Configuração do pixel pelo seu domínio.** `fbq('set', 'cdn', location.origin + '/fbcdn/')` antes do `fbq('init')` e o proxy de `/fbcdn/` (função `functions/fbcdn/[[path]].js` no Cloudflare ou `rewrites` no `vercel.json`, 9a). Comando nativo do fbevents. Sem isso, quem tem `connect.facebook.net` bloqueado (DNS bloqueador, lista de rastreador) carrega o pixel e nunca envia evento, porque a configuração não chega. O CDN guarda a resposta (~20 min), o que ainda encurta o caminho até o primeiro envio. Medido numa página real: nenhum ganho geral na taxa de carregamento; fica como proteção contra bloqueio. O envio (`facebook.com/tr`) continua direto do navegador: nunca repassar `/tr` pelo seu servidor (perde o IP real do visitante).
 
 **Não rodar espelho de servidor em cima do seu próprio CAPI.** A "Conversions API: Supported by Meta" (ativação em um clique) duplica cada evento do navegador como evento de servidor: a razão servidor:navegador vai a ~2,5:1 sem recuperar conversão nenhuma, e a leitura dos números fica confusa. Se você já tem CAPI próprio, desligue o espelho **no site**, com `fbq('skipOpenbridge', 'SEU_PIXEL_ID')` antes do `fbq('init')` (comando nativo do fbevents, reversível apagando a linha). Evite o botão de excluir o conjunto no Gerenciador de Negócios: o diálogo diz *"will prevent it from receiving data through Conversions API"*, texto que também comporta bloquear toda a ingestão por CAPI. Validar no navegador: com o comando, zero requisições ao endpoint do espelho, e `facebook.com/tr` e o seu `/api/capi` seguem disparando.
 
@@ -393,7 +545,7 @@ Nunca incluir evento que não faça sentido para o tipo de página.
 **Por que CAPI:** Pixel browser é bloqueado por adblockers e Safari ITP. CAPI envia os mesmos eventos server-side, garantindo cobertura completa e melhorando o EMQ (Event Match Quality) na Meta. É uma Vercel serverless function em paralelo ao pixel do navegador.
 
 Criar `api/capi.js` na raiz de `{pasta-base}/`. Substituir `SEU_PIXEL_ID` e `SEU-DOMINIO.com` pelos valores do passo 3; verificar a versão estável atual da Graph API antes de usar. Pontos do template:
-- **Trava de sandbox:** fora de `production` (prévia da Vercel) responde `ok` sem enviar nada à Meta, para teste nunca poluir a base
+- **Trava de sandbox:** fora de `production` (prévia ou endereço da plataforma, como `*.pages.dev`) responde `ok` sem enviar nada à Meta, para teste nunca poluir a base
 - **IPv6:** prefere o IPv6 de `x-real-ip`/`x-forwarded-for` quando houver (o pixel usa IPv6 para clientes IPv6; IPv4 contra IPv6 reduz o EMQ)
 - **Retry** até 2x em 5xx e 429
 - **`fbp` server-side** gerado se ausente e renovado por `Set-Cookie` HTTP (imune ao cap de 7 dias do ITP), então o `api/fbp-init.js` (9e.3) é desnecessário
@@ -447,7 +599,7 @@ async function sendToMeta(payload, attempt) {
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
-  // Sandbox (prévia da Vercel, preview deploy): nunca envia evento à Meta fora de produção
+  // Sandbox (prévia ou endereço da plataforma; no Cloudflare o adaptador define VERCEL_ENV): nunca envia evento à Meta fora de produção
   if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production') return res.status(200).json({ ok: true, sandbox: true });
 
   var b = req.body || {};
@@ -515,7 +667,7 @@ module.exports = async function handler(req, res) {
 };
 ```
 
-Após criar: configurar `META_CAPI_KEY` como env var encrypted no projeto Vercel (Settings → Environment Variables → tipo Sensitive). **Nunca colocar o token no código ou em arquivos commitados.**
+Após criar: configurar `META_CAPI_KEY` como segredo da plataforma (9b). **Nunca colocar o token no código ou em arquivos commitados.**
 
 #### 9e.1: Proxy de pixel first-party (`api/pixel-js.js`), RECOMENDADO
 
@@ -558,7 +710,7 @@ No snippet HTML (9c), a URL do script é `/api/pixel-js` (`t.src='/api/pixel-js'
 
 #### 9e.2: Não criar relay de `facebook.com/tr`
 
-Não usar `fbq('set', 'endpoint', ...)` apontando para uma função que repassa hits a `facebook.com/tr`. A função sai do IP de datacenter da Vercel e a Meta não documenta aceitar `X-Forwarded-For`: o IP real do visitante se perde em todos os eventos de navegador. Cobertura para usuários com adblocker vem do CAPI no mesmo domínio (`api/capi.js`, 9e) e, se ativado no Events Manager, do Conversions API Gateway. O pixel envia direto para `facebook.com/tr`.
+Não usar `fbq('set', 'endpoint', ...)` apontando para uma função que repassa hits a `facebook.com/tr`. A função sai do IP de datacenter da hospedagem e a Meta não documenta aceitar `X-Forwarded-For`: o IP real do visitante se perde em todos os eventos de navegador. Cobertura para usuários com adblocker vem do CAPI no mesmo domínio (`api/capi.js`, 9e) e, se ativado no Events Manager, do Conversions API Gateway. O pixel envia direto para `facebook.com/tr`.
 
 #### 9e.3: ITP bypass para `_fbp` (`api/fbp-init.js`), OPCIONAL
 
@@ -688,7 +840,7 @@ clarity('set', 'vsl_progress', '75');           // no VSLProgress75
 clarity('set', 'scroll_depth_70', 'true');      // no ScrollDepth70
 clarity('set', 'modal_opened', 'true');         // no PrecheckoutOpen
 clarity('set', 'lead_captured', 'true');        // no Lead
-clarity('set', 'traffic_source', utm_source);   // extraído da URL
+clarity('set', 'traffic_source', utm_source);   // extraído da URL; valor com { ou } (macro do Meta não preenchida) não é enviado
 clarity('set', 'exit_intent', 'true');          // via mouseleave clientY < 5 (desktop only)
 ```
 
@@ -786,7 +938,7 @@ if ('serviceWorker' in navigator) {
 </script>
 ```
 
-`vercel.json` já deve ter `{ "source": "/sw.js", "headers": [{"key": "Cache-Control", "value": "no-cache"}] }` (ver 9a).
+`src/_headers` (ou o `vercel.json`) já deve ter `Cache-Control: no-cache` para `/sw.js` (ver 9a).
 
 #### 9m. Healthcheck endpoints (`api/healthcheck.js` + `api/capi-check.js`)
 
@@ -842,7 +994,7 @@ Com `api/selfcheck.js` (9n), acrescentar um quinto Keyword monitor nele (`"ok":t
 Na API v3 do UptimeRobot, o monitor keyword exige `httpMethodType=GET` (o padrão é HEAD, que não devolve corpo, e o alerta dispararia sempre) e `timeout` no corpo da criação. Monitor recém-criado demora alguns segundos para entrar na listagem: esperar antes de atribuir contatos de alerta, senão ele nasce sem avisar ninguém.
 
 Se `/api/healthcheck` cair: serverless functions quebradas → verificar o método de deploy (push no `main` ou CLI, nunca API REST com bundle local) e reverter por um deles.
-Se `/api/capi-check` cair: stack CAPI com falha → verificar `META_CAPI_KEY` nas env vars da Vercel antes de reverter o deploy.
+Se `/api/capi-check` cair: stack CAPI com falha → verificar `META_CAPI_KEY` nos segredos da plataforma antes de reverter o deploy.
 
 **Ler a razão navegador:servidor pela Graph API** (`GET /SEU_PIXEL_ID/stats?aggregation=event_source`), que conta só eventos de visitantes. Servidor > navegador é normal com CAPI + Conversions API Gateway ativos. A estatística por nome de evento da Meta só cobre ~26 h.
 
@@ -851,7 +1003,7 @@ Se `/api/capi-check` cair: stack CAPI com falha → verificar `META_CAPI_KEY` na
 Por quê: a taxa de carregamento da Meta só registra visita com pixel disparado. Com consentimento, ela mede chegada × consentimento e não basta para avaliar a página. Proporção bruta servidor:navegador também engana (ver abaixo). As peças abaixo separam "ferramenta quebrada" de "base quebrada".
 
 **Contador anônimo de chegadas** (`api/m.js` + snippet inline logo no início do `<head>`):
-- Contagens diárias agregadas em Redis (Upstash gratuito via Vercel Marketplace, que injeta `UPSTASH_REDIS_REST_URL/TOKEN` ou `KV_REST_API_URL/TOKEN`). Eventos: chegou, carregou (`load`), interagiu, tracking ativo (chamar `window._mConsent()` dentro de `loadTracking()`), faixa de permanência na saída. Tráfego pago separado por `utm_source`/`utm_term` quando `utm_medium=paid` (url_tags dos anúncios: `utm_source={{site_source_name}}&utm_medium=paid&utm_term={{placement}}`; é a convenção que o snippet lê, adaptar nos dois lados se mudar)
+- Contagens diárias agregadas em Redis (Upstash gratuito em conta própria, console.upstash.com, região mais perto do público; segredos `UPSTASH_REDIS_REST_URL/TOKEN`. Nunca pela integração do marketplace da Vercel: o token não pode ser lido de volta e o banco some junto com o projeto). Eventos: chegou, carregou (`load`), interagiu, tracking ativo (chamar `window._mConsent()` dentro de `loadTracking()`), faixa de permanência na saída. Tráfego pago separado por `utm_source`/`utm_term` quando `utm_medium=paid` (url_tags dos anúncios: `utm_source={{site_source_name}}&utm_medium=paid&utm_term={{placement}}`; é a convenção que o snippet lê, adaptar nos dois lados se mudar)
 - Recortes que explicam a taxa de carregamento: sistema do aparelho (`o=ios|and|out`, só a família), 1ª chegada do clique (`n=1`: fbclid da URL diferente do guardado em `localStorage.SEU_STORAGE_FBCLID`, gravado dentro de `loadTracking()`; nada sai do aparelho), configuração do pixel carregada (`cfg`), tempo até o envio (faixa fina `lt1|1to2|2to3` abaixo de 3 s) e até a saída (`lt3|3to6|6to10|gt10`)
 - Medição independente da Meta: `px` (fbevents carregou), `cfg` (configuração do pixel baixada), `tr` (requisição a `facebook.com/tr` vista por `PerformanceObserver` de recursos), `err` (erro de script do próprio domínio), `lcp` (faixa do LCP, enviada ao esconder a página; aba oculta não gera LCP), `cl` (script do Clarity carregou)
 - Funil da página, mesma via `window._mEv(evento, marco)`: `play` (capa do vídeo clicada), `vw` (marco do vídeo: tempo ou porcentagem), `sec` (seção que apareceu na tela, via `IntersectionObserver`, `x` = id da seção), `cta` (botão de compra clicado, `x` = posição do botão), `pc` (formulário do pré-checkout enviado, `x=send`). Chave `evento:marco`: um envio por marco, e o servidor valida o marco (regex por evento em `EXTRA`). Os ids de `sec` e de `cta` dependem da sua página: ajustar o `EXTRA` do `api/m.js`
@@ -861,7 +1013,7 @@ Por quê: a taxa de carregamento da Meta só registra visita com pixel disparado
 - Leitor de chegada soma só a chave principal (`<fonte>:arrive`): as chaves por posicionamento e por sistema são recortes da mesma chegada, e somá-las dobra o número
 - Privacidade: sem cookie, ID, IP ou UA gravados; o contador só lê o fbclid já guardado no navegador e envia 0 ou 1. Dado agregado sem identificador não é dado pessoal. Nunca logar body/headers
 - Corner cases: reload e voltar não contam (`navigation.type !== 'navigate'`); página prerender/`hidden` só conta ao ficar visível ou na primeira interação (webview pode reportar `hidden` por engano); fonte fora do padrão é descartada; sem env de storage o endpoint vira no-op (deploy seguro antes do storage)
-- Sandbox: o bloco do início do `<head>` desliga pixel, Clarity, contador e checkout fora do domínio oficial (prévia da Vercel, localhost), com selo vermelho na tela. A trava equivalente no servidor é a do `api/capi.js`
+- Sandbox: o bloco do início do `<head>` desliga pixel, Clarity, contador e checkout fora do domínio oficial (prévia, endereço da plataforma, localhost), com selo vermelho na tela. A trava equivalente no servidor é a do `api/capi.js`
 - Relatório: `GET /api/m?k=METRICS_REPORT_KEY&days=N` (env própria, mín. 24 caracteres). Comparar chegadas pagas com cliques de saída do Ads Manager por dia e plataforma
 
 **Monitor de saúde** (`api/tracking-health.js`): Dataset Quality API (`GET /dataset_quality?dataset_id=`, funciona com o mesmo token do CAPI) → EMQ, cobertura de servidor (meta da Meta: 75%) e dedup por `event_id`, incluindo InitiateCheckout (vigia a CAPI do checkout). Cache de CDN 10 min. UptimeRobot Keyword monitor `"ok":true`. Cobertura só reprova após `ENFORCE_FROM`, para a janela da Meta renovar depois de correções. EMQ baixo nunca reprova: oscila com volume pequeno e não pede ação, fica em `warnings`.
@@ -905,7 +1057,7 @@ Por quê: a taxa de carregamento da Meta só registra visita com pixel disparado
 <script>
 /* Modo do tracking: 'gate' = pixel só após interação (consentimento); 'load' = pixel ao abrir a página. Lido pelo bloco de consentimento e enviado ao contador. */
 window.TRACK_MODE='load';
-/* Sandbox: fora do domínio oficial (prévia da Vercel, localhost) nada sai para Meta, Clarity, contador nem checkout. Tudo vira aviso no console e um selo fixo na tela. */
+/* Sandbox: fora do domínio oficial (prévia, endereço da plataforma, localhost) nada sai para Meta, Clarity, contador nem checkout. Tudo vira aviso no console e um selo fixo na tela. */
 window.LP_SANDBOX=!/(^|\.)SEU-DOMINIO\.com$/.test(location.hostname);
 if(window.LP_SANDBOX){window.fbq=function(){try{console.info('[sandbox] pixel bloqueado:',[].slice.call(arguments,0,2).join(' '));}catch(e){}};window.clarity=function(){};
 window._sandboxAviso=function(t){try{console.info('[sandbox] '+t);var d=document.createElement('div');d.textContent=t;d.style.cssText='position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:2147483647;background:#b00020;color:#fff;font:600 14px/1.4 system-ui,sans-serif;padding:10px 14px;border-radius:8px;max-width:90vw;box-shadow:0 4px 16px rgba(0,0,0,.3)';document.body.appendChild(d);setTimeout(function(){d.remove();},4000);}catch(e){}};
@@ -917,7 +1069,8 @@ if(window.LP_SANDBOX||navigator.webdriver||!navigator.sendBeacon||!window.URLSea
 var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];
 if(n&&n.type&&n.type!=='navigate')return;
 var q=new URLSearchParams(location.search),paid=q.get('utm_medium')==='paid';
-var s=paid?(q.get('utm_source')||'na'):'org',p=paid?(q.get('utm_term')||'na'):'';
+var u=function(k){var v=q.get(k)||'';return /[{}]/.test(v)?'':v};/* macro do Meta não preenchida ({{...}}: prévia ou link compartilhado) conta como ausente */
+var s=paid?(u('utm_source')||'na'):'org',p=paid?(u('utm_term')||'na'):'';
 var fbv=q.get('fbclid'),fb=fbv?1:0,ua=navigator.userAgent,os=/iPhone|iPad|iPod/.test(ua)?'ios':/Android/.test(ua)?'and':'out',nv=0;
 try{nv=fbv&&localStorage.getItem('SEU_STORAGE_FBCLID')!==fbv?1:0}catch(e){}/* 1ª chegada deste clique neste aparelho: compara com o fbclid já guardado; nada sai do aparelho */
 var rf=/(^|\.)(facebook|instagram|threads)\.com$/.test((function(){try{return new URL(document.referrer).hostname}catch(e){return ''}})())?1:0;
@@ -949,9 +1102,9 @@ else start();
 </script>
 ```
 
-`api/_lib/redis.js` (compartilhado; o `_` no nome impede a Vercel de expor como rota):
+`api/_lib/redis.js` (compartilhado; o `_` no nome impede a plataforma de expor como rota):
 ```js
-// Acesso ao Upstash Redis (REST) compartilhado pelas funções. Arquivo com "_" não vira rota na Vercel.
+// Acesso ao Upstash Redis (REST) compartilhado pelas funções. Arquivo com "_" não vira rota.
 // Aceita os nomes padrão e qualquer prefixo da integração Upstash/KV (mesma regra de api/m.js).
 var crypto = require('crypto');
 
@@ -1034,7 +1187,7 @@ const MODES  = new Set(['gate', 'load']);
 const EXITS  = new Set(['lt3', '3to6', '6to10', 'gt10', '3to10', '10to30', 'gt30']);  // faixas antigas mantidas pro histórico
 const TTL    = 180 * 24 * 3600;
 
-// Aceita os nomes padrão e qualquer prefixo da integração Upstash/KV da Vercel
+// Aceita os nomes padrão e qualquer prefixo (Upstash próprio ou integração KV)
 // (ex: STORAGE_KV_REST_API_URL): o nome varia conforme o "Custom Prefix" escolhido na instalação.
 function pick(re, skip) {
   var keys = Object.keys(process.env).filter(function(k) { return re.test(k) && !skip.test(k); });
@@ -1115,7 +1268,7 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   if (!cfg) return res.status(204).end();
 
-  // sendBeacon manda text/plain (string); curl/form manda objeto já parseado pela Vercel: aceitar os dois
+  // sendBeacon manda text/plain (string); curl/form manda objeto já interpretado pela plataforma: aceitar os dois
   var b = req.body, q;
   if (typeof b === 'string') {
     if (!b || b.length > 300) return res.status(204).end();
@@ -1355,7 +1508,7 @@ module.exports = async function handler(req, res) {
 ### 10. Confirmar e orientar
 
 Informar ao usuário:
-1. Caminhos dos arquivos gerados (Guia, DS, vercel.json, api/capi.js e demais `api/`)
+1. Caminhos dos arquivos gerados (Guia, DS, `wrangler.toml`/`_headers`/`_redirects`/`functions/` ou `vercel.json`, api/capi.js e demais `api/`)
 2. Lista de campos `⬜` que restaram
 3. **Gerar preview da paleta**, sem esperar pedido: criar `preview-paleta.html` em `{pasta-base}/` (fora de `src/`, portanto fora do deploy) com swatches de todas as cores do DS, exemplos de tipografia (H1, H2, H3, body) e variantes do botão CTA. Se browser disponível: abrir com `mcp__claude-in-chrome__navigate`. Se browser indisponível: exibir tabela markdown com nome do token, hex e papel semântico. Em ambos os casos perguntar: "Essa paleta está certa?" e só avançar com aprovação
 4. Próximo passo após a paleta aprovada: construir a copy da LP e depois o HTML com tracking completo. Avisar que dois itens precisam ser providenciados antes do deploy: (a) a copy completa da LP (textos de todas as seções, headline, CTAs, depoimentos); (b) instalação do Meta Pixel no HTML e configuração dos eventos de conversão (PageView, Lead, etc.) conforme o passo 9 deste skill
@@ -1368,7 +1521,7 @@ Informar ao usuário:
 - **Nunca** usar valores de nenhum produto como placeholder: nem paleta, nem Pixel ID, nem URLs, nem copy. Cada produto começa do zero.
 - O Guia e o DS são documentos vivos: atualizar conforme a LP evolui.
 - **Tracking não é opcional em LPs de infoproduto.** Sem Pixel + CAPI, o Meta Ads Manager não consegue otimizar campanhas e o EMQ fica baixo. Verificar `api/capi.js` + `META_CAPI_KEY` antes de qualquer deploy que vá receber tráfego pago.
-- **`META_CAPI_KEY` fica no `.env` da raiz do projeto (para uso local) e como env Sensitive na Vercel.** O `.env` precisa estar no `.gitignore`, e a chave nunca é commitada. Ao gravar, usar `CHAVE=VALOR` sem aspas e sem espaços ao redor do `=`. Se a chave já existir no `.env`, atualizar o valor (não duplicar a linha). `VERCEL_TOKEN`, quando preciso, é exportado na hora e nunca salvo.
+- **`META_CAPI_KEY` fica no `.env` da raiz do projeto (para uso local) e como segredo da plataforma.** O `.env` precisa estar no `.gitignore`, e a chave nunca é commitada. Ao gravar, usar `CHAVE=VALOR` sem aspas e sem espaços ao redor do `=`. Se a chave já existir no `.env`, atualizar o valor (não duplicar a linha). `VERCEL_TOKEN`, quando preciso, é exportado na hora e nunca salvo.
 - **Nunca peça login ou senha do Facebook Business.** Só o Pixel ID e o Access Token, que o usuário cola no chat.
 - Nunca inclua eventos sem que façam sentido para o tipo de página.
 - **Self-hosting de assets, sem exceções:** toda imagem, fonte e ícone deve estar em `assets/` e subir no deploy. Thumbnails YouTube: baixar e converter para WebP + AVIF onde menor. Google Fonts: self-hospedar subset latin WOFF2. Ícones: SVG inline.
