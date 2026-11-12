@@ -400,6 +400,7 @@ def load_words(transcript_path: str) -> list[dict]:
 
 MIN_COMMA_PIECE = 0.5  # s mínimos do pedaço antes da vírgula pra preferir quebrar nela
 HOOK_MAX_GAP = 0.7  # s de silêncio que encerra o hook mesmo sem pontuação
+GLUE_MAX_GAP = 0.5  # s de pausa a partir da qual um card curto nunca é colado no seguinte
 
 
 def output_timeline(edl_path: str, transcript_path: str, fps: float = 24.0) -> tuple[list[dict], float]:
@@ -498,6 +499,19 @@ def _find_list_items(words_group) -> list[list[dict]] | None:
     return items if len(items) >= 3 else None
 
 
+# Palavra que não fecha card quando a quebra é por largura: vai pro card seguinte junto do que ela
+# introduz ("de 10 anos", "o que fazer"). Número também: número e unidade são um termo só ("10 anos").
+WEAK_END = {"e", "o", "a", "os", "as", "de", "do", "da", "dos", "das", "em", "no", "na", "nos", "nas",
+            "que", "pra", "para", "pro", "com", "um", "uma", "há", "mais", "por", "se", "ao", "à", "nesse",
+            "nessa", "neste", "nesta", "seu", "sua", "meu", "minha", "mas", "ou", "como", "muito", "numa",
+            "num", "eu", "te", "me", "você", "vai", "não", "esse", "essa", "isso"}
+
+
+def _weak_end(w) -> bool:
+    core = re.sub(r"[^\w]", "", w["text"]).lower()
+    return (core in WEAK_END or core.isdigit()) and not w["text"].rstrip().endswith((",", ".", "?", "!", ":"))
+
+
 def _greedy_split(words_group, font, max_w, draw, stroke_width, max_lines) -> list[list[dict]]:
     result, cur = [], []
     for w in words_group:
@@ -522,8 +536,15 @@ def _greedy_split(words_group, font, max_w, draw, stroke_width, max_lines) -> li
                 result.append(cur[:comma_idx + 1])
                 cur = cur[comma_idx + 1:] + [w]
             else:
-                result.append(cur)
-                cur = [w]
+                k = len(cur)
+                while k > 1 and _weak_end(cur[k - 1]):
+                    k -= 1
+                if k < len(cur) and len(wrap_fits(" ".join(x["text"] for x in cur[k:] + [w]), font, max_w, draw, stroke_width)) > max_lines:
+                    k = len(cur)  # não cabe junto do que introduz: melhor no fim deste card que sozinho
+                if k < len(cur) and len(wrap_fits(" ".join(x["text"] for x in cur[k:] + [w]), font, max_w, draw, stroke_width)) > max_lines:
+                    k = len(cur)  # não cabe junto do que introduz: melhor no fim deste card que sozinho
+                result.append(cur[:k])
+                cur = cur[k:] + [w]
         else:
             cur.append(w)
     if cur:
@@ -837,7 +858,8 @@ def main() -> None:
         cta_pair = bool(_CTA_TRIGGER_PATTERN.match(w["text"])) and len(nxt_core) > 1 and nxt_core.isupper()
         if cta_pair and not seg_changes:
             continue
-        if closes_quote or end_here or is_cohesive_end or gap >= gap_thresh or seg_changes or i == len(body_words) - 1:
+        comma_here = w["text"].rstrip().endswith(",") and w["end"] - cur[0]["start"] >= MIN_COMMA_PIECE
+        if closes_quote or end_here or comma_here or is_cohesive_end or gap >= gap_thresh or seg_changes or i == len(body_words) - 1:
             groups.append(cur)
             cur = []
     if cur:
@@ -858,8 +880,10 @@ def main() -> None:
         while dur < min_dur and j + 1 < len(groups):
             if groups[j][-1]["seg"] != groups[j + 1][0]["seg"]:
                 break
-            if groups[j][-1]["text"].rstrip('"\'').endswith(PUNCT_END):
+            if groups[j][-1]["text"].rstrip('"\'').endswith(PUNCT_END + (",",)):
                 break
+            if groups[j + 1][0]["start"] - groups[j][-1]["end"] >= GLUE_MAX_GAP:
+                break  # pausa ou corte entre os dois: o curto segura a tela no silêncio (pass 4)
             if groups[j][-1].get("_no_glue") or groups[j + 1][0].get("_no_glue"):
                 break
             candidate = g + groups[j + 1]

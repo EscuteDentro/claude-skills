@@ -166,6 +166,14 @@ backspace (`\x08`), não o word-boundary de regex — sempre escrever `\\b` no a
 14. **Quebra na vírgula só se o pedaço antes dela ficar ≥0,5s na tela** (`MIN_COMMA_PIECE`).
     Vírgula de vocativo logo no início ("Cara, nem acredito...") gerava card de 1 palavra
     piscando por 0,15s.
+15. **Um card é uma unidade de sentido; na dúvida, menos palavras.** Vírgula, pausa coloquial,
+    fecha o card como o ponto (com o piso do item 14); uma palavra por card é melhor que juntar
+    dois blocos de sentido. Quebra por largura nunca deixa no fim do card palavra que introduz o
+    que vem (`e`, `o`, `de`, `que`, `pra`, `mais`...) nem número separado da unidade ("10 | anos"):
+    essas passam pro card seguinte (`WEAK_END`).
+16. **Card curto nunca é colado no seguinte por cima de vírgula, ponto ou pausa ≥0,5 s**
+    (`GLUE_MAX_GAP`); nessa pausa ele segura a tela (pass 4). Pausa grande no tempo da fonte quase
+    sempre é corte: colar ali faz o card atravessar a emenda e qualquer efeito que entra nela.
 
 ## Formato dos arquivos de entrada
 
