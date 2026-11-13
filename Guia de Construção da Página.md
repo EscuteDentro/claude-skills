@@ -775,6 +775,18 @@ Resultado observado: 35KB → 25KB (−28%, com layout features/kerning preserva
 - Risco: zero. O browser baixa silenciosamente apenas se houver banda disponível
 - Impacto: percepção de velocidade no momento de conversão (pós-clique no CTA)
 
+#### Padrão em toda página nova ou mudada (sem esperar pedido)
+
+Performance é critério de pronto, como o texto e o tracking: toda página nova ou mudança de página passa por estas regras antes de subir, com prova medida. Só entra o que não muda nada que a pessoa vê nem a medição; ganho com qualquer custo visual, de usabilidade ou de tracking vai ao dono da página como decisão, com o trade-off.
+
+- **Decidir pela medida real, nunca por uma nota do PageSpeed.** A nota mobile oscila 10–15 pontos entre execuções da mesma versão (é simulação, e conta como "antes do LCP" tudo que começou antes da imagem pintar na máquina deles). Medir no Chrome com celular emulado, 4G lento (150 ms, 1,6 Mbps) e CPU 4x, várias rodadas alternadas, mediana; diferença < ~30 ms é ruído. PageSpeed só confirma, em 3 execuções
+- **Mudança que deveria ser invisível: provar pixel a pixel.** Captura da página inteira (celular e computador, todas as páginas que usam o arquivo) antes e depois: 0 pixel diferente. Antialias diferente também é diferença: não entra
+- **Fonte variável:** cortar só o que nenhum navegador pode pedir e conferir pixel a pixel. Na prática: pesos abaixo do menor usado, mantendo o valor padrão do eixo dentro da faixa (Inter 100–900 → 400–900: −22%, idêntica). Fontes com tabela `avar` não linear (ex.: Fraunces) mudam o traço mesmo com o padrão preservado: ficam originais. Nunca cortar o topo de peso ou de tamanho óptico: navegador pode pedir mais (negrito 700 com `@font-face` até 600 no Safari; texto ampliado pela acessibilidade do Android passa do maior tamanho do CSS)
+- **Reserva de fonte para cada família, inclusive serifada, sobre Arial e sobre Roboto.** Android não tem Arial: sem a reserva sobre `local('Roboto')`, a página inteira cai na fonte do sistema sem ajuste e pula quando a fonte chega (medido: foto do topo 30 px, página 400–600 px). Calibrar o `size-adjust` pela medida (topo Δ 0 e mesmo número de linhas do título com a fonte bloqueada e carregada, 6 larguras, computador e Android simulado), nunca só pela conta de largura média
+- **Pixel depois da 1ª pintura do topo:** no `load`, esperar `img.decode()` da imagem com `fetchpriority="high"` e 1 quadro (`requestAnimationFrame` → `setTimeout 0`); aba em segundo plano ou página sem essa imagem: na hora; rede de segurança de 4 s. Medido: 0 a 20 ms no visitante, e o pixel (~300 KB) sai da conta do LCP do PageSpeed
+- **Arquivo com cache imutável: conteúdo novo, nome novo** (sufixo `-N`), e o antigo continua publicado para o HTML em cache. O CDN segue entregando o conteúdo antigo no mesmo nome por meses
+- **Não reabrir o que já foi medido e descartado:** `decoding="async"` na imagem do LCP é neutro (lab: diferença dentro do ruído); `font-display: optional` para navegador sem `size-adjust` troca a fonte do design pela do sistema na 1ª visita (custo estético): só com aceite do dono da página
+
 ### Diagnóstico por sintoma
 
 | Sintoma | Causa mais provável | Fix |
