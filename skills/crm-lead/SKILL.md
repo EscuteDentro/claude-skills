@@ -102,9 +102,13 @@ Cria/atualiza um contato no Google Contatos pra cada lead elegível (nunca pra q
 	2. Microsoft Clarity, se a página usa: gravações numa janela de ~1h antes do cadastro; o cartão mostra referrer e app, a aba Info mostra a cidade. Casar pela cidade do DDD do telefone (o horário pode diferir ~1 min pelo relógio do aparelho)
 	3. Gravar o canal achado em `UTM Source` e, numa coluna de observação, a dedução e a fonte. Campanha/anúncio só com o passo 1 fechado. Valor com `{`/`}` que restar na linha: apagar
 4. Se ativou a ferramenta 6: `python3 plan_contacts_update.py` → mostrar plano completo (renomear/criar) → só com confirmação, `python3 execute_contacts_update.py`.
+4.5. **Linhas de teste:** `python3 limpar_linhas_teste.py "<aba>"` (dry-run; `--executar` apaga). Pega nome `teste`/`test` ou telefone de dígito repetido (`11999999999`), relê cada linha antes de apagar e corrige os `Ver linha N` que apontavam pra baixo dela.
 5. Fechar com um resumo: quantas duplicatas achadas/marcadas, quantos leads sem contato (com link), quantos contatos renomeados/criados. Sem inventar número — só o que os scripts realmente reportaram. Ponto de atenção só depois de cruzado com a Sheet: pra cada nome que um script sinalizou, ler `Status CRM` e, se houver, a `Observação` da FUP; caso já registrado como resolvido (contatado por outro canal, telefone corrigido, número estrangeiro que funciona) fica fora do resumo. Linha `sem variante aplicável` do `add_phone_variant.py` é caso esperado, nunca pendência.
 
 ## Regras absolutas — nunca violar, mesmo se pedido
+
+- **Contato existente nunca é alterado por uma origem nova de leads.** Ao ligar uma segunda planilha/aba de leads (outro produto, quiz, isca), o sync dela só CRIA contato: número já salvo em qualquer contato (com ou sem o 9) ou e-mail já salvo, pula. Protege familiar, cliente e lead da outra origem sem lista à mão. Nome com sufixo próprio da origem; primeiro nome repetido ganha o 2º nome ou os 2 últimos dígitos do telefone colados (`Maria87`)
+- **Máscara de telefone nunca corta antes de tirar o DDI.** Campo "DDD + número" que corta em 11 dígitos transforma "+55 51 99017-8787" em "(55) 51990-1787": os 2 últimos dígitos somem e o número errado passa. Tirar `55` (acima de 11 dígitos) e zero inicial antes do corte; validar DDD real e o 9 na frente do celular de 11 dígitos
 
 - Nunca gerar link `wa.me` nem sugerir texto de mensagem pra quem tem `Consentiu WA = Não`. Nunca contar essa pessoa como alvo de contato.
 - Link gerado é só pra o usuário clicar — o Claude nunca clica, nunca envia, nunca abre WhatsApp Web pra mandar nada.
