@@ -107,6 +107,7 @@ Cria/atualiza um contato no Google Contatos pra cada lead elegível (nunca pra q
 
 ## Regras absolutas — nunca violar, mesmo se pedido
 
+- **Link `wa.me` pra lead que nunca escreveu é contato frio.** Dezenas de primeiras mensagens iguais (com link e preço) a quem não salvou o número restringem a conta por 24h; repetir pode banir. Nunca sugerir disparo em lote pelo número pessoal; ritmo "seguro" de envio frio não existe em fonte oficial. Canal certo: o lead escreve primeiro (botão no site) ou template pela API oficial (https://faq.whatsapp.com/717472490411581)
 - **Contato existente nunca é alterado por uma origem nova de leads.** Ao ligar uma segunda planilha/aba de leads (outro produto, quiz, isca), o sync dela só CRIA contato: número já salvo em qualquer contato (com ou sem o 9) ou e-mail já salvo, pula. Protege familiar, cliente e lead da outra origem sem lista à mão. Nome com sufixo próprio da origem; primeiro nome repetido ganha o 2º nome ou os 2 últimos dígitos do telefone colados (`Maria87`)
 - **Máscara de telefone nunca corta antes de tirar o DDI.** Campo "DDD + número" que corta em 11 dígitos transforma "+55 51 99017-8787" em "(55) 51990-1787": os 2 últimos dígitos somem e o número errado passa. Tirar `55` (acima de 11 dígitos) e zero inicial antes do corte; validar DDD real e o 9 na frente do celular de 11 dígitos
 
