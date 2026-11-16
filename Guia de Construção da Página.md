@@ -916,6 +916,28 @@ Referência real (LP de infoproduto aplicando este Guia): **97 Performance / 96 
 - **`robots.txt`**: diretivas para crawlers; `Sitemap:` apontando para `sitemap.xml`; `Disallow:` para versões de preview/staging que não devem ser indexadas antes do deploy
 - **`sitemap.xml`**: submeter no Google Search Console após deploy; atualizar `<lastmod>` a cada mudança de conteúdo relevante
 
+### 7.1 Aparecer nas respostas das IAs (AEO fora da página)
+
+- **Mecanismo:** IA com busca ligada procura na web na hora e cita a página que responde a pergunta com mais clareza. Página que nenhum buscador conhece não existe para a IA
+- **Cada IA busca num índice:** ChatGPT, Copilot e Meta AI usam muito o Bing; Gemini e o resumo de IA do Google usam o Google; Claude usa o Brave; Perplexity tem índice próprio; Grok usa X + web. Google + Bing cobrem quase todo o uso
+- **Indexação, no dia da publicação:**
+	- Endereço oficial único (o que o servidor entrega sem redirecionar) em canonical, `og:url`, JSON-LD, sitemap, `robots.txt` e links do `llms.txt`. Apontar para endereço que redireciona confunde o indexador
+	- Search Console com a propriedade do endereço oficial (prefixo com `www` se o site serve no `www`) + sitemap + "Solicitar indexação"
+	- Bing Webmaster Tools: site verificado (`BingSiteAuth.xml` na raiz) + sitemap + "Request indexing" (cota de ~100 URLs/dia)
+	- IndexNow: arquivo `<chave>.txt` na raiz (nome igual ao conteúdo) e POST em `https://api.indexnow.org/indexnow` (`host`, `key`, `keyLocation`, `urlList`) a cada página nova ou mudada; 200/202 é aceito
+	- Brave: sem painel; enviar a URL em `search.brave.com/submit-url`
+	- Arquivos de verificação nunca saem do deploy
+	- Conferir: inspeção de URL no Search Console e no Bing ("URL desconhecida" = invisível para ChatGPT e Copilot)
+- **Uma página por resposta:** cada dúvida de nicho com resposta própria ganha página própria (título e primeira frase com a pergunta nas palavras de quem busca, resposta direta nas 2 primeiras frases, tudo em texto). Perguntas com a mesma resposta viram uma página só: página quase igual a outra é o gatilho da punição do Google por conteúdo em escala
+	- Nicho aparece em semanas; pergunta genérica ("o que é X") disputa com Wikipédia e portais grandes e pode não vir
+	- Ordem: volume de busca × chance de ser a melhor resposta
+	- Diferentes em tudo que o buscador compara: URL, `<title>`, `h1`, `meta description`, primeira frase, corpo e JSON-LD
+	- Fonte preferida: fala ou texto já publicado pelo autor, literal (sem revisão de conteúdo; só o encaixe pergunta ↔ trecho). Texto reescrito por IA passa por revisão do autor
+	- Página-resposta sem pixel de anúncio (tema de saúde marca o pixel); medição pelo contador próprio
+- **Medir citação:**
+	- Grátis: Search Console (Google, inclui resumo de IA), relatório "AI Performance" do Bing (citações no Copilot), visitas vindas de IA (referrer ou `utm_source` como `chatgpt.com`, `perplexity.ai`, `gemini.google.com`, `copilot.microsoft.com`, `claude.ai`)
+	- Amostra mensal das perguntas de maior volume pela API com busca (Gemini na cota gratuita; ChatGPT e Perplexity pagos, centavos por pergunta)
+
 ### 8. Performance como fator de SEO
 
 Core Web Vitals afetam ranking diretamente: LCP < 2.5s, CLS < 0.1, INP < 200ms. Ver playbook completo na seção `## Performance` deste Guia: inclui regras ordenadas por impacto, diagnóstico e meta de score.
