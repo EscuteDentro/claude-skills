@@ -927,6 +927,7 @@ Referência real (LP de infoproduto aplicando este Guia): **97 Performance / 96 
 	- IndexNow: arquivo `<chave>.txt` na raiz (nome igual ao conteúdo) e POST em `https://api.indexnow.org/indexnow` (`host`, `key`, `keyLocation`, `urlList`) a cada página nova ou mudada; 200/202 é aceito
 	- Brave: sem painel; enviar a URL em `search.brave.com/submit-url`
 	- Arquivos de verificação nunca saem do deploy
+	- Página-resposta gerada em lote: texto vindo de fala ou texto do autor, editado para escrita e barrado por programa se trouxer vocabulário novo (acima de ~10%), número fora da fonte, marca de IA, promessa de saúde ou oralidade; pares com mais de ~40% de texto em comum viram uma página só; sem pixel de anúncio; contador próprio por origem (IA, Google, Bing)
 	- Conferir: inspeção de URL no Search Console e no Bing ("URL desconhecida" = invisível para ChatGPT e Copilot)
 - **Uma página por resposta:** cada dúvida de nicho com resposta própria ganha página própria (título e primeira frase com a pergunta nas palavras de quem busca, resposta direta nas 2 primeiras frases, tudo em texto). Perguntas com a mesma resposta viram uma página só: página quase igual a outra é o gatilho da punição do Google por conteúdo em escala
 	- Nicho aparece em semanas; pergunta genérica ("o que é X") disputa com Wikipédia e portais grandes e pode não vir
