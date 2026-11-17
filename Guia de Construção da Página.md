@@ -935,9 +935,17 @@ Referência real (LP de infoproduto aplicando este Guia): **97 Performance / 96 
 	- Diferentes em tudo que o buscador compara: URL, `<title>`, `h1`, `meta description`, primeira frase, corpo e JSON-LD
 	- Fonte preferida: fala ou texto já publicado pelo autor, literal (sem revisão de conteúdo; só o encaixe pergunta ↔ trecho). Texto reescrito por IA passa por revisão do autor
 	- Página-resposta sem pixel de anúncio (tema de saúde marca o pixel); medição pelo contador próprio
+	- Texto sem marca de IA nem de fala: lista de verificação (travessão, negação seguida de afirmação, fecho "talvez o importante seja"/"no fim das contas", anúncio do ponto, pergunta retórica, trio por reflexo, frase de efeito no fim do parágrafo, conectivo de redação, vocabulário inflado) aplicada por programa e por uma leitura final frase a frase
+	- Tema de saúde: só como experiência de prática, nunca efeito certo ou tratamento; aviso fixo de que não substitui acompanhamento, com o telefone de apoio emocional do país
+	- Autor identificável: página `/sobre` com a trajetória, JSON-LD `Person` com `sameAs` das redes, linha de autor em cada resposta ligando a ela
+	- Busca que quer apertar o play ("meditação guiada para dormir"): a página dá a prática em texto, passo a passo, e o vídeo/áudio no YouTube atende o resto
+- **Virar referência fora do site:** a IA cita quem o resto da web cita; menção da marca em outros sites pesa mais que link (Ahrefs, 75 mil marcas: 0,66 contra 0,22 no resumo de IA do Google)
+	- O que cada IA mais cita: ChatGPT, Wikipédia e Reddit; Google/Gemini, YouTube e Reddit; Perplexity, Reddit
+	- Ordem pelo peso do canal no país: YouTube próprio (título = pergunta, descrição abrindo com a resposta e o link da página), presença dentro do ChatGPT (app/plugin), Reddit com conta pessoal e resposta completa sem link, menção em portais e podcasts
+	- Baixo retorno: copiar o mesmo texto em Substack/Medium (divide a citação), Quora fora dos EUA, Wikipédia sobre si mesmo (proibido)
 - **Medir citação:**
 	- Grátis: Search Console (Google, inclui resumo de IA), relatório "AI Performance" do Bing (citações no Copilot), visitas vindas de IA (referrer ou `utm_source` como `chatgpt.com`, `perplexity.ai`, `gemini.google.com`, `copilot.microsoft.com`, `claude.ai`)
-	- Amostra mensal das perguntas de maior volume pela API com busca (Gemini na cota gratuita; ChatGPT e Perplexity pagos, centavos por pergunta)
+	- Amostra mensal das perguntas de maior volume pela API com busca (Gemini na cota gratuita; ChatGPT e Perplexity pagos, centavos por pergunta); Claude pelo ranking no Brave (API com crédito mensal grátis). Automatizar o site das IAs fere os termos de uso
 
 ### 8. Performance como fator de SEO
 
